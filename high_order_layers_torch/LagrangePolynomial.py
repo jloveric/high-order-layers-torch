@@ -1,18 +1,15 @@
 import numpy as np
 import math
 
-def chebyshevLobatto(int k, int n)
-    # rescale range to be between 0 and 1
-    if k == 0 :
-        return 0.0
-
-    if (k == (n - 1))
-        return 1.0
+def chebyshevLobatto(n) :
 
     k = np.arange(0,n)
-    
 
-    return 0.5 * (-cos(k * math.pi / (n - 1)) + 1.0)
+    ans =  (-np.cos(k * math.pi / (n - 1)) + 1.0)-1.0
+
+    ans = np.where(np.abs(ans)<1e-15,0,ans)
+
+    return ans
 
 
 
