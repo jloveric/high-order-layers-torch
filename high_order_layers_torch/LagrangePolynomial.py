@@ -12,12 +12,11 @@ def chebyshevLobatto(n) :
     return ans
 
 
-
 class LagrangePoly:
 
-    def __init__(self, X, Y):
-        self.n = len(X)
-        self.X = np.array(X)
+    def __init__(self, n):
+        self.n = n
+        self.X = chebyshevLobatto(n)
 
     def basis(self, x, j):
         b = [(x - self.X[m]) / (self.X[j] - self.X[m])
