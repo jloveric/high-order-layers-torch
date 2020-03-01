@@ -1,22 +1,28 @@
 import torch.nn as nn
 from torch.autograd import Variable
+from LagrangePolynomial import *
 
 class Polynomial(nn.Module):
-    def __init__(self,basis):
-        self.a = nn.Parameter(torch.zeros(1))
-        self.b = nn.Parameter(torch.zeros(1))
-        self.c = nn.Parameter(torch.zeros(1))
-        self.basis = basis
-
+    def __init__(self,n, in_features, out_features):
+        self.poly = LagrangePoly(n)
+        self.n = n
+        
+        #self.w = nn.Parameter(torch.zeros(n))
+        self.w = torch.nn.Parameter(data=torch.Tensor(out_features, in_features*n), requires_grad=True)
+        self.w.data.uniform_(-1, 1)
+        #self.reset_parameters()
+        
     def forward(self, x):
-        # unfortunately we don't have automatic broadcasting yet
-        a = self.a.expand_as(x)
-        b = self.b.expand_as(x)
-        c = self.c.expand_as(x)
-        return a * torch.exp((x - b)^2 / c)
+        #unfortunately we don't have automatic broadcasting yet
+        #w = self.w.expand_as(x)
+        fx = self.poly.interpolate(x, self.w)
 
+        return fx
+
+'''
 module = Gaussian()
 x = Variable(torch.randn(20))
 out = module(x)
 loss = loss_fn(out)
 loss.backward()
+'''
