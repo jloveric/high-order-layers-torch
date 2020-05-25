@@ -19,7 +19,7 @@ import os
 
 offset = -0.1
 factor = 1.5 * 3.14159
-xTest = torch.arange(100) / 50 - 1.0
+xTest = torch.arange(100) / 50.0 - 1.0
 yTest = 0.5 * torch.cos(factor * (xTest - offset))
 
 
@@ -96,7 +96,8 @@ for i in range(0, len(thisModelSet)):
         marker=symbol[i],
         label=thisModelSet[i]['name'])
 
-plt.plot(xTest, yTest, '-', label='actual', color='black')
+print('xTest', xTest, 'yTest', yTest)
+plt.plot(xTest.data.numpy(), yTest.data.numpy(), '-', label='actual', color='black')
 plt.title('fourier synapse - no hidden layers')
 plt.xlabel('x')
 plt.ylabel('y')
