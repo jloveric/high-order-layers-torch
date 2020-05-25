@@ -6,7 +6,15 @@ synaptic weights
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch.nn import functional as F
+from torch.utils.data import DataLoader
 import high_order_layers_torch.PolynomialLayers as poly
+from torchvision.datasets import MNIST
+from pytorch_lightning import LightningModule, Trainer
+from torchvision import transforms
+from torch.utils.data import random_split
+
+import os
 
 offset = -0.1
 factor = 1.5 * 3.14159
@@ -15,6 +23,49 @@ yTest = 0.5 * np.cos(factor * (xTest - offset))
 
 xTrain = tf.random.uniform([1000], minval=-1.0, maxval=1, dtype=tf.float32)
 yTrain = 0.5 * tf.math.cos(factor * (xTrain - offset))
+
+
+class FunctionDataset(Dataset):
+    def __init__(self, transform=None):
+        self.x = torch.random(
+            [1000], minval=-1.0, maxval=1, dtype=tf.float32)
+        self.y = 0.5 * tf.math.cos(factor * (xTrain - offset))
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        sample = {'x': self.x[idx], 'y': self.y[idx]}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
+
+
+class PolynomialFunctionApproximation(LightningModule):
+    def __init__(self, poly_order):
+        super().__init__()
+        self.layer = poly.Polynomial(poly_order+1, 1, 1)
+
+    def forward(self, x):
+        return self.layer(x.view(x.size(0), -1))
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        return {'loss': F.mse_loss(y_hat, y)}
+
+    def train_dataloader(self):
+        return DataLoader(MNIST(os.getcwd(), train=True, download=True, transform=transforms.ToTensor()), batch_size=32)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.02)
+
 
 modelSetD = [
     {'name': 'Discontinuous 1', 'func': poly.b1D},
@@ -39,19 +90,10 @@ thisModelSet = modelSetC
 
 for i in range(0, len(thisModelSet)):
 
-    model = tf.keras.models.Sequential([
-        poly.Polynomial(1, basis=thisModelSet[i]['func']),
-        #fourier.Fourier(1, frequencies=20),
-    ])
-
-    model.compile(optimizer='adam',
-                  loss='mean_squared_error',
-                  metrics=['mean_squared_error'])
-
-    model.fit(xTrain, yTrain, epochs=10, batch_size=1)
-    model.evaluate(xTrain, yTrain)
-
-    predictions = model.predict(xTest)
+    trainer = Trainer()
+    model = PolynomialFunctionApproximation(poly_order=i+1)
+    trainer.fit(model)
+    predictions = model(xTest)
 
     plt.scatter(
         xTest,

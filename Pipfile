@@ -8,9 +8,10 @@ torch = "*"
 torchvision = "*"
 sklearn = "*"
 scipy = "*"
+pytorch-lightning = "*"
 
 [dev-packages]
 matplotlib = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3"

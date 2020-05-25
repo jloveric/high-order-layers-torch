@@ -18,11 +18,3 @@ class Polynomial(nn.Module):
         fx = self.poly.interpolate(x, self.w)
 
         return fx
-
-'''
-module = Gaussian()
-x = Variable(torch.randn(20))
-out = module(x)
-loss = loss_fn(out)
-loss.backward()
-'''
