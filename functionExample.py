@@ -17,18 +17,29 @@ from high_order_layers_torch.PolynomialLayers import *
 
 import os
 
-offset = -0.1
+offset = -0.0
 factor = 1.5 * 3.14159
-xTest = torch.arange(100) / 50.0 - 1.0
+#xTest = torch.arange(100) / 50.0 - 1.0
+xTest = np.arange(100)/50.0-1.0
+xTest = torch.stack([torch.tensor(val) for val in xTest])
+
+#xTrain = 2.0*torch.rand(1000)-1.0
+print('xTest.size',xTest.size())
+xTest = xTest.view(-1,1)
+print('xTest.size',xTest.size())
 yTest = 0.5 * torch.cos(factor * (xTest - offset))
+yTest = yTest.view(-1,1)
+print('yTest.size',yTest.size())
 
 
+# Loader for reading in a local dataset
 class FunctionDataset(Dataset):
     def __init__(self, transform=None):
-        offset = -0.1
+        offset = -0.0
         factor = 1.5 * 3.14159
-        self.x = torch.rand(1000)
-        self.y = 0.5 * torch.cos(factor * (self.x - offset))
+        self.x = (2.0*torch.rand(1000)-1.0).view(-1,1)
+        #self.x = torch.rand(1000)
+        self.y = (0.5 * torch.cos(factor * (self.x - offset))).view(-1,1)
         self.transform = transform
 
     def __len__(self):
@@ -38,13 +49,15 @@ class FunctionDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        return self.x[idx], self.y[idx]
+        return self.x.clone().detach()[idx], self.y.clone().detach()[idx]
 
-
+# Simple network consisting of on input and one output
+# and no hidden layers.
 class PolynomialFunctionApproximation(LightningModule):
     def __init__(self, poly_order):
         super().__init__()
-        self.layer = poly.Polynomial(poly_order+1, 1, 1)
+        #self.layer = poly.Polynomial(poly_order+1, 1, 1)
+        self.layer = poly.PiecewiseDiscontinuousPolynomial(poly_order+1, 1, 1, 5)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -82,13 +95,14 @@ symbol = ['+', 'x', 'o', 'v', '.']
 
 thisModelSet = modelSetC
 
-for i in range(0, len(thisModelSet)):
+for i in range(1) : #range(0, len(thisModelSet)):
 
     trainer = Trainer(max_epochs=1)
     model = PolynomialFunctionApproximation(poly_order=i+1)
     trainer.fit(model)
     predictions = model(xTest)
-
+    print('model.w',model.layer.w)
+    print('predictions',predictions)
     plt.scatter(
         xTest.data.numpy(),
         predictions.flatten().data.numpy(),
@@ -96,7 +110,6 @@ for i in range(0, len(thisModelSet)):
         marker=symbol[i],
         label=thisModelSet[i]['name'])
 
-print('xTest', xTest, 'yTest', yTest)
 plt.plot(xTest.data.numpy(), yTest.data.numpy(), '-', label='actual', color='black')
 plt.title('fourier synapse - no hidden layers')
 plt.xlabel('x')
