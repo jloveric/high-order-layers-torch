@@ -30,10 +30,10 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         self._poly = LagrangePoly(n)
         self._n = n
         self._segments = segments
-
+        self.in_features = in_features
         #self.w = nn.Parameter(torch.zeros(n))
         self.w = torch.nn.Parameter(data=torch.Tensor(
-            out_features, in_features*n*segments), requires_grad=True)
+            in_features, in_features*n*segments), requires_grad=True)
         self.w.data.uniform_(-1, 1)
         # self.reset_parameters()
 
@@ -73,22 +73,27 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
 
         # print('w',self.w.size())
         # print('wid_min',wid_min,'wid_max',wid_max)
-
+        #print('x.size()',x.size())
         w_list = []
-        for i, val in enumerate(self.w):
+        for i in range(list(x_in.size())[0]):
             #print('i', i)
             #print('wid', wid_min[i], wid_max[i])
-            w = val[wid_min[i]:wid_max[i]]
+            id_1 = wid_min[i].numpy()[0]
+            id_2 = wid_max[i].numpy()[0]
+            w = self.w[:,id_1:id_2]
+            #print('w.shape', w.size(), id_1, id_2)
             # TODO: clone doesn't actually seem necessary here.
-            w_list.append(w.clone())
+            w_list.append(w)
             # print('w_in',self.w_in.size())
         #print('w_list', w_list)
+        #print('xs', list(x.size())[-1])
         w_in = torch.stack(w_list)
-        #print('w_in', w_in)
+        #print('w_in.size', w_in.size())
         # print('w_in.shape', w_in.size(), 'self.w.shape',
         #      self.w.size(), 'x_in.size', x_in.size())
+        #print('x', x, 'x_in', x_in, 'w_in', w_in)
         fx = self._poly.interpolate(x_in, w_in)
-
+        #print('fx', fx)
         return fx
 
     def _eta(self, index):

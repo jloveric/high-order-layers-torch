@@ -30,6 +30,6 @@ class LagrangePoly:
 
     def interpolate(self, x, w):
         # Todo this can probably be made more efficient
-        b = [self.basis(x, j)*w[:, j] for j in range(self.n)]
+        b = [self.basis(x, j)*w[:, :,j] for j in range(self.n)]
         b = torch.stack(b)
         return torch.sum(b, dim=0)
