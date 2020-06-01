@@ -21,32 +21,25 @@ import os
 class simple_func():
     def __init__(self):
         self.factor = 1.5 * 3.14159
-        self.offset = 0.1
+        self.offset = 0.25
 
     def __call__(self, x):
-        return 0.5 * torch.cos(self.factor * 1.0/(abs(xTest) + self.offset))
+        return 0.5 * torch.cos(self.factor * 1.0/(abs(x) + self.offset))
 
 
-xTest = np.arange(1000)/500.0-1.0
+xTest = np.arange(10000)/5000.0-1.0
 xTest = torch.stack([torch.tensor(val) for val in xTest])
 
-#xTrain = 2.0*torch.rand(1000)-1.0
-print('xTest.size', xTest.size())
 xTest = xTest.view(-1, 1)
-print('xTest.size', xTest.size())
 yTest = simple_func()(xTest)
 yTest = yTest.view(-1, 1)
-print('yTest.size', yTest.size())
-
-
 
 # Loader for reading in a local dataset
+
+
 class FunctionDataset(Dataset):
     def __init__(self, transform=None):
-        offset = 10.1
-        factor = 1.5 * 3.14159
         self.x = (2.0*torch.rand(1000)-1.0).view(-1, 1)
-        #self.x = torch.rand(1000)
         self.y = simple_func()(self.x)
         self.transform = transform
 
@@ -64,11 +57,11 @@ class FunctionDataset(Dataset):
 
 
 class PolynomialFunctionApproximation(LightningModule):
-    def __init__(self, poly_order):
+    def __init__(self, poly_order, segments=2):
         super().__init__()
         #self.layer = poly.Polynomial(poly_order+1, 1, 1)
         self.layer = poly.PiecewiseDiscontinuousPolynomial(
-            poly_order+1, 1, 1, 5)
+            poly_order+1, 1, 1, segments)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -111,11 +104,9 @@ start_at = 5
 for i in range(0, len(thisModelSet)):
 
     trainer = Trainer(max_epochs=1)
-    model = PolynomialFunctionApproximation(poly_order=i+1+start_at)
+    model = PolynomialFunctionApproximation(poly_order=i+1,segments=3)
     trainer.fit(model)
     predictions = model(xTest)
-    print('model.w', model.layer.w)
-    print('predictions', predictions)
     plt.scatter(
         xTest.data.numpy(),
         predictions.flatten().data.numpy(),
