@@ -13,7 +13,7 @@ from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
 from torchvision import transforms
 from torch.utils.data import random_split
-from high_order_layers_torch.PolynomialLayers import *
+from high_order_layers_torch.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial
 import math
 import os
 
@@ -57,11 +57,17 @@ class FunctionDataset(Dataset):
 
 
 class PolynomialFunctionApproximation(LightningModule):
-    def __init__(self, poly_order, segments=2):
+    def __init__(self, poly_order, segments=2, continuous=True):
         super().__init__()
         #self.layer = poly.Polynomial(poly_order+1, 1, 1)
-        self.layer = poly.PiecewiseDiscontinuousPolynomial(
-            poly_order+1, 1, 1, segments)
+        if continuous:
+            print('Using continuous piecewise polynomial.')
+            self.layer = poly.PiecewisePolynomial(
+                poly_order+1, 1, 1, segments)
+        else:
+            print('Using discontinuous piecewise polynomial.')
+            self.layer = poly.PiecewiseDiscontinuousPolynomial(
+                poly_order+1, 1, 1, segments)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -80,10 +86,10 @@ class PolynomialFunctionApproximation(LightningModule):
 
 modelSetD = [
     {'name': 'Discontinuous 1'},
-    {'name': 'Discontinuous 2'},
-    {'name': 'Discontinuous 3'},
-    {'name': 'Discontinuous 4'},
-    {'name': 'Discontinuous 5'}
+    #{'name': 'Discontinuous 2'},
+    #{'name': 'Discontinuous 3'},
+    #{'name': 'Discontinuous 4'},
+    #{'name': 'Discontinuous 5'}
 ]
 
 modelSetC = [
@@ -103,8 +109,8 @@ start_at = 5
 
 for i in range(0, len(thisModelSet)):
 
-    trainer = Trainer(max_epochs=10)
-    model = PolynomialFunctionApproximation(poly_order=i+1, segments=3)
+    trainer = Trainer(max_epochs=1)
+    model = PolynomialFunctionApproximation(poly_order=i+1, segments=5)
     trainer.fit(model)
     predictions = model(xTest)
     plt.scatter(
