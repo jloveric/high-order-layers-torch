@@ -72,10 +72,10 @@ class PolynomialFunctionApproximation(LightningModule):
         return {'loss': F.mse_loss(y_hat, y)}
 
     def train_dataloader(self):
-        return DataLoader(FunctionDataset())
+        return DataLoader(FunctionDataset(), batch_size=10)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.02)
+        return torch.optim.AdamW(self.parameters(), lr=0.1)
 
 
 modelSetD = [
@@ -103,8 +103,8 @@ start_at = 5
 
 for i in range(0, len(thisModelSet)):
 
-    trainer = Trainer(max_epochs=1)
-    model = PolynomialFunctionApproximation(poly_order=i+1,segments=3)
+    trainer = Trainer(max_epochs=10)
+    model = PolynomialFunctionApproximation(poly_order=i+1, segments=3)
     trainer.fit(model)
     predictions = model(xTest)
     plt.scatter(
