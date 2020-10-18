@@ -87,19 +87,19 @@ class PolynomialFunctionApproximation(LightningModule):
 
 
 modelSetD = [
-    {'name': 'Discontinuous 1'},
-    #{'name': 'Discontinuous 2'},
-    {'name': 'Discontinuous 3'},
-    #{'name': 'Discontinuous 4'},
-    {'name': 'Discontinuous 5'}
+    {'name': 'Discontinuous 1', 'order' : 1},
+    #{'name': 'Discontinuous 2', 'order' : 2},
+    {'name': 'Discontinuous 3', 'order' : 3},
+    #{'name': 'Discontinuous 4', 'order' : 4},
+    {'name': 'Discontinuous 5', 'order' : 5}
 ]
 
 modelSetC = [
-    {'name': 'Continuous 1'},
-    #{'name': 'Continuous 2'},
-    {'name': 'Continuous 3'},
-    #{'name': 'Continuous 4'},
-    {'name': 'Continuous 5'}
+    {'name': 'Continuous 1', 'order' : 1},
+    #{'name': 'Continuous 2', 'order' : 2},
+    {'name': 'Continuous 3', 'order' : 3},
+    #{'name': 'Continuous 4', 'order' : 4},
+    {'name': 'Continuous 5', 'order' : 5}
 ]
 
 colorIndex = ['red', 'green', 'blue', 'purple', 'black']
@@ -112,7 +112,7 @@ def plot_approximation(continuous, model_set, segments, epochs):
         trainer = Trainer(max_epochs=epochs)
 
         model = PolynomialFunctionApproximation(
-            poly_order=i+1, segments=segments, continuous=continuous)
+            poly_order=model_set[i]['order'], segments=segments, continuous=continuous)
 
         trainer.fit(model)
         predictions = model(xTest)

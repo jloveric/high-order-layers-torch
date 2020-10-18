@@ -36,6 +36,8 @@ class PiecewisePolynomial(nn.Module):
     def forward(self, x):
         # get the segment index
         id_min = (((x+1.0)/2.0)*self._segments).long()
+        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1))
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0))
         id_max = id_min+1
 
         # determine which weights are active
@@ -51,14 +53,6 @@ class PiecewisePolynomial(nn.Module):
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
 
         w_list = []
-        """
-        for i in range(list(x_in.size())[0]):
-            id_1=wid_min[i].numpy()[0]
-            id_2=wid_max[i].numpy()[0]
-            
-            w=self.w[:, id_1:id_2]
-            w_list.append(w)
-        """
 
         for i in range(x_in.shape[0]):  # batch size
             out_list = []
@@ -96,6 +90,8 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
     def forward(self, x):
         # determine which segment it is in
         id_min = (((x+1.0)/2.0)*self._segments).long()
+        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1))
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0))
         id_max = id_min+1
 
         # determine which weights are active

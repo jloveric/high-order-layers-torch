@@ -17,10 +17,11 @@ from functional_layers.PolynomialLayers import *
 import math
 import os
 
-
-xTest = torch.FloatTensor(100, 2).uniform_(-1, 1)
-print(xTest[0])
-print('thisTest.shape', xTest.shape)
+elements = 100
+a = torch.linspace(-1, 1,  elements)
+b = torch.linspace(-1, 1, elements)
+xv, yv = torch.meshgrid([a, b])
+xTest = torch.stack([xv.flatten(), yv.flatten()], dim=1)
 
 
 class XorDataset(Dataset):
@@ -29,7 +30,7 @@ class XorDataset(Dataset):
         y = (2.0*torch.rand(1000)-1.0).view(-1, 1)
         z = torch.where(x*y > 0, -0.5+0*x, 0.5+0*x)
 
-        self.data = torch.cat([x,y],dim=1)
+        self.data = torch.cat([x, y], dim=1)
         self.z = z
         print(self.data.shape)
 
@@ -43,21 +44,29 @@ class XorDataset(Dataset):
             idx = idx.tolist()
 
         return self.data.clone().detach()[idx], self.z.clone().detach()[idx]
-        #return self.x.clone().detach()[idx], self.y.clone().detach()[idx], self.z.clone().detach()[idx]
 
 
 class NDFunctionApproximation(LightningModule):
-    def __init__(self, poly_order, segments=2):
+    def __init__(self, poly_order, segments=2, continuous=True):
         """
         Simple network consisting of 2 input and 1 output
         and no hidden layers.
         """
         super().__init__()
-        self.layer = poly.PiecewiseDiscontinuousPolynomial(
+        if continuous:
+            polyfunc = poly.PiecewisePolynomial
+        else:
+            polyfunc = poly.PiecewiseDiscontinuousPolynomial
+
+        self.layer1 = polyfunc(
             poly_order+1, 2, 1, segments)
+        self.layer2 = polyfunc(
+            poly_order+1, 1, 1, segments)
 
     def forward(self, x):
-        return self.layer(x.view(x.size(0), -1))
+        out1 = self.layer1(x)
+        out2 = self.layer2(out1)
+        return out2
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -71,43 +80,28 @@ class NDFunctionApproximation(LightningModule):
         return torch.optim.Adam(self.parameters(), lr=0.02)
 
 
-modelSetD = [
-    {'name': 'Discontinuous 1'},
-    {'name': 'Discontinuous 2'},
-    {'name': 'Discontinuous 3'},
-    {'name': 'Discontinuous 4'},
-    {'name': 'Discontinuous 5'}
-]
+model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(3)]
+model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1}
+               for i in range(3)]
 
-modelSetC = [
-    {'name': 'Continuous 1'},
-    {'name': 'Continuous 2'},
-    {'name': 'Continuous 3'},
-    {'name': 'Continuous 4'},
-    {'name': 'Continuous 5'}
-]
 
-colorIndex = ['red', 'green', 'blue', 'purple', 'black']
-symbol = ['+', 'x', 'o', 'v', '.']
+def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
+    for i in range(0, len(model_set)):
+        plt.figure(i+fig_start)
+        trainer = Trainer(max_epochs=epochs)
+        model = NDFunctionApproximation(
+            poly_order=model_set[i]['order'], segments=segments, continuous=continuous)
+        trainer.fit(model)
+        predictions = model(xTest.view(xTest.size(0), -1))
+        plt.scatter(
+            xTest.data.numpy()[:, 0],
+            xTest.data.numpy()[:, 1],
+            c=predictions.flatten().data.numpy())
+        plt.colorbar()
+        plt.title(f"{model_set[i]['name']} with {segments} segments.")
+        plt.xlabel('x')
+        plt.ylabel('y')
 
-thisModelSet = modelSetC
 
-start_at = 5
-
-for i in range(0, len(thisModelSet)):
-
-    trainer = Trainer(max_epochs=1)
-    model = NDFunctionApproximation(poly_order=i+1, segments=3)
-    trainer.fit(model)
-    predictions = model(xTest)
-    print('predictions.shape', predictions.shape)
-    plt.scatter(
-        xTest.data.numpy()[:,0],
-        xTest.data.numpy()[:,1],
-        c=predictions.flatten().data.numpy())
-
-plt.title('fourier synapse - no hidden layers')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
+plot_approximation(True, model_set_c, 2, 10, 0)
 plt.show()
