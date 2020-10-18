@@ -30,6 +30,21 @@ class LagrangePoly:
 
     def interpolate(self, x, w):
         # TODO: this can probably be made more efficient
-        b = [self.basis(x, j)*w[:, :,j] for j in range(self.n)]
-        b = torch.stack(b)
-        return torch.sum(b, dim=0)
+        # doing it this way since the multiplication keeps
+        # broadcasting where I don't want it to.
+        print('x.shape', x.shape)
+        batch_list = []
+        for batch in range(x.shape[0]):
+            out_list = []
+            for out in range(w.shape[2]):
+                b = 0
+                for inp in range(x.shape[1]):
+                    b += sum([self.basis(x[batch, inp], j)*w[batch, inp, out, j]
+                             for j in range(self.n)])
+                out_list.append(b)
+
+            batch_list.append(torch.tensor(out_list,requires_grad=True))
+
+        ans = torch.stack(batch_list)
+        print('ans.shape', ans.shape)
+        return ans

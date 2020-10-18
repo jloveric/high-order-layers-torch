@@ -123,15 +123,16 @@ def plot_approximation(continuous, model_set, segments, epochs):
             marker=symbol[i],
             label=model_set[i]['name'])
 
-    plt.plot(xTest.data.numpy(), yTest.data.numpy(), '-', label='actual', color='black')
+    plt.plot(xTest.data.numpy(), yTest.data.numpy(),
+             '-', label='actual', color='black')
     plt.title('Piecewise Polynomial Function Approximation')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.legend()
+
 
 plt.figure(1)
 plot_approximation(False, modelSetD, 3, 1)
 plt.figure(2)
 plot_approximation(True, modelSetC, 3, 1)
 plt.show()
-
