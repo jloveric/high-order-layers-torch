@@ -109,7 +109,7 @@ symbol = ['+', 'x', 'o', 'v', '.']
 def plot_approximation(continuous, model_set, segments, epochs):
     for i in range(0, len(model_set)):
 
-        trainer = Trainer(max_epochs=epochs)
+        trainer = Trainer(max_epochs=epochs, gpus=1)
 
         model = PolynomialFunctionApproximation(
             poly_order=model_set[i]['order'], segments=segments, continuous=continuous)

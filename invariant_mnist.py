@@ -9,7 +9,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 import util
 from functional_layers.PolynomialLayers import PiecewisePolynomial
-
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -56,12 +55,16 @@ class Net(LightningModule):
     def train_dataloader(self):
         trainset = torchvision.datasets.MNIST(
             root='./data', train=True, download=True, transform=transform)
-        return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=2)
+        return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=10)
+
+    def test_dataloader(self):
+        testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+        return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def configure_optimizers(self):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
 trainer = Trainer(max_epochs=2,gpus=1)
-model = Net(poly_order=2, segments=2)
+model = Net(poly_order=2, segments=2, batch_size=64)
 trainer.fit(model)

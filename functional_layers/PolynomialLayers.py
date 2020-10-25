@@ -32,12 +32,15 @@ class PiecewisePolynomial(nn.Module):
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
         self.w.data.uniform_(-1, 1)
+        self.device = self.w.device
+        print('device', self.w.device)
 
     def forward(self, x):
         # get the segment index
         id_min = (((x+1.0)/2.0)*self._segments).long()
-        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1))
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0))
+        device = id_min.device
+        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1, device=device))
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0,device=device))
         id_max = id_min+1
 
         # determine which weights are active
@@ -57,8 +60,8 @@ class PiecewisePolynomial(nn.Module):
         for i in range(x_in.shape[0]):  # batch size
             out_list = []
             for j in range(x_in.shape[1]):  # input size
-                id_1 = wid_min[i].numpy()[j]
-                id_2 = wid_max[i].numpy()[j]
+                id_1 = wid_min[i].data[j]
+                id_2 = wid_max[i].data[j]
                 w = self.w[:, j, id_1:id_2]
                 out_list.append(w)
             w_list.append(torch.stack(out_list))
@@ -90,8 +93,9 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
     def forward(self, x):
         # determine which segment it is in
         id_min = (((x+1.0)/2.0)*self._segments).long()
-        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1))
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0))
+        device = id_min.device
+        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1, device=device))
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         id_max = id_min+1
 
         # determine which weights are active
@@ -110,8 +114,8 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         for i in range(x_in.shape[0]):  # batch size
             out_list = []
             for j in range(x_in.shape[1]):  # input size
-                id_1 = wid_min[i].numpy()[j]
-                id_2 = wid_max[i].numpy()[j]
+                id_1 = wid_min[i].data[j]
+                id_2 = wid_max[i].data[j]
                 w = self.w[:, j, id_1:id_2]
                 out_list.append(w)
             w_list.append(torch.stack(out_list))
