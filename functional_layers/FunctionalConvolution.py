@@ -1,4 +1,5 @@
 from .LagrangePolynomial import LagrangeExpand
+from pytorch_lightning import LightningModule, Trainer
 
 from functional_layers.PolynomialLayers import *
 from torch.nn import Conv2d
@@ -6,7 +7,7 @@ import torch.nn as nn
 import torch
 
 
-class ExpansionLayer2D(nn.Module):
+class Expansion2d(nn.Module):
     def __init__(self, basis=None):
         super().__init__()
         if basis == None:
@@ -17,7 +18,7 @@ class ExpansionLayer2D(nn.Module):
     def build(self, input_shape):
         pass
 
-    def call(self, inputs):
+    def __call__(self, inputs):
         res = self.basis(inputs)
         res = inputs.permute(1, 2, 3, 4, 0)
         res = torch.reshape(
@@ -25,11 +26,11 @@ class ExpansionLayer2D(nn.Module):
         return res
 
 
-class PolynomialConvolution2D(nn.Module):
+class PolynomialConvolution2d(nn.Module):
     def __init__(self, n: int, in_channels: int, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(LagrangeExpand(n))
-        self.conv = Conv2D(in_channels=n*in_channels, *args, **kwargs)
+        self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
 
     def forward(self, x):
         x = self.poly(x)

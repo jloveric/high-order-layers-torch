@@ -30,7 +30,7 @@ class LagrangeExpand:
         ans = torch.prod(b, dim=0)
         return ans
 
-    def expand(self, x):
+    def __call__(self, x):
         """
         Args:
             - x: size[batch, input]
