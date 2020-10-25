@@ -15,8 +15,6 @@ class Polynomial(nn.Module):
         self.w.data.uniform_(-1, 1)
 
     def forward(self, x):
-        # unfortunately we don't have automatic broadcasting yet
-        # w = self.w.expand_as(x)
         fx = self.poly.interpolate(x, self.w)
 
         return fx
@@ -32,8 +30,11 @@ class PiecewisePolynomial(nn.Module):
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
         self.w.data.uniform_(-1, 1)
-        self.device = self.w.device
-        print('device', self.w.device)
+
+        self.sum = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.prod = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.sum.data.uniform_(-1, 1)
+        self.prod.data.uniform_(-1, 1)
 
     def forward(self, x):
         # get the segment index
@@ -67,8 +68,8 @@ class PiecewisePolynomial(nn.Module):
             w_list.append(torch.stack(out_list))
 
         w_in = torch.stack(w_list)
-        fx = self._poly.interpolate(x_in, w_in)
-        return fx
+        fsum, fprod = self._poly.interpolate(x_in, w_in)
+        return fsum*self.sum+fprod*self.prod
 
     def _eta(self, index):
         """
@@ -89,6 +90,11 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n*segments), requires_grad=True)
         self.w.data.uniform_(-1, 1)
+
+        self.sum = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.prod = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.sum.data.uniform_(-1, 1)
+        self.prod.data.uniform_(-1, 1)
 
     def forward(self, x):
         # determine which segment it is in
@@ -121,8 +127,8 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
             w_list.append(torch.stack(out_list))
 
         w_in = torch.stack(w_list)
-        fx = self._poly.interpolate(x_in, w_in)
-        return fx
+        fsum, fprod = self._poly.interpolate(x_in, w_in)
+        return fsum*self.sum+fprod*self.prod
 
     def _eta(self, index):
         eta = index/float(self._segments)

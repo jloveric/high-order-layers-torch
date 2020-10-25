@@ -65,8 +65,8 @@ class NDFunctionApproximation(LightningModule):
 
     def forward(self, x):
         out1 = self.layer1(x)
-        out2 = self.layer2(out1)
-        return out2
+        #out2 = self.layer2(out1)
+        return out1
 
     def training_step(self, batch, batch_idx):
         x, y = batch

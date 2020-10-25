@@ -48,5 +48,13 @@ class LagrangePoly:
                 
             mat.append(torch.stack(out_list))
         
-        ans = torch.transpose(torch.sum(torch.sum(torch.stack(mat),dim=0),dim=2),0,1)
-        return ans
+        # Sum up the components to produce the final polynomial
+        assemble = torch.sum(torch.stack(mat), dim=0)
+
+        # Compute sum and product at output
+        out_sum = torch.sum(assemble,dim=2)
+        out_prod = torch.prod(assemble, dim=2)
+
+        ans_sum = torch.transpose(out_sum,0,1)
+        ans_prod = torch.transpose(out_prod,0,1)
+        return ans_sum, ans_prod
