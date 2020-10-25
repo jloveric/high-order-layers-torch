@@ -82,7 +82,7 @@ class NDFunctionApproximation(LightningModule):
 
 model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(3)]
 model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1}
-               for i in range(3)]
+               for i in range(6)]
 
 
 def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
@@ -103,5 +103,5 @@ def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
         plt.ylabel('y')
 
 
-plot_approximation(True, model_set_c, 2, 10, 0)
+plot_approximation(True, model_set_d, 1, 10, 0)
 plt.show()

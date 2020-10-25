@@ -36,13 +36,13 @@ class Net(LightningModule):
         self.layer2 = nn.LayerNorm(100)
         self.layer3 = PiecewisePolynomial(
             poly_order+1, 100, 10, segments)
-        self.layer4 = nn.LayerNorm(10)
+        #self.layer4 = nn.LayerNorm(10)
 
     def forward(self, x):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x)
+        #x = self.layer4(x)
         output = F.log_softmax(x,dim=1)
         return output
 

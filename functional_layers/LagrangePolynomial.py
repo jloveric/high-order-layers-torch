@@ -14,6 +14,38 @@ def chebyshevLobatto(n):
     return ans
 
 
+
+
+class LagrangeExpand:
+
+    def __init__(self, n):
+        self.n = n
+        self.X = chebyshevLobatto(n)
+
+    def basis(self, x, j):
+
+        b = [(x - self.X[m]) / (self.X[j] - self.X[m])
+             for m in range(self.n) if m != j]
+        b = torch.stack(b)
+        ans = torch.prod(b, dim=0)
+        return ans
+
+    def expand(self, x):
+        """
+        Args:
+            - x: size[batch, input]
+            - w: size[batch, input, n]
+        Returns:
+            - result: size[batch, output]
+        """
+        mat = []
+        for j in range(self.n) :
+            basis_j = self.basis(x,j)
+            mat.append(basis_j)
+        
+        return torch.stack(mat)
+
+
 class LagrangePoly:
 
     def __init__(self, n):
