@@ -9,6 +9,7 @@ import torch.optim as optim
 import util
 from pytorch_lightning import LightningModule, Trainer
 from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
+from pytorch_lightning.metrics.functional import accuracy
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -28,14 +29,12 @@ class Net(LightningModule):
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 4 * 4)
+        x = x.reshape(-1, 16 * 4 * 4)
         x = self.fc1(x)
         return x
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        print('x,shape', x.shape)
-        #x_new = x.view(x.shape[0], -1)
         y_hat = self(x)
         return F.cross_entropy(y_hat, y)
 
@@ -48,10 +47,27 @@ class Net(LightningModule):
         testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        loss = F.nll_loss(logits, y)
+        preds = torch.argmax(logits, dim=1)
+        acc = accuracy(preds, y)
+
+        # Calling self.log will surface up scalars for you in TensorBoard
+        self.log('val_loss', loss, prog_bar=True)
+        self.log('val_acc', acc, prog_bar=True)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        # Here we just reuse the validation_step for testing
+        return self.validation_step(batch, batch_idx)
+
     def configure_optimizers(self):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=2,gpus=0)
-model = Net(n=2, batch_size=64)
+trainer = Trainer(max_epochs=10,gpus=1)
+model = Net(n=3, batch_size=64)
 trainer.fit(model)
+trainer.test(model)

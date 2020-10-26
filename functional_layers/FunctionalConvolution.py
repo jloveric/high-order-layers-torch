@@ -20,9 +20,11 @@ class Expansion2d(nn.Module):
 
     def __call__(self, inputs):
         res = self.basis(inputs)
-        res = inputs.permute(1, 2, 3, 4, 0)
+        res = res.permute(1, 3, 4, 2, 0)
         res = torch.reshape(
-            res, [-1, res.shape[1], res.shape[2], res.shape[3]*res.shape[4]])
+            res, [res.shape[0], res.shape[1], res.shape[2], res.shape[3]*res.shape[4]]
+        )
+        res = res.permute(0, 3,1,2)
         return res
 
 
