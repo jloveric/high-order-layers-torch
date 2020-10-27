@@ -45,7 +45,9 @@ class LagrangeExpand:
 
 
 class LagrangePolyFlat:
-
+    """
+    Single segment.
+    """
     def __init__(self, n):
         self.n = n
         self.X = chebyshevLobatto(n)
@@ -103,28 +105,17 @@ class LagrangePoly:
         Returns:
             - result: size[batch, output]
         """
-        out_dim = w.shape[2]
-        print('x.shape', x.shape)
-        print('w.shape', w.shape)
+
         mat = []
         for j in range(self.n):
             basis_j = self.basis(x, j)
-            w_j = w[..., j]
+            mat.append(basis_j)
+        mat = torch.stack(mat)
 
-            out_list = []
-            for out in range(out_dim):
-                final = basis_j*w_j[..., out]
-                out_list.append(final)
-
-            mat.append(torch.stack(out_list))
-
-        # Sum up the components to produce the final polynomial
-        assemble = torch.sum(torch.stack(mat), dim=0)
+        assemble = torch.einsum("ijk,jkli->jlk", mat, w)
 
         # Compute sum and product at output
         out_sum = torch.sum(assemble, dim=2)
         out_prod = torch.prod(assemble, dim=2)
 
-        ans_sum = torch.transpose(out_sum, 0, 1)
-        ans_prod = torch.transpose(out_prod, 0, 1)
-        return ans_sum, ans_prod
+        return out_sum, out_prod

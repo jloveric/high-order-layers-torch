@@ -65,7 +65,6 @@ class NDFunctionApproximation(LightningModule):
 
     def forward(self, x):
         out1 = self.layer1(x)
-        #out2 = self.layer2(out1)
         return out1
 
     def training_step(self, batch, batch_idx):
@@ -74,15 +73,14 @@ class NDFunctionApproximation(LightningModule):
         return {'loss': F.mse_loss(y_hat, y)}
 
     def train_dataloader(self):
-        return DataLoader(XorDataset(), batch_size=4)
+        return DataLoader(XorDataset(), batch_size=11)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
 
 
 model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(3)]
-model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1}
-               for i in range(6)]
+model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1} for i in range(3)]
 
 
 def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
@@ -103,5 +101,5 @@ def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
         plt.ylabel('y')
 
 
-plot_approximation(True, model_set_d, 1, 10, 0)
+plot_approximation(True, model_set_c, 2, 2, 0)
 plt.show()
