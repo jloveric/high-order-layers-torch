@@ -62,6 +62,9 @@ class PiecewisePolynomial(nn.Module):
 
         w_list = []
 
+        # TODO: This loop is so slow it makes things unusable
+        # so this may need to use sparse matrix multiply instead
+        # of this approach.
         for i in range(x_in.shape[0]):  # batch size
             out_list = []
             for j in range(x_in.shape[1]):  # input size
