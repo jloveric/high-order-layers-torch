@@ -7,17 +7,21 @@ from .LagrangePolynomial import *
 class Polynomial(nn.Module):
     def __init__(self, n, in_features, out_features):
         super().__init__()
-        self.poly = LagrangePoly(n)
+        self.poly = LagrangePolyFlat(n)
         self.n = n
 
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n), requires_grad=True)
         self.w.data.uniform_(-1, 1)
 
-    def forward(self, x):
-        fx = self.poly.interpolate(x, self.w)
+        self.sum = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.prod = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.sum.data.uniform_(-1, 1)
+        self.prod.data.uniform_(-1, 1)
 
-        return fx
+    def forward(self, x):
+        fsum, fprod = self.poly.interpolate(x, self.w)
+        return fsum*self.sum+fprod*self.prod
 
 
 class PiecewisePolynomial(nn.Module):
