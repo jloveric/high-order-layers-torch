@@ -66,36 +66,19 @@ class LagrangePolyFlat:
         Returns:
             - result: size[batch, output]
         """
-        out_dim = w.shape[2]
-        print('x.shape', x.shape)
-        print('w.shape', w.shape)
-        mat = []
+
+        basis = []
         for j in range(self.n):
             basis_j = self.basis(x, j)
-            w_j = w[..., j]
-            print('basis_j.shape', basis_j.shape, 'w_j.shape', w_j.shape)
-            out_list = []
-
-            for b in range(basis_j.shape[0]):
-                final = basis_j[b,...]* w_j[..., ].permute(1, 0)
-                out_list.append(final)
-            print('final.shape', final.shape)
-            mat.append(torch.stack(final))
-
-        # Sum up the components to produce the final polynomial
-        mat = torch.stack(mat)
-        print('mat.shape', mat.shape)
-        assemble = torch.sum(torch.stack(mat), dim=0)
-
-        print('assemble.hape', assemble.shape)
+            basis.append(basis_j)
+        basis = torch.stack(basis)
+        assemble = torch.einsum("ijk,lki->jlk", basis, w)
 
         # Compute sum and product at output
-        out_sum = torch.sum(assemble, dim=0)
-        out_prod = torch.prod(assemble, dim=0)
+        out_sum = torch.sum(assemble, dim=2)
+        out_prod = torch.prod(assemble, dim=2)
 
-        ans_sum = torch.transpose(out_sum, 0, 1)
-        ans_prod = torch.transpose(out_prod, 0, 1)
-        return ans_sum, ans_prod
+        return out_sum, out_prod
 
 
 class LagrangePoly:

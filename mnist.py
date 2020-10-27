@@ -6,7 +6,6 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import util
 from pytorch_lightning import LightningModule, Trainer
 from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
 from pytorch_lightning.metrics.functional import accuracy
@@ -75,7 +74,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=1, gpus=1)
+trainer = Trainer(max_epochs=1, gpus=0)
 model = Net(n=2, batch_size=64)
 trainer.fit(model)
 trainer.test(model)
