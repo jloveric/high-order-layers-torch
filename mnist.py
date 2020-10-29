@@ -30,7 +30,7 @@ class Net(LightningModule):
             n, in_channels=6, out_channels=16, kernel_size=5)
         #self.fc1 = PiecewisePolynomial(n, in_features=16*4*4, out_features=10, segments=segments)
         self.fc1 = Polynomial(n, in_features=16*4*4, out_features=10)
-        #self.fc1 = nn.Linear(16 * 4 * 4, 120)
+        #self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
@@ -74,7 +74,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=1, gpus=0)
-model = Net(n=2, batch_size=64)
+trainer = Trainer(max_epochs=4, gpus=1)
+model = Net(n=3, batch_size=64)
 trainer.fit(model)
 trainer.test(model)
