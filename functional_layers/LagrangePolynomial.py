@@ -13,6 +13,35 @@ def chebyshevLobatto(n):
 
     return ans
 
+class FourierBasis :
+    def __init__(self, length):
+        self.length = length
+
+    def __call__(self, x, j):
+
+        if j == 0 :
+            return 0.5
+        
+        if j%2 = 0 :
+            return torch.cos(math.pi*j*x/self.length)
+        else :
+            return torch.sin(math.pi*j*x/self.length)
+        
+
+class LagrangeBasis :
+    def __init__(self, n):
+        self.n = n
+        self.X = chebyshevLobatto(n)
+
+    def __call__(self, x, j):
+
+        b = [(x - self.X[m]) / (self.X[j] - self.X[m])
+             for m in range(self.n) if m != j]
+        b = torch.stack(b)
+        ans = torch.prod(b, dim=0)
+        return ans
+
+
 
 class LagrangeExpand:
 
