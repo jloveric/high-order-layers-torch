@@ -115,7 +115,7 @@ def plot_approximation(continuous, model_set, segments, epochs):
             poly_order=model_set[i]['order'], segments=segments, continuous=continuous)
 
         trainer.fit(model)
-        predictions = model(xTest)
+        predictions = model(xTest.float())
         plt.scatter(
             xTest.data.numpy(),
             predictions.flatten().data.numpy(),

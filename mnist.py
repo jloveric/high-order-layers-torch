@@ -74,7 +74,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=4, gpus=1)
+trainer = Trainer(max_epochs=1, gpus=0)
 model = Net(n=3, batch_size=64)
 trainer.fit(model)
 trainer.test(model)

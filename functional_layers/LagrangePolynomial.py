@@ -13,22 +13,24 @@ def chebyshevLobatto(n):
 
     return ans
 
-class FourierBasis :
+
+class FourierBasis:
     def __init__(self, length):
         self.length = length
 
     def __call__(self, x, j):
 
-        if j == 0 :
-            return 0.5
-        
-        if j%2 = 0 :
-            return torch.cos(math.pi*j*x/self.length)
-        else :
-            return torch.sin(math.pi*j*x/self.length)
-        
+        if j == 0:
+            return 0.5+0.0*x
 
-class LagrangeBasis :
+        i = (j+1)/2
+        if j % 2 == 0:
+            return torch.cos(math.pi*i*x/self.length)
+        else:
+            return torch.sin(math.pi*i*x/self.length)
+
+
+class LagrangeBasis:
     def __init__(self, n):
         self.n = n
         self.X = chebyshevLobatto(n)
@@ -42,13 +44,33 @@ class LagrangeBasis :
         return ans
 
 
+class BasisExpand :
+    def __init__(self, basis, n) :
+        self.n = n
+        self.basis = basis
+
+    def __call__(self, x) :
+        """
+        Args:
+            - x: size[batch, input]
+        Returns:
+            - result: size[batch, output]
+        """
+        mat = []
+        for j in range(self.n):
+            basis_j = self.basis(x, j)
+            mat.append(basis_j)
+
+        return torch.stack(mat)
 
 class LagrangeExpand:
 
     def __init__(self, n):
         self.n = n
-        self.X = chebyshevLobatto(n)
+        #self.X = chebyshevLobatto(n)
+        self.basis = LagrangeBasis(n)
 
+    """
     def basis(self, x, j):
 
         b = [(x - self.X[m]) / (self.X[j] - self.X[m])
@@ -56,7 +78,8 @@ class LagrangeExpand:
         b = torch.stack(b)
         ans = torch.prod(b, dim=0)
         return ans
-
+    """
+    
     def __call__(self, x):
         """
         Args:
@@ -77,6 +100,7 @@ class LagrangePolyFlat:
     """
     Single segment.
     """
+
     def __init__(self, n):
         self.n = n
         self.X = chebyshevLobatto(n)
