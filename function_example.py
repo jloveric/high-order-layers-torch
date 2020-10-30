@@ -12,7 +12,9 @@ from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
 from torchvision import transforms
 from torch.utils.data import random_split
-from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial
+from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Function, Polynomial
+from functional_layers.LagrangePolynomial import *
+
 import math
 import os
 
@@ -66,6 +68,10 @@ class PolynomialFunctionApproximation(LightningModule):
             print('Using continuous piecewise polynomial.')
             self.layer = PiecewisePolynomial(
                 poly_order+1, 1, 1, segments)
+
+            #self.layer = Polynomial(poly_order+1, 1, 1)
+            self.layer = Function(
+                poly_order+5, 1, 1, BasisFlat(poly_order+5, FourierBasis(1.0)))
         else:
             print('Using discontinuous piecewise polynomial.')
             self.layer = PiecewiseDiscontinuousPolynomial(
@@ -87,19 +93,19 @@ class PolynomialFunctionApproximation(LightningModule):
 
 
 modelSetD = [
-    {'name': 'Discontinuous 1', 'order' : 1},
+    {'name': 'Discontinuous 1', 'order': 1},
     #{'name': 'Discontinuous 2', 'order' : 2},
-    {'name': 'Discontinuous 3', 'order' : 3},
+    {'name': 'Discontinuous 3', 'order': 3},
     #{'name': 'Discontinuous 4', 'order' : 4},
-    {'name': 'Discontinuous 5', 'order' : 5}
+    {'name': 'Discontinuous 5', 'order': 5}
 ]
 
 modelSetC = [
-    {'name': 'Continuous 1', 'order' : 1},
+    {'name': 'Continuous 1', 'order': 1},
     #{'name': 'Continuous 2', 'order' : 2},
-    {'name': 'Continuous 3', 'order' : 3},
+    {'name': 'Continuous 3', 'order': 3},
     #{'name': 'Continuous 4', 'order' : 4},
-    {'name': 'Continuous 5', 'order' : 5}
+    {'name': 'Continuous 5', 'order': 5}
 ]
 
 colorIndex = ['red', 'green', 'blue', 'purple', 'black']
@@ -131,8 +137,8 @@ def plot_approximation(continuous, model_set, segments, epochs):
     plt.legend()
 
 
-plt.figure(1)
-plot_approximation(False, modelSetD, 3, 1)
+# plt.figure(1)
+#plot_approximation(False, modelSetD, 3, 1)
 plt.figure(2)
 plot_approximation(True, modelSetC, 3, 1)
 plt.show()

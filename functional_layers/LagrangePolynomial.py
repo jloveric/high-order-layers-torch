@@ -23,11 +23,12 @@ class FourierBasis:
         if j == 0:
             return 0.5+0.0*x
 
-        i = (j+1)/2
+        i = (j+1)//2
         if j % 2 == 0:
-            return torch.cos(math.pi*i*x/self.length)
+            ans = torch.cos(math.pi*i*x/self.length)
         else:
-            return torch.sin(math.pi*i*x/self.length)
+            ans = torch.sin(math.pi*i*x/self.length)
+        return ans
 
 
 class LagrangeBasis:
@@ -79,7 +80,7 @@ class LagrangeExpand:
         ans = torch.prod(b, dim=0)
         return ans
     """
-    
+
     def __call__(self, x):
         """
         Args:
@@ -94,6 +95,38 @@ class LagrangeExpand:
             mat.append(basis_j)
 
         return torch.stack(mat)
+
+
+class BasisFlat:
+    """
+    Single segment.
+    """
+
+    def __init__(self, n, basis):
+        self.n = n
+        self.basis = basis
+
+    def interpolate(self, x, w):
+        """
+        Args:
+            - x: size[batch, input]
+            - w: size[input, output, basis]
+        Returns:
+            - result: size[batch, output]
+        """
+
+        basis = []
+        for j in range(self.n):
+            basis_j = self.basis(x, j)
+            basis.append(basis_j)
+        basis = torch.stack(basis)
+        assemble = torch.einsum("ijk,lki->jlk", basis, w)
+
+        # Compute sum and product at output
+        out_sum = torch.sum(assemble, dim=2)
+        out_prod = torch.prod(assemble, dim=2)
+
+        return out_sum, out_prod
 
 
 class LagrangePolyFlat:
@@ -134,6 +167,39 @@ class LagrangePolyFlat:
         out_prod = torch.prod(assemble, dim=2)
 
         return out_sum, out_prod
+
+
+class Basis:
+
+    def __init__(self, n, basis):
+        self.n = n
+        self.basis = basis
+
+    def interpolate(self, x, w):
+        """
+        Args:
+            - x: size[batch, input]
+            - w: size[batch, input, output, basis]
+        Returns:
+            - result: size[batch, output]
+        """
+
+        mat = []
+        for j in range(self.n):
+            basis_j = self.basis(x, j)
+            mat.append(basis_j)
+        mat = torch.stack(mat)
+
+        assemble = torch.einsum("ijk,jkli->jlk", mat, w)
+
+        # Compute sum and product at output
+        out_sum = torch.sum(assemble, dim=2)
+        out_prod = torch.prod(assemble, dim=2)
+
+        return out_sum, out_prod
+
+
+
 
 
 class LagrangePoly:
