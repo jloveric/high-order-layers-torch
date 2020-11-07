@@ -26,11 +26,13 @@ class Net(LightningModule):
         self.conv1 = PolyConv2d(
             n, in_channels=1, out_channels=6, kernel_size=5)
         self.pool = nn.MaxPool2d(2, 2)
+        #self.pool = nn.AvgPool2d(2, 2)
+
         self.conv2 = PolyConv2d(
             n, in_channels=6, out_channels=16, kernel_size=5)
         #self.fc1 = PiecewisePolynomial(n, in_features=16*4*4, out_features=10, segments=segments)
-        self.fc1 = Polynomial(n, in_features=16*4*4, out_features=10)
-        #self.fc1 = nn.Linear(16 * 4 * 4, 10)
+        #self.fc1 = Polynomial(n, in_features=16*4*4, out_features=10)
+        self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
@@ -55,6 +57,9 @@ class Net(LightningModule):
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
+        return self.eval_step(batch, batch_idx, 'val')
+
+    def eval_step(self, batch, batch_idx, name):
         x, y = batch
         logits = self(x)
         loss = F.nll_loss(logits, y)
@@ -62,19 +67,21 @@ class Net(LightningModule):
         acc = accuracy(preds, y)
 
         # Calling self.log will surface up scalars for you in TensorBoard
-        self.log('val_loss', loss, prog_bar=True)
-        self.log('val_acc', acc, prog_bar=True)
+        self.log(f'{name}_loss', loss, prog_bar=True)
+        self.log(f'{name}_acc', acc, prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
-        return self.validation_step(batch, batch_idx)
+        return self.eval_step(batch, batch_idx, 'test')
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.001)
+        return optim.AdamW(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=1, gpus=0)
+trainer = Trainer(max_epochs=2, gpus=1)
 model = Net(n=3, batch_size=64)
 trainer.fit(model)
+print('testing')
 trainer.test(model)
+print('finished testing')
