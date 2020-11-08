@@ -27,6 +27,10 @@ class Polynomial(Function) :
     def __init__(self, n, in_features, out_features) :
         return super().__init__(n, in_features, out_features, LagrangePolyFlat(n))
 
+class FourierSeries(Function) :
+    def __init__(self, n, in_features, out_features) :
+        return super().__init__(n, in_features, out_features, FourierSeriesFlat(n))
+
 
 class PiecewisePolynomial(nn.Module):
     def __init__(self, n, in_features, out_features, segments):

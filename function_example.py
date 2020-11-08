@@ -12,7 +12,7 @@ from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
 from torchvision import transforms
 from torch.utils.data import random_split
-from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Function, Polynomial
+from functional_layers.PolynomialLayers import *
 from functional_layers.LagrangePolynomial import *
 
 import math
@@ -62,20 +62,18 @@ class PolynomialFunctionApproximation(LightningModule):
     and no hidden layers.
     """
 
-    def __init__(self, poly_order, segments=2, continuous=True):
+    def __init__(self, n, segments=2, function=True):
         super().__init__()
-        if continuous:
-            print('Using continuous piecewise polynomial.')
+        if function == "continuous":
             self.layer = PiecewisePolynomial(
-                poly_order+1, 1, 1, segments)
-
-            #self.layer = Polynomial(poly_order+1, 1, 1)
-            self.layer = Function(
-                poly_order+5, 1, 1, BasisFlat(poly_order+5, FourierBasis(1.0)))
-        else:
-            print('Using discontinuous piecewise polynomial.')
+                n, 1, 1, segments)
+        elif function == "discontinuous":
             self.layer = PiecewiseDiscontinuousPolynomial(
-                poly_order+1, 1, 1, segments)
+                n, 1, 1, segments)
+        elif function == "fourier":
+            self.layer = FourierSeries(n, 1, 1)
+        elif function == "polynomial":
+            self.layer = Polynomial(n, 1, 1)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -89,36 +87,52 @@ class PolynomialFunctionApproximation(LightningModule):
         return DataLoader(FunctionDataset(), batch_size=1)
 
     def configure_optimizers(self):
-        return torch.optim.AdamW(self.parameters(), lr=0.1)
+        return torch.optim.Adam(self.parameters(), lr=0.1)
 
 
 modelSetD = [
-    {'name': 'Discontinuous 1', 'order': 1},
+    {'name': 'Discontinuous 1', 'n': 2},
     #{'name': 'Discontinuous 2', 'order' : 2},
-    {'name': 'Discontinuous 3', 'order': 3},
+    {'name': 'Discontinuous 3', 'n': 4},
     #{'name': 'Discontinuous 4', 'order' : 4},
-    {'name': 'Discontinuous 5', 'order': 5}
+    {'name': 'Discontinuous 5', 'n': 6}
 ]
 
 modelSetC = [
-    {'name': 'Continuous 1', 'order': 1},
+    {'name': 'Continuous 1', 'n': 2},
     #{'name': 'Continuous 2', 'order' : 2},
-    {'name': 'Continuous 3', 'order': 3},
+    {'name': 'Continuous 3', 'n': 4},
     #{'name': 'Continuous 4', 'order' : 4},
-    {'name': 'Continuous 5', 'order': 5}
+    {'name': 'Continuous 5', 'n': 6}
+]
+
+modelSetP = [
+    {'name': 'Polynomial 1', 'n': 2},
+    #{'name': 'Continuous 2', 'order' : 2},
+    {'name': 'Polynomial 3', 'n': 4},
+    #{'name': 'Continuous 4', 'order' : 4},
+    {'name': 'Polynomial 5', 'n': 6}
+]
+
+modelSetF = [
+    #{'name': 'Fourier 5', 'n': 5},
+    #{'name': 'Continuous 2', 'order' : 2},
+    #{'name': 'Fourier 10', 'n': 10},
+    #{'name': 'Continuous 4', 'order' : 4},
+    {'name': 'Fourier 15', 'n': 50}
 ]
 
 colorIndex = ['red', 'green', 'blue', 'purple', 'black']
 symbol = ['+', 'x', 'o', 'v', '.']
 
 
-def plot_approximation(continuous, model_set, segments, epochs):
+def plot_approximation(function, model_set, segments, epochs):
     for i in range(0, len(model_set)):
 
         trainer = Trainer(max_epochs=epochs, gpus=0)
 
         model = PolynomialFunctionApproximation(
-            poly_order=model_set[i]['order'], segments=segments, continuous=continuous)
+            n=model_set[i]['n'], segments=segments, function=function)
 
         trainer.fit(model)
         predictions = model(xTest.float())
@@ -140,5 +154,5 @@ def plot_approximation(continuous, model_set, segments, epochs):
 # plt.figure(1)
 #plot_approximation(False, modelSetD, 3, 1)
 plt.figure(2)
-plot_approximation(True, modelSetC, 3, 1)
+plot_approximation("fourier", modelSetF, 3, 50)
 plt.show()

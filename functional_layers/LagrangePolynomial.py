@@ -111,6 +111,9 @@ class LagrangePolyFlat(BasisFlat):
     def __init__(self, n):
         super().__init__(n, LagrangeBasis(n))
 
+class FourierSeriesFlat(BasisFlat) :
+    def __init__(self, n, length=1.0) :
+        super().__init__(n, FourierBasis(length))
 
 '''
 class LagrangePolyFlat:
