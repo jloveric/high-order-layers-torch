@@ -75,13 +75,11 @@ class Net(LightningModule):
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
-        # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f'{name}_loss', loss, prog_bar=True)
         self.log(f'{name}_acc', acc, prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
-        # Here we just reuse the validation_step for testing
         return self.eval_step(batch, batch_idx, 'test')
 
     def configure_optimizers(self):
