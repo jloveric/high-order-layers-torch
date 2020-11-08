@@ -8,6 +8,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
 from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
+from functional_layers.FunctionalConvolution import FourierConvolution2d as FourierConv2d
+
 from pytorch_lightning.metrics.functional import accuracy
 from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 
@@ -23,11 +25,20 @@ class Net(LightningModule):
         self.n = n
         self._batch_size = batch_size
 
+        """
         self.conv1 = PolyConv2d(
             n, in_channels=1, out_channels=out_channels, kernel_size=5)
         self.conv2 = PolyConv2d(
             n, in_channels=1, out_channels=out_channels*2, kernel_size=10)
         self.conv3 = PolyConv2d(
+            n, in_channels=1, out_channels=out_channels*4, kernel_size=20)
+        """
+
+        self.conv1 = FourierConv2d(
+            n, in_channels=1, out_channels=out_channels, kernel_size=5)
+        self.conv2 = FourierConv2d(
+            n, in_channels=1, out_channels=out_channels*2, kernel_size=10)
+        self.conv3 = FourierConv2d(
             n, in_channels=1, out_channels=out_channels*4, kernel_size=20)
 
         w1 = 24*24*out_channels
@@ -35,8 +46,8 @@ class Net(LightningModule):
         w3 = 9*9*out_channels*4
         in_features = w1+w2+w3
 
-        #self.fc1 = nn.Linear(in_features, 10)
-        self.fc1 = Polynomial(n, in_features=in_features, out_features=10)
+        self.fc1 = nn.Linear(in_features, 10)
+        #self.fc1 = Polynomial(n, in_features=in_features, out_features=10)
 
 
     def forward(self, x):
@@ -88,7 +99,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=2, gpus=1)
-model = Net(n=4, batch_size=64, out_channels=10)
+model = Net(n=40, batch_size=64, out_channels=10)
 trainer.fit(model)
 print('testing')
 trainer.test(model)

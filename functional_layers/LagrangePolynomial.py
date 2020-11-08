@@ -45,47 +45,15 @@ class LagrangeBasis:
         return ans
 
 
-class BasisExpand :
-    def __init__(self, basis, n) :
+class BasisExpand:
+    def __init__(self, basis, n):
         self.n = n
         self.basis = basis
-
-    def __call__(self, x) :
-        """
-        Args:
-            - x: size[batch, input]
-        Returns:
-            - result: size[batch, output]
-        """
-        mat = []
-        for j in range(self.n):
-            basis_j = self.basis(x, j)
-            mat.append(basis_j)
-
-        return torch.stack(mat)
-
-class LagrangeExpand:
-
-    def __init__(self, n):
-        self.n = n
-        #self.X = chebyshevLobatto(n)
-        self.basis = LagrangeBasis(n)
-
-    """
-    def basis(self, x, j):
-
-        b = [(x - self.X[m]) / (self.X[j] - self.X[m])
-             for m in range(self.n) if m != j]
-        b = torch.stack(b)
-        ans = torch.prod(b, dim=0)
-        return ans
-    """
 
     def __call__(self, x):
         """
         Args:
             - x: size[batch, input]
-            - w: size[batch, input, n]
         Returns:
             - result: size[batch, output]
         """
@@ -95,6 +63,16 @@ class LagrangeExpand:
             mat.append(basis_j)
 
         return torch.stack(mat)
+
+
+class LagrangeExpand(BasisExpand):
+    def __init__(self, n):
+        super().__init__(LagrangeBasis(n), n)
+
+
+class FourierExpand(BasisExpand):
+    def __init__(self, n):
+        super().__init__(FourierBasis(length=1), n)
 
 
 class BasisFlat:
@@ -129,6 +107,12 @@ class BasisFlat:
         return out_sum, out_prod
 
 
+class LagrangePolyFlat(BasisFlat):
+    def __init__(self, n):
+        super().__init__(n, LagrangeBasis(n))
+
+
+'''
 class LagrangePolyFlat:
     """
     Single segment.
@@ -167,6 +151,7 @@ class LagrangePolyFlat:
         out_prod = torch.prod(assemble, dim=2)
 
         return out_sum, out_prod
+'''
 
 
 class Basis:
@@ -197,9 +182,6 @@ class Basis:
         out_prod = torch.prod(assemble, dim=2)
 
         return out_sum, out_prod
-
-
-
 
 
 class LagrangePoly:
