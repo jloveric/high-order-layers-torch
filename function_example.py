@@ -115,11 +115,11 @@ modelSetP = [
 ]
 
 modelSetF = [
-    #{'name': 'Fourier 5', 'n': 5},
+    {'name': 'Fourier 5', 'n': 5},
     #{'name': 'Continuous 2', 'order' : 2},
-    #{'name': 'Fourier 10', 'n': 10},
+    {'name': 'Fourier 10', 'n': 11},
     #{'name': 'Continuous 4', 'order' : 4},
-    {'name': 'Fourier 15', 'n': 50}
+    {'name': 'Fourier 15', 'n': 21}
 ]
 
 colorIndex = ['red', 'green', 'blue', 'purple', 'black']
@@ -154,5 +154,5 @@ def plot_approximation(function, model_set, segments, epochs):
 # plt.figure(1)
 #plot_approximation(False, modelSetD, 3, 1)
 plt.figure(2)
-plot_approximation("fourier", modelSetF, 3, 50)
+plot_approximation("fourier", modelSetF, 3, 10)
 plt.show()
