@@ -20,41 +20,31 @@ classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
 class Net(LightningModule):
-    def __init__(self, n, batch_size, out_channels=6, segments=1):
+    def __init__(self, n, batch_size, out_channels=6, segments=1, convolution=PolyConv2d):
         super().__init__()
         self.n = n
         self._batch_size = batch_size
 
-        """
-        self.conv1 = PolyConv2d(
+        self.conv1 = convolution(
             n, in_channels=1, out_channels=out_channels, kernel_size=5)
-        self.conv2 = PolyConv2d(
+        self.conv2 = convolution(
             n, in_channels=1, out_channels=out_channels*2, kernel_size=10)
-        self.conv3 = PolyConv2d(
-            n, in_channels=1, out_channels=out_channels*4, kernel_size=20)
-        """
-
-        self.conv1 = FourierConv2d(
-            n, in_channels=1, out_channels=out_channels, kernel_size=5)
-        self.conv2 = FourierConv2d(
-            n, in_channels=1, out_channels=out_channels*2, kernel_size=10)
-        self.conv3 = FourierConv2d(
+        self.conv3 = convolution(
             n, in_channels=1, out_channels=out_channels*4, kernel_size=20)
 
         w1 = 24*24*out_channels
-        w2= 19*19*out_channels*2
+        w2 = 19*19*out_channels*2
         w3 = 9*9*out_channels*4
         in_features = w1+w2+w3
 
         self.fc1 = nn.Linear(in_features, 10)
         #self.fc1 = Polynomial(n, in_features=in_features, out_features=10)
 
-
     def forward(self, x):
         x1 = self.conv1(x).flatten(start_dim=1)
         x2 = self.conv2(x).flatten(start_dim=1)
         x3 = self.conv3(x).flatten(start_dim=1)
-        
+
         x4 = torch.cat((x1, x2, x3), dim=1)
 
         out = self.fc1(x4)
@@ -99,7 +89,9 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=2, gpus=1)
-model = Net(n=40, batch_size=64, out_channels=10)
+#model = Net(n=40, batch_size=64, out_channels=10, convolution=PolyConv2d)
+model = Net(n=40, batch_size=64, out_channels=10, convolution=FourierConv2d)
+
 trainer.fit(model)
 print('testing')
 trainer.test(model)
