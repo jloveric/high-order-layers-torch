@@ -14,8 +14,10 @@ class Function(nn.Module):
             out_features, in_features, n), requires_grad=True)
         self.w.data.uniform_(-1, 1)
 
-        self.sum = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
-        self.prod = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.sum = torch.nn.Parameter(
+            data=torch.Tensor(out_features), requires_grad=True)
+        self.prod = torch.nn.Parameter(
+            data=torch.Tensor(out_features), requires_grad=True)
         self.sum.data.uniform_(-1, 1)
         self.prod.data.uniform_(-1, 1)
 
@@ -23,12 +25,14 @@ class Function(nn.Module):
         fsum, fprod = self.poly.interpolate(x, self.w)
         return fsum*self.sum+fprod*self.prod
 
-class Polynomial(Function) :
-    def __init__(self, n, in_features, out_features) :
+
+class Polynomial(Function):
+    def __init__(self, n, in_features, out_features):
         return super().__init__(n, in_features, out_features, LagrangePolyFlat(n))
 
-class FourierSeries(Function) :
-    def __init__(self, n, in_features, out_features) :
+
+class FourierSeries(Function):
+    def __init__(self, n, in_features, out_features):
         return super().__init__(n, in_features, out_features, FourierSeriesFlat(n))
 
 
@@ -39,12 +43,14 @@ class PiecewisePolynomial(nn.Module):
         self._n = n
         self._segments = segments
         self.in_features = in_features
+        self.out_features = out_features
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
         self.w.data.uniform_(-1, 1)
-
-        self.sum = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
-        self.prod = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.sum = torch.nn.Parameter(
+            data=torch.Tensor(out_features), requires_grad=True)
+        self.prod = torch.nn.Parameter(
+            data=torch.Tensor(out_features), requires_grad=True)
         self.sum.data.uniform_(-1, 1)
         self.prod.data.uniform_(-1, 1)
 
@@ -52,16 +58,36 @@ class PiecewisePolynomial(nn.Module):
         # get the segment index
         id_min = (((x+1.0)/2.0)*self._segments).long()
         device = id_min.device
-        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1, device=device))
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0,device=device))
+        id_min = torch.where(id_min <= self._segments-1, id_min,
+                             torch.tensor(self._segments-1, device=device))
+        id_min = torch.where(id_min >= 0, id_min,
+                             torch.tensor(0, device=device))
         id_max = id_min+1
 
         # determine which weights are active
         wid_min = (id_min*(self._n-1)).long()
         wid_max = (id_max*(self._n-1)).long()+1
 
-        # get the range of x in this segment
+        # Fill in the ranges
+        wid_min_flat = wid_min.flatten()
+        wid_max_flat = wid_max.flatten()
 
+        # This could be precomputed and stored.
+        wrange = []
+        for i in range(wid_min_flat.shape[0]):
+            wrange.append(torch.arange(wid_min_flat[i], wid_max_flat[i]))
+        
+        # should be size batches*inputs*n
+        wrange = torch.stack(wrange)
+        windex = (torch.arange(wrange.shape[0]*wrange.shape[1])//self._n)%self.in_features
+        wrange = wrange.flatten()
+        
+        w = self.w[:, windex, wrange]
+
+        # TODO: verify this is correct or that it actually matters how it's reshaped.
+        w = w.reshape(-1, self.in_features, self.out_features, self._n)
+
+        # get the range of x in this segment
         x_min = self._eta(id_min)
         x_max = self._eta(id_max)
 
@@ -69,20 +95,8 @@ class PiecewisePolynomial(nn.Module):
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
 
         w_list = []
-
-        # TODO: This loop is so slow it makes things unusable
-        # so this may need to use sparse matrix multiply instead
-        # of this approach.
-        for i in range(x_in.shape[0]):  # batch size
-            out_list = []
-            for j in range(x_in.shape[1]):  # input size
-                id_1 = wid_min[i].data[j]
-                id_2 = wid_max[i].data[j]
-                w = self.w[:, j, id_1:id_2]
-                out_list.append(w)
-            w_list.append(torch.stack(out_list))
-
-        w_in = torch.stack(w_list)
+        
+        w_in = w
         fsum, fprod = self._poly.interpolate(x_in, w_in)
         return fsum*self.sum+fprod*self.prod
 
@@ -106,8 +120,10 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
             out_features, in_features, n*segments), requires_grad=True)
         self.w.data.uniform_(-1, 1)
 
-        self.sum = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
-        self.prod = torch.nn.Parameter(data=torch.Tensor(out_features), requires_grad=True)
+        self.sum = torch.nn.Parameter(
+            data=torch.Tensor(out_features), requires_grad=True)
+        self.prod = torch.nn.Parameter(
+            data=torch.Tensor(out_features), requires_grad=True)
         self.sum.data.uniform_(-1, 1)
         self.prod.data.uniform_(-1, 1)
 
@@ -115,8 +131,10 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         # determine which segment it is in
         id_min = (((x+1.0)/2.0)*self._segments).long()
         device = id_min.device
-        id_min = torch.where(id_min <= self._segments-1, id_min, torch.tensor(self._segments-1, device=device))
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
+        id_min = torch.where(id_min <= self._segments-1, id_min,
+                             torch.tensor(self._segments-1, device=device))
+        id_min = torch.where(id_min >= 0, id_min,
+                             torch.tensor(0, device=device))
         id_max = id_min+1
 
         # determine which weights are active

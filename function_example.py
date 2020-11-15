@@ -84,7 +84,7 @@ class PolynomialFunctionApproximation(LightningModule):
         return {'loss': F.mse_loss(y_hat, y)}
 
     def train_dataloader(self):
-        return DataLoader(FunctionDataset(), batch_size=1)
+        return DataLoader(FunctionDataset(), batch_size=4)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.1)
@@ -154,5 +154,5 @@ def plot_approximation(function, model_set, segments, epochs):
 # plt.figure(1)
 #plot_approximation(False, modelSetD, 3, 1)
 plt.figure(2)
-plot_approximation("fourier", modelSetF, 3, 10)
+plot_approximation("continuous", modelSetC, 10, 2)
 plt.show()

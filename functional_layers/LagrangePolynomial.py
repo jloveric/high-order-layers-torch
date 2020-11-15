@@ -66,6 +66,7 @@ class FourierSeriesFlat(BasisFlat):
         super().__init__(n, FourierBasis(length))
 
 
+# This may be redundant.
 class LagrangePoly(Basis):
     def __init__(self, n):
         super().__init__(n=n, basis=LagrangeBasis(n))

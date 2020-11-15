@@ -75,7 +75,7 @@ class Basis:
             basis_j = self.basis(x, j)
             mat.append(basis_j)
         mat = torch.stack(mat)
-
+        
         assemble = torch.einsum("ijk,jkli->jlk", mat, w)
 
         # Compute sum and product at output
