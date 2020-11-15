@@ -72,7 +72,6 @@ class PiecewisePolynomial(nn.Module):
         wid_min_flat = wid_min.flatten()
         wid_max_flat = wid_max.flatten()
 
-        # This could be precomputed and stored.
         wrange = []
         for i in range(wid_min_flat.shape[0]):
             wrange.append(torch.arange(wid_min_flat[i], wid_max_flat[i]))
@@ -93,8 +92,6 @@ class PiecewisePolynomial(nn.Module):
 
         # rescale to -1 to +1
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
-
-        w_list = []
         
         w_in = w
         fsum, fprod = self._poly.interpolate(x_in, w_in)
@@ -116,6 +113,7 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         self._n = n
         self._segments = segments
         self.in_features = in_features
+        self.out_features = out_features
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n*segments), requires_grad=True)
         self.w.data.uniform_(-1, 1)
@@ -141,6 +139,10 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         wid_min = (id_min*self._n).long()
         wid_max = (id_max*self._n).long()
 
+        # Fill in the ranges
+        wid_min_flat = wid_min.flatten()
+        wid_max_flat = wid_max.flatten()
+
         # get the range of x in this segment
         x_min = self._eta(id_min)
         x_max = self._eta(id_max)
@@ -149,17 +151,22 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
         w_list = []
 
-        # looks good
-        for i in range(x_in.shape[0]):  # batch size
-            out_list = []
-            for j in range(x_in.shape[1]):  # input size
-                id_1 = wid_min[i].data[j]
-                id_2 = wid_max[i].data[j]
-                w = self.w[:, j, id_1:id_2]
-                out_list.append(w)
-            w_list.append(torch.stack(out_list))
+        wrange = []
+        for i in range(wid_min_flat.shape[0]):
+            wrange.append(torch.arange(wid_min_flat[i], wid_max_flat[i]))
+        
+        # should be size batches*inputs*n
+        wrange = torch.stack(wrange)
+        windex = (torch.arange(wrange.shape[0]*wrange.shape[1])//self._n)%self.in_features
+        wrange = wrange.flatten()
 
-        w_in = torch.stack(w_list)
+        w = self.w[:, windex, wrange]
+
+        # TODO: verify this is correct or that it actually matters how it's reshaped.
+        w = w.reshape(-1, self.in_features, self.out_features, self._n)
+
+        w_in = w
+
         fsum, fprod = self._poly.interpolate(x_in, w_in)
         return fsum*self.sum+fprod*self.prod
 

@@ -126,10 +126,10 @@ colorIndex = ['red', 'green', 'blue', 'purple', 'black']
 symbol = ['+', 'x', 'o', 'v', '.']
 
 
-def plot_approximation(function, model_set, segments, epochs):
+def plot_approximation(function, model_set, segments, epochs, gpus=0):
     for i in range(0, len(model_set)):
 
-        trainer = Trainer(max_epochs=epochs, gpus=0)
+        trainer = Trainer(max_epochs=epochs, gpus=gpus)
 
         model = PolynomialFunctionApproximation(
             n=model_set[i]['n'], segments=segments, function=function)
@@ -151,8 +151,8 @@ def plot_approximation(function, model_set, segments, epochs):
     plt.legend()
 
 
-# plt.figure(1)
-#plot_approximation(False, modelSetD, 3, 1)
+plt.figure(1)
+plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0)
 plt.figure(2)
-plot_approximation("continuous", modelSetC, 10, 2)
+plot_approximation("continuous", modelSetC, 5, 2, gpus=0)
 plt.show()
