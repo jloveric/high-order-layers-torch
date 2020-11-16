@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
-from functional_layers.PolynomialLayers import PiecewisePolynomial, Polynomial
+from functional_layers.PolynomialLayers import PiecewisePolynomial, PiecewiseDiscontinuousPolynomial, Polynomial
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -26,7 +26,7 @@ classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
 class Net(LightningModule):
-    def __init__(self, n, segments=2, batch_size=32, layer_type="polynomial"):
+    def __init__(self, n, segments=2, batch_size=32, layer_type="continuous"):
         super().__init__()
         self._batch_size = batch_size
         self.criterion = nn.CrossEntropyLoss()
@@ -36,6 +36,12 @@ class Net(LightningModule):
                 n, 784, 100, segments)
             self.layer2 = nn.LayerNorm(100)
             self.layer3 = PiecewisePolynomial(
+                n, 100, 10, segments)
+        elif layer_type == "discontinuous":
+            self.layer1 = PiecewiseDiscontinuousPolynomial(
+                n, 784, 100, segments)
+            self.layer2 = nn.LayerNorm(100)
+            self.layer3 = PiecewiseDiscontinuousPolynomial(
                 n, 100, 10, segments)
         elif layer_type == "polynomial":
             self.layer1 = Polynomial(
@@ -95,7 +101,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=20, gpus=1)
-model = Net(n=5, segments=2, batch_size=64)
+model = Net(n=3, segments=2, batch_size=64, layer_type="continuous")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

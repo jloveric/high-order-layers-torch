@@ -87,13 +87,8 @@ class PiecewisePolynomial(nn.Module):
 
         # TODO: This likely needs to be done with sparse tensor instead
         # of this slow loop process.
-        wrange = []
-        for i in range(wid_min_flat.shape[0]):
-            wrange.append(torch.arange(
-                wid_min_flat[i], wid_max_flat[i], device=device))
-
-        # should be size batches*inputs*n
-        wrange = torch.stack(wrange)
+        wrange = wid_min_flat.unsqueeze(-1)+torch.arange(self._n, device=device).view(-1)
+        
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % self.in_features
         wrange = wrange.flatten()
@@ -167,13 +162,9 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
         w_list = []
 
-        wrange = []
-        for i in range(wid_min_flat.shape[0]):
-            wrange.append(torch.arange(
-                wid_min_flat[i], wid_max_flat[i], device=device))
+        wrange = wid_min_flat.unsqueeze(-1)+torch.arange(self._n, device=device).view(-1)
 
         # should be size batches*inputs*n
-        wrange = torch.stack(wrange)
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % self.in_features
         wrange = wrange.flatten()

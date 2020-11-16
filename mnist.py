@@ -27,9 +27,11 @@ class Net(LightningModule):
             n, in_channels=1, out_channels=6, kernel_size=5)
         self.pool = nn.MaxPool2d(2, 2)
         #self.pool = nn.AvgPool2d(2, 2)
+        #self.norm1 = nn.LayerNorm(10)
 
         self.conv2 = PolyConv2d(
             n, in_channels=6, out_channels=16, kernel_size=5)
+        #self.norm2 = nn.LayerNorm(10)
         #self.fc1 = PiecewisePolynomial(n, in_features=16*4*4, out_features=10, segments=segments)
         #self.fc1 = Polynomial(n, in_features=16*4*4, out_features=10)
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
