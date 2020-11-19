@@ -84,19 +84,18 @@ class PiecewisePolynomial(nn.Module):
         # Fill in the ranges
         wid_min_flat = wid_min.view(-1)
         wid_max_flat = wid_max.view(-1)
-
-        # TODO: This likely needs to be done with sparse tensor instead
-        # of this slow loop process.
+        #print('wid_min.shape', wid_min.shape)
         wrange = wid_min_flat.unsqueeze(-1)+torch.arange(self._n, device=device).view(-1)
         
         windex = (torch.arange(
-            wrange.shape[0]*wrange.shape[1])//self._n) % self.in_features
+            wrange.shape[0]*wrange.shape[1])//self._n) % (self.in_features)
         wrange = wrange.flatten()
 
         w = self.w[:, windex, wrange]
-
+        
         # TODO: verify this is correct or that it actually matters how it's reshaped.
-        w = w.view(-1, self.in_features, self.out_features, self._n)
+        w = w.view(self.out_features, -1, self.in_features, self._n)
+        w = w.permute(1,2,0,3)
 
         # get the range of x in this segment
         x_min = self._eta(id_min)
@@ -106,7 +105,8 @@ class PiecewisePolynomial(nn.Module):
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
 
         fsum, fprod = self._poly.interpolate(x_in, w)
-        return fsum*self.sum+fprod*self.prod
+        res = fsum*self.sum+fprod*self.prod
+        return res
 
     def _eta(self, index):
         """
@@ -171,8 +171,9 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
 
         w = self.w[:, windex, wrange]
 
-        # TODO: verify this is correct or that it actually matters how it's reshaped.
-        w = w.view(-1, self.in_features, self.out_features, self._n)
+        w = w.view(self.out_features, -1, self.in_features, self._n)
+        w = w.permute(1,2,0,3)
+
 
         fsum, fprod = self._poly.interpolate(x_in, w)
         return fsum*self.sum+fprod*self.prod
