@@ -100,8 +100,8 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=1, gpus=1)
-model = Net(n=2, segments=4, batch_size=64, layer_type="continuous")
+trainer = Trainer(max_epochs=10, gpus=1)
+model = Net(n=3, segments=2, batch_size=64, layer_type="continuous")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

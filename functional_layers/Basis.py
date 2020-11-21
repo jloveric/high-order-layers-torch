@@ -15,12 +15,25 @@ class BasisExpand:
         Returns:
             - result: size[batch, output]
         """
+
+        # TODO: Try and do this as a vector operation.
         mat = []
         for j in range(self.n):
             basis_j = self.basis(x, j)
             mat.append(basis_j)
 
         return torch.stack(mat)
+
+
+
+
+    def _eta(self, index):
+        """
+        Arg:
+            - index is the segment index
+        """
+        eta = index/float(self._segments)
+        return eta*2-1
 
 
 class BasisFlat:
@@ -55,6 +68,8 @@ class BasisFlat:
         return out_sum, out_prod
 
 # Is this the same as above?
+
+
 class Basis:
 
     def __init__(self, n, basis):
@@ -75,7 +90,7 @@ class Basis:
             basis_j = self.basis(x, j)
             mat.append(basis_j)
         mat = torch.stack(mat)
-        
+
         assemble = torch.einsum("ijk,jkli->jlk", mat, w)
 
         # Compute sum and product at output

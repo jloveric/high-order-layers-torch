@@ -50,11 +50,14 @@ class LagrangeExpand(BasisExpand):
     def __init__(self, n):
         super().__init__(LagrangeBasis(n), n)
 
+# TODO: This isn't actually implemented.
+class PiecewisePolynomialExpand(BasisExpand) :
+    def __init__(self, n, segments) :
+        super().__init__(PiecewiseBasis(n), n)
 
 class FourierExpand(BasisExpand):
     def __init__(self, n):
         super().__init__(FourierBasis(length=1), n)
-
 
 class LagrangePolyFlat(BasisFlat):
     def __init__(self, n):
