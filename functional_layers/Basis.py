@@ -24,8 +24,45 @@ class BasisExpand:
 
         return torch.stack(mat)
 
+class PiecewiseExpand:
+    def __init__(self, basis, n, segments):
+        super().__init__()
+        self._basis = basis
+        self._n = n
+        self._segments = segments
+        self._expand = BasisExpand(basis, n)
 
+    def __call__(self, x):
+        # get the segment index
+        id_min = (((x+1.0)/2.0)*self._segments).long()
+        device = id_min.device
+        id_min = torch.where(id_min <= self._segments-1, id_min,
+                             torch.tensor(self._segments-1, device=device))
+        id_min = torch.where(id_min >= 0, id_min,
+                             torch.tensor(0, device=device))
+        id_max = id_min+1
 
+        wid_min = id_min*self._n
+
+        # get the range of x in this segment
+        x_min = self._eta(id_min)
+        x_max = self._eta(id_max)
+
+        # rescale to -1 to +1
+        x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
+
+        # These are the outputs, but they need to be in a sparse tensor
+        # so they work with everything, do dense for now.
+        out = self._expand(x)
+
+        mat = torch.zeros(x.shape[0], (self._n-1)*self._segments+1)
+
+        wrange = wid_min.unsqueeze(-1) + \
+            torch.arange(self._n, device=device).view(-1)
+
+        final = mat.flatten()[wrange] = out.flatten()
+        final = final.view(x.shape[0], (self._n-1)*self._segments+1)
+        return final
 
     def _eta(self, index):
         """
@@ -34,6 +71,7 @@ class BasisExpand:
         """
         eta = index/float(self._segments)
         return eta*2-1
+
 
 
 class BasisFlat:

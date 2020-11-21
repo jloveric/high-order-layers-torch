@@ -52,3 +52,15 @@ class PolynomialConvolution2d(nn.Module):
         x = self.poly(x)
         out = self.conv(x)
         return out
+
+
+class PiecewisePolynomialConvolution2d(nn.Module):
+    def __init__(self, n: int, segments: int,  in_channels: int, *args, **kwargs):
+        super().__init__()
+        self.poly = Expansion2d(PiecewisePolynomialExpand(n, segments))
+        self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
+
+    def forward(self, x):
+        x = self.poly(x)
+        out = self.conv(x)
+        return out

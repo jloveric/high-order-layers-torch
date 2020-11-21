@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
 from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
+from functional_layers.FunctionalConvolution import PiecewisePolynomialConvolution2d as PiecewisePolyConv2d
 from pytorch_lightning.metrics.functional import accuracy
 from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 
@@ -18,19 +19,28 @@ classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
 class Net(LightningModule):
-    def __init__(self, n, batch_size, segments=1):
+    def __init__(self, n, batch_size, segments=1, layer_type="continuous"):
         super().__init__()
         self.n = n
         self._batch_size = batch_size
 
-        self.conv1 = PolyConv2d(
-            n, in_channels=1, out_channels=6, kernel_size=5)
+
+        if layer_type == "continuous" :
+            self.conv1 = PolyConv2d(
+                n, in_channels=1, out_channels=6, kernel_size=5)
+            self.conv2 = PolyConv2d(
+                n, in_channels=6, out_channels=16, kernel_size=5)
+        elif layer_type == "piecewise" :
+            self.conv1 = PiecewisePolyConv2d(
+                n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
+            self.conv2 = PiecewisePolyConv2d(
+                n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
+
         self.pool = nn.MaxPool2d(2, 2)
         #self.pool = nn.AvgPool2d(2, 2)
         #self.norm1 = nn.LayerNorm(10)
 
-        self.conv2 = PolyConv2d(
-            n, in_channels=6, out_channels=16, kernel_size=5)
+        
         #self.norm2 = nn.LayerNorm(10)
         #self.fc1 = PiecewisePolynomial(n, in_features=16*4*4, out_features=10, segments=segments)
         #self.fc1 = Polynomial(n, in_features=16*4*4, out_features=10)
@@ -82,7 +92,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=2, gpus=1)
-model = Net(n=3, batch_size=64)
+model = Net(n=3, batch_size=64, segments=1, layer_type="piecewise")
 trainer.fit(model)
 print('testing')
 trainer.test(model)
