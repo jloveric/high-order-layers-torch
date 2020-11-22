@@ -36,8 +36,6 @@ class FourierSeries(Function):
         return super().__init__(n, in_features, out_features, FourierSeriesFlat(n))
 
 
-
-
 class PiecewisePolynomial(nn.Module):
     def __init__(self, n, in_features, out_features, segments):
         super().__init__()

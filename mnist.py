@@ -47,8 +47,11 @@ class Net(LightningModule):
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
+        #print('x.forward',x.shape)
+        x = self.pool(self.conv1(x))
+        #print('x.forwards 2', x.shape)
+        x = self.pool(self.conv2(x))
+        #print('c.forwward 3', x.shape)
         x = x.reshape(-1, 16 * 4 * 4)
         x = self.fc1(x)
         return x
@@ -92,7 +95,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=2, gpus=1)
-model = Net(n=3, batch_size=64, segments=1, layer_type="piecewise")
+model = Net(n=4, batch_size=64, segments=1, layer_type="piecewise")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

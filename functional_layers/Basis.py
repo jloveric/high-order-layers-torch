@@ -24,6 +24,7 @@ class BasisExpand:
 
         return torch.stack(mat)
 
+
 class PiecewiseExpand:
     def __init__(self, basis, n, segments):
         super().__init__()
@@ -31,8 +32,16 @@ class PiecewiseExpand:
         self._n = n
         self._segments = segments
         self._expand = BasisExpand(basis, n)
+        self._variables = (self._n-1)*self._segments+1
 
     def __call__(self, x):
+        """
+        Apply basis function to each input.
+        Args :
+            x : Tensor of shape [batch, channels, x, y]
+        Out :
+            Tensor of shape [variables, batch, channels, x, y]
+        """
         # get the segment index
         id_min = (((x+1.0)/2.0)*self._segments).long()
         device = id_min.device
@@ -55,13 +64,21 @@ class PiecewiseExpand:
         # so they work with everything, do dense for now.
         out = self._expand(x)
 
-        mat = torch.zeros(x.shape[0], (self._n-1)*self._segments+1)
+        mat = torch.zeros(x.shape[0], self._variables)
 
         wrange = wid_min.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
 
-        final = mat.flatten()[wrange] = out.flatten()
-        final = final.view(x.shape[0], (self._n-1)*self._segments+1)
+        final = mat.flatten()[wrange].flatten()
+        #print('out.flatten.shape', out.flatten().shape)
+        #print('final.shape', final.shape)
+        final = out.flatten()
+        #print('x.shape', x.shape)
+
+        final = final.view(x.shape[0], x.shape[1],
+                           x.shape[2], x.shape[3], self._variables)
+        final = final.permute(4, 0, 1, 2, 3)
+        #print('final.shape again', final.shape)
         return final
 
     def _eta(self, index):
@@ -71,7 +88,6 @@ class PiecewiseExpand:
         """
         eta = index/float(self._segments)
         return eta*2-1
-
 
 
 class BasisFlat:

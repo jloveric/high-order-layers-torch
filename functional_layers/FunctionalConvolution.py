@@ -19,7 +19,14 @@ class Expansion2d(nn.Module):
         pass
 
     def __call__(self, inputs):
-        res = self.basis(inputs)
+        """
+        Expand input
+        Args :
+            inputs : Tensor of shape [batches, channels, height, width]
+        Return :
+            Tensor of shape [batches, channels*(basis size), height, width]
+        """
+        res = self.basis(inputs) # outputs [basis_size, batches, channels, height, width]
         res = res.permute(1, 3, 4, 2, 0)
         res = torch.reshape(
             res, [res.shape[0], res.shape[1],
@@ -58,9 +65,14 @@ class PiecewisePolynomialConvolution2d(nn.Module):
     def __init__(self, n: int, segments: int,  in_channels: int, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(PiecewisePolynomialExpand(n, segments))
-        self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
+        channels = ((n-1)*segments+1)*in_channels
+        #print('channels', channels)
+        self.conv = Conv2d(in_channels=channels, **kwargs)
 
     def forward(self, x):
+        #print('x after shape conv 1', x.shape)
         x = self.poly(x)
+        #print('x after.shape conv 2', x.shape)
         out = self.conv(x)
+        #print('x after.shape conv 3', x.shape)
         return out
