@@ -23,37 +23,50 @@ class Net(LightningModule):
         super().__init__()
         self.n = n
         self._batch_size = batch_size
-
+        self._layer_type = layer_type
 
         if layer_type == "continuous" :
             self.conv1 = PolyConv2d(
                 n, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PolyConv2d(
                 n, in_channels=6, out_channels=16, kernel_size=5)
+            self.convTemp = PiecewisePolyConv2d(
+                n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
         elif layer_type == "piecewise" :
             self.conv1 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
+        elif layer_type == "standard" :
+            self.conv1 = torch.nn.Conv2d(
+                in_channels=1, out_channels=6*((n-1)*segments+1), kernel_size=5)
+            self.conv2 = torch.nn.Conv2d(
+                in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
 
         self.pool = nn.MaxPool2d(2, 2)
-        #self.pool = nn.AvgPool2d(2, 2)
-        #self.norm1 = nn.LayerNorm(10)
-
         
-        #self.norm2 = nn.LayerNorm(10)
-        #self.fc1 = PiecewisePolynomial(n, in_features=16*4*4, out_features=10, segments=segments)
-        #self.fc1 = Polynomial(n, in_features=16*4*4, out_features=10)
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
     def forward(self, x):
-        #print('x.forward',x.shape)
-        x = self.pool(self.conv1(x))
-        #print('x.forwards 2', x.shape)
-        x = self.pool(self.conv2(x))
-        #print('c.forwward 3', x.shape)
-        x = x.reshape(-1, 16 * 4 * 4)
-        x = self.fc1(x)
+        if self._layer_type == "standard" :
+            x = self.pool(F.relu(self.conv1(x)))
+            #print('x.forwards 2', x.shape)
+            x = self.pool(F.relu(self.conv2(x)))
+            #print('c.forwward 3', x.shape)
+            x = x.reshape(-1, 16 * 4 * 4)
+            x = self.fc1(x)
+        else :
+            y = self.pool(self.convTemp(x))
+            x = self.pool(self.conv1(x))
+
+            print('diff',y-x)
+
+
+            #print('x.forwards 2', x.shape)
+            x = self.pool(self.conv2(x))
+            #print('c.forwward 3', x.shape)
+            x = x.reshape(-1, 16 * 4 * 4)
+            x = self.fc1(x)
         return x
 
     def training_step(self, batch, batch_idx):
@@ -69,7 +82,7 @@ class Net(LightningModule):
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
             root='./data', train=False, download=True, transform=transform)
-        return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=True, num_workers=10)
+        return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
         return self.eval_step(batch, batch_idx, 'val')
@@ -91,11 +104,11 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, 'test')
 
     def configure_optimizers(self):
-        return optim.AdamW(self.parameters(), lr=0.001)
+        return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=2, gpus=1)
-model = Net(n=4, batch_size=16, segments=2, layer_type="piecewise")
+trainer = Trainer(max_epochs=1, gpus=1) #, accumulate_grad_batches=4)
+model = Net(n=3, batch_size=16, segments=1, layer_type="continuous")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

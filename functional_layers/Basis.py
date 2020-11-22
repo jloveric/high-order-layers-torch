@@ -64,13 +64,26 @@ class PiecewiseExpand:
         # so they work with everything, do dense for now.
         out = self._expand(x_in)
 
-        mat = torch.zeros(x.shape[0], x.shape[1], x.shape[2],
-                          x.shape[3], self._variables, device=device)
+        mat = torch.zeros(
+            x.shape[0],
+            x.shape[1],
+            x.shape[2],
+            x.shape[3],
+            self._variables,
+            device=device
+        )
+
         wrange = wid_min.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
+
         out = out.permute(1, 2, 3, 4, 0)
-        mat[:, :, :, :, wrange.flatten()] = out.flatten()
+        """
+        print('wrange.shape', wrange.shape)
+        print('out.shape', out.shape)
+        """
+        mat[:, :, :, :, wrange.view(-1)] = out.flatten()
         mat = mat.permute(4, 0, 1, 2, 3)
+
         return mat
 
     def _eta(self, index):
