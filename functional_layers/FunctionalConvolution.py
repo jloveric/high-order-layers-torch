@@ -66,13 +66,9 @@ class PiecewisePolynomialConvolution2d(nn.Module):
         super().__init__()
         self.poly = Expansion2d(PiecewisePolynomialExpand(n, segments))
         channels = ((n-1)*segments+1)*in_channels
-        #print('channels', channels)
         self.conv = Conv2d(in_channels=channels, **kwargs)
 
     def forward(self, x):
-        #print('x after shape conv 1', x.shape)
         x = self.poly(x)
-        #print('x after.shape conv 2', x.shape)
         out = self.conv(x)
-        #print('x after.shape conv 3', x.shape)
         return out
