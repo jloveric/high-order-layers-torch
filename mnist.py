@@ -95,7 +95,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=2, gpus=1)
-model = Net(n=4, batch_size=64, segments=1, layer_type="piecewise")
+model = Net(n=4, batch_size=16, segments=2, layer_type="piecewise")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

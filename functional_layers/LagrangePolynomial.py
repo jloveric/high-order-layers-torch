@@ -5,7 +5,16 @@ from .Basis import *
 
 
 def chebyshevLobatto(n):
-
+    """
+    Compute the chebyshev lobatto points which
+    are in the range [-1.0, 1.0]
+    Args :
+        n : number of points
+    Returns :
+        A tensor of length n with x locations from
+        negative to positive including -1 and 1
+         [-1,...,+1]
+    """
     k = torch.arange(0, n)
 
     ans = -torch.cos(k * math.pi / (n - 1))

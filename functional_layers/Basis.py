@@ -44,14 +44,14 @@ class PiecewiseExpand:
         """
         # get the segment index
         id_min = (((x+1.0)/2.0)*self._segments).long()
-        device = id_min.device
+        device = x.device
         id_min = torch.where(id_min <= self._segments-1, id_min,
                              torch.tensor(self._segments-1, device=device))
         id_min = torch.where(id_min >= 0, id_min,
                              torch.tensor(0, device=device))
         id_max = id_min+1
 
-        wid_min = id_min*self._n
+        wid_min = id_min*(self._n-1)
 
         # get the range of x in this segment
         x_min = self._eta(id_min)
@@ -62,24 +62,16 @@ class PiecewiseExpand:
 
         # These are the outputs, but they need to be in a sparse tensor
         # so they work with everything, do dense for now.
-        out = self._expand(x)
+        out = self._expand(x_in)
 
-        mat = torch.zeros(x.shape[0], self._variables)
-
+        mat = torch.zeros(x.shape[0], x.shape[1], x.shape[2],
+                          x.shape[3], self._variables, device=device)
         wrange = wid_min.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-
-        final = mat.flatten()[wrange].flatten()
-        #print('out.flatten.shape', out.flatten().shape)
-        #print('final.shape', final.shape)
-        final = out.flatten()
-        #print('x.shape', x.shape)
-
-        final = final.view(x.shape[0], x.shape[1],
-                           x.shape[2], x.shape[3], self._variables)
-        final = final.permute(4, 0, 1, 2, 3)
-        #print('final.shape again', final.shape)
-        return final
+        out = out.permute(1, 2, 3, 4, 0)
+        mat[:, :, :, :, wrange.flatten()] = out.flatten()
+        mat = mat.permute(4, 0, 1, 2, 3)
+        return mat
 
     def _eta(self, index):
         """
