@@ -32,8 +32,6 @@ class Net(LightningModule):
                 n, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PolyConv2d(
                 n, in_channels=6, out_channels=16, kernel_size=5)
-            #self.convTemp = PiecewisePolyConv2d(
-            #    n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
         elif layer_type == "piecewise" :
             self.conv1 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
@@ -57,21 +55,12 @@ class Net(LightningModule):
     def forward(self, x):
         if self._layer_type == "standard" :
             x = self.pool(F.relu(self.conv1(x)))
-            #print('x.forwards 2', x.shape)
             x = self.pool(F.relu(self.conv2(x)))
-            #print('c.forwward 3', x.shape)
             x = x.reshape(-1, 16 * 4 * 4)
             x = self.fc1(x)
         else :
-            #y = self.pool(self.convTemp(x))
             x = self.pool(self.conv1(x))
-
-            #print('diff',y-x)
-
-
-            #print('x.forwards 2', x.shape)
             x = self.pool(self.conv2(x))
-            #print('c.forwward 3', x.shape)
             x = x.reshape(-1, 16 * 4 * 4)
             x = self.fc1(x)
         return x
@@ -114,8 +103,8 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=1, gpus=1) #, accumulate_grad_batches=4)
-model = Net(n=3, batch_size=16, segments=4, layer_type="discontinuous")
+trainer = Trainer(max_epochs=1, gpus=1)
+model = Net(n=3, batch_size=16, segments=8, layer_type="discontinuous")
 trainer.fit(model)
 print('testing')
 trainer.test(model)
