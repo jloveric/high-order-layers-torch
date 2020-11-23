@@ -60,10 +60,12 @@ class PiecewiseExpand:
         # rescale to -1 to +1
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
 
+        #print('dx', x-x_in)
+
         # These are the outputs, but they need to be in a sparse tensor
         # so they work with everything, do dense for now.
         out = self._expand(x_in)
-
+        #print('out', out)
         mat = torch.zeros(
             x.shape[0],
             x.shape[1],
@@ -72,16 +74,27 @@ class PiecewiseExpand:
             self._variables,
             device=device
         )
+        #print('wid_min.shape', wid_min.shape)
+        wid_min_flat = wid_min.view(-1)
 
-        wrange = wid_min.unsqueeze(-1) + \
+        wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
+        
+        # This needs to be 
+        windex = (torch.arange(
+            wrange.numel())//self._n)
 
         out = out.permute(1, 2, 3, 4, 0)
         """
         print('wrange.shape', wrange.shape)
         print('out.shape', out.shape)
         """
-        mat[:, :, :, :, wrange.view(-1)] = out.flatten()
+        #print('mat.shape', mat.shape)
+        #print('wrange.shape', wrange.shape)
+        mat_trans=mat.reshape(-1, self._variables)
+        mat_trans[windex, wrange.view(-1)] = out.flatten()
+        mat = mat_trans.reshape(mat.shape[0], mat.shape[1], mat.shape[2], mat.shape[3], mat.shape[4])
+
         mat = mat.permute(4, 0, 1, 2, 3)
 
         return mat

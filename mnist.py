@@ -30,8 +30,8 @@ class Net(LightningModule):
                 n, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PolyConv2d(
                 n, in_channels=6, out_channels=16, kernel_size=5)
-            self.convTemp = PiecewisePolyConv2d(
-                n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
+            #self.convTemp = PiecewisePolyConv2d(
+            #    n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
         elif layer_type == "piecewise" :
             self.conv1 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
@@ -56,10 +56,10 @@ class Net(LightningModule):
             x = x.reshape(-1, 16 * 4 * 4)
             x = self.fc1(x)
         else :
-            y = self.pool(self.convTemp(x))
+            #y = self.pool(self.convTemp(x))
             x = self.pool(self.conv1(x))
 
-            print('diff',y-x)
+            #print('diff',y-x)
 
 
             #print('x.forwards 2', x.shape)
@@ -108,7 +108,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=1, gpus=1) #, accumulate_grad_batches=4)
-model = Net(n=3, batch_size=16, segments=1, layer_type="continuous")
+model = Net(n=3, batch_size=16, segments=4, layer_type="piecewise")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

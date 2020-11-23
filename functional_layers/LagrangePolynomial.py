@@ -4,7 +4,7 @@ import torch
 from .Basis import *
 
 
-def chebyshevLobatto(n):
+def chebyshevLobatto(n: int):
     """
     Compute the chebyshev lobatto points which
     are in the range [-1.0, 1.0]
@@ -25,10 +25,10 @@ def chebyshevLobatto(n):
 
 
 class FourierBasis:
-    def __init__(self, length):
+    def __init__(self, length : float):
         self.length = length
 
-    def __call__(self, x, j):
+    def __call__(self, x, j : int):
 
         if j == 0:
             return 0.5+0.0*x
@@ -42,11 +42,11 @@ class FourierBasis:
 
 
 class LagrangeBasis:
-    def __init__(self, n):
+    def __init__(self, n : int):
         self.n = n
         self.X = chebyshevLobatto(n)
 
-    def __call__(self, x, j):
+    def __call__(self, x, j : int):
 
         b = [(x - self.X[m]) / (self.X[j] - self.X[m])
              for m in range(self.n) if m != j]
@@ -56,31 +56,31 @@ class LagrangeBasis:
 
 
 class LagrangeExpand(BasisExpand):
-    def __init__(self, n):
+    def __init__(self, n: int):
         super().__init__(LagrangeBasis(n), n)
 
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
-    def __init__(self, n, segments):
+    def __init__(self, n: int, segments: int):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments)
 
 
 class FourierExpand(BasisExpand):
-    def __init__(self, n):
+    def __init__(self, n: int):
         super().__init__(FourierBasis(length=1), n)
 
 
 class LagrangePolyFlat(BasisFlat):
-    def __init__(self, n):
+    def __init__(self, n: int):
         super().__init__(n, LagrangeBasis(n))
 
 
 class FourierSeriesFlat(BasisFlat):
-    def __init__(self, n, length=1.0):
+    def __init__(self, n: int, length: int = 1.0):
         super().__init__(n, FourierBasis(length))
 
 
 # This may be redundant.
 class LagrangePoly(Basis):
-    def __init__(self, n):
+    def __init__(self, n: int):
         super().__init__(n=n, basis=LagrangeBasis(n))

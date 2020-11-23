@@ -33,22 +33,68 @@ class TestExpansion2d(unittest.TestCase):
         height = 5
         width = 5
         n = 3
+        segments=1
+
+        values = {"n": n, "in_channels": in_channels, "out_channels": out_channels,
+                  "kernel_size": kernel_size, "stride": stride}
+
+        x = torch.rand(1, in_channels, height, width)
+        a = Expansion2d(LagrangeExpand(n))
+        b = Expansion2d(PiecewisePolynomialExpand(n=n, segments=segments))
+
+        aout = a(x)
+        bout = b(x)
+
+        assert torch.allclose(aout, bout, atol=1e-5)
+
+class TestConvolution2d(unittest.TestCase):
+
+    def test_poly_convolution_2d_produces_correct_sizes(self):
+
+        in_channels = 2
+        out_channels = 2
+        kernel_size = 4
+        stride = 1
+        height = 5
+        width = 5
+        n = 3
 
         values = {"n": n, "in_channels": in_channels, "out_channels": out_channels,
                   "kernel_size": kernel_size, "stride": stride}
 
         x = torch.rand(1, in_channels, height, width)
         a = PolynomialConvolution2d(**values)
-        b = PiecewisePolynomialConvolution2d(
+        
+        aout = a(x)
+
+        assert aout.shape[0]==1
+        assert aout.shape[1]==2
+        assert aout.shape[2]==2
+        assert aout.shape[3]==2
+
+    def test_piecewise_poly_convolution_2d_produces_correct_sizes(self):
+
+        in_channels = 2
+        out_channels = 2
+        kernel_size = 4
+        stride = 1
+        height = 5
+        width = 5
+        n = 3
+
+        values = {"n": n, "in_channels": in_channels, "out_channels": out_channels,
+                  "kernel_size": kernel_size, "stride": stride}
+
+        x = torch.rand(1, in_channels, height, width)
+        a = PiecewisePolynomialConvolution2d(
             segments=1, **values)
 
         aout = a(x)
-        bout = b(x)
-
-        print('aout', aout)
-        print('bout', bout)
-        print('diff', aout-bout)
-        assert torch.all(torch.eq(aout, bout))
+        
+        assert aout.shape[0]==1
+        assert aout.shape[1]==2
+        assert aout.shape[2]==2
+        assert aout.shape[3]==2
 
 
 if __name__ == '__main__':
