@@ -60,12 +60,10 @@ class PiecewiseExpand:
         # rescale to -1 to +1
         x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
 
-        #print('dx', x-x_in)
-
         # These are the outputs, but they need to be in a sparse tensor
         # so they work with everything, do dense for now.
         out = self._expand(x_in)
-        #print('out', out)
+
         mat = torch.zeros(
             x.shape[0],
             x.shape[1],
@@ -74,26 +72,100 @@ class PiecewiseExpand:
             self._variables,
             device=device
         )
-        #print('wid_min.shape', wid_min.shape)
+
         wid_min_flat = wid_min.view(-1)
 
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-        
-        # This needs to be 
+
+        # This needs to be
         windex = (torch.arange(
             wrange.numel())//self._n)
 
         out = out.permute(1, 2, 3, 4, 0)
-        """
-        print('wrange.shape', wrange.shape)
-        print('out.shape', out.shape)
-        """
-        #print('mat.shape', mat.shape)
-        #print('wrange.shape', wrange.shape)
-        mat_trans=mat.reshape(-1, self._variables)
+
+        mat_trans = mat.reshape(-1, self._variables)
         mat_trans[windex, wrange.view(-1)] = out.flatten()
-        mat = mat_trans.reshape(mat.shape[0], mat.shape[1], mat.shape[2], mat.shape[3], mat.shape[4])
+        mat = mat_trans.reshape(
+            mat.shape[0], mat.shape[1], mat.shape[2], mat.shape[3], mat.shape[4])
+
+        mat = mat.permute(4, 0, 1, 2, 3)
+
+        return mat
+
+    def _eta(self, index):
+        """
+        Arg:
+            - index is the segment index
+        """
+        eta = index/float(self._segments)
+        return eta*2-1
+
+
+class PiecewiseDiscontinuousExpand:
+    # TODO: This and the PiecewiseExpand should share more data.
+    def __init__(self, basis, n, segments):
+        super().__init__()
+        self._basis = basis
+        self._n = n
+        self._segments = segments
+        self._expand = BasisExpand(basis, n)
+        self._variables = self._n*self._segments
+
+    def __call__(self, x):
+        """
+        Apply basis function to each input.
+        Args :
+            x : Tensor of shape [batch, channels, x, y]
+        Out :
+            Tensor of shape [variables, batch, channels, x, y]
+        """
+        # get the segment index
+        id_min = (((x+1.0)/2.0)*self._segments).long()
+        device = x.device
+        id_min = torch.where(id_min <= self._segments-1, id_min,
+                             torch.tensor(self._segments-1, device=device))
+        id_min = torch.where(id_min >= 0, id_min,
+                             torch.tensor(0, device=device))
+        id_max = id_min+1
+
+        wid_min = id_min*self._n
+
+        # get the range of x in this segment
+        x_min = self._eta(id_min)
+        x_max = self._eta(id_max)
+
+        # rescale to -1 to +1
+        x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
+
+        # These are the outputs, but they need to be in a sparse tensor
+        # so they work with everything, do dense for now.
+        out = self._expand(x_in)
+
+        mat = torch.zeros(
+            x.shape[0],
+            x.shape[1],
+            x.shape[2],
+            x.shape[3],
+            self._variables,
+            device=device
+        )
+
+        wid_min_flat = wid_min.view(-1)
+
+        wrange = wid_min_flat.unsqueeze(-1) + \
+            torch.arange(self._n, device=device).view(-1)
+
+        # This needs to be
+        windex = (torch.arange(
+            wrange.numel())//self._n)
+
+        out = out.permute(1, 2, 3, 4, 0)
+
+        mat_trans = mat.reshape(-1, self._variables)
+        mat_trans[windex, wrange.view(-1)] = out.flatten()
+        mat = mat_trans.reshape(
+            mat.shape[0], mat.shape[1], mat.shape[2], mat.shape[3], mat.shape[4])
 
         mat = mat.permute(4, 0, 1, 2, 3)
 
@@ -139,11 +211,9 @@ class BasisFlat:
 
         return out_sum, out_prod
 
-# Is this the same as above?
-
 
 class Basis:
-
+    # TODO: Is this the same as above?
     def __init__(self, n, basis):
         self.n = n
         self.basis = basis

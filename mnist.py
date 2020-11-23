@@ -9,6 +9,8 @@ import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
 from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
 from functional_layers.FunctionalConvolution import PiecewisePolynomialConvolution2d as PiecewisePolyConv2d
+from functional_layers.FunctionalConvolution import PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d
+
 from pytorch_lightning.metrics.functional import accuracy
 from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 
@@ -36,6 +38,11 @@ class Net(LightningModule):
             self.conv1 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PiecewisePolyConv2d(
+                n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
+        elif layer_type == "discontinuous" :
+            self.conv1 = PiecewiseDiscontinuousPolyConv2d(
+                n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
+            self.conv2 = PiecewiseDiscontinuousPolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
         elif layer_type == "standard" :
             self.conv1 = torch.nn.Conv2d(
@@ -108,7 +115,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=1, gpus=1) #, accumulate_grad_batches=4)
-model = Net(n=3, batch_size=16, segments=4, layer_type="piecewise")
+model = Net(n=3, batch_size=16, segments=4, layer_type="discontinuous")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

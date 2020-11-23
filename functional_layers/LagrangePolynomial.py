@@ -25,10 +25,10 @@ def chebyshevLobatto(n: int):
 
 
 class FourierBasis:
-    def __init__(self, length : float):
+    def __init__(self, length: float):
         self.length = length
 
-    def __call__(self, x, j : int):
+    def __call__(self, x, j: int):
 
         if j == 0:
             return 0.5+0.0*x
@@ -42,11 +42,11 @@ class FourierBasis:
 
 
 class LagrangeBasis:
-    def __init__(self, n : int):
+    def __init__(self, n: int):
         self.n = n
         self.X = chebyshevLobatto(n)
 
-    def __call__(self, x, j : int):
+    def __call__(self, x, j: int):
 
         b = [(x - self.X[m]) / (self.X[j] - self.X[m])
              for m in range(self.n) if m != j]
@@ -61,6 +61,11 @@ class LagrangeExpand(BasisExpand):
 
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
+    def __init__(self, n: int, segments: int):
+        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments)
+
+
+class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
     def __init__(self, n: int, segments: int):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments)
 
