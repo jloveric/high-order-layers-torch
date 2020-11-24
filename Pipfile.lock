@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "96525d7d00d3cb7b98ef6bef33e77ebdd3cf42aaa7351adf028395d98cddf540"
+            "sha256": "28c39cfefc04e5a08925eaad79a1e0a02da30cb87ef626ce38e6255a95a6d8a9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -15,7 +15,8 @@
             }
         ]
     },
-    "default": {
+    "default": {},
+    "develop": {
         "absl-py": {
             "hashes": [
                 "sha256:673cccb88d810e5627d0c1c818158485d106f65a583880e2f730c997399bcfa7",
@@ -228,6 +229,14 @@
             "markers": "python_version >= '3.6'",
             "version": "==2.0.5"
         },
+        "pbr": {
+            "hashes": [
+                "sha256:5fad80b613c402d5b7df7bd84812548b2a61e9977387a80a5fc5c396492b13c9",
+                "sha256:b236cde0ac9a6aedd5e3c34517b423cd4fd97ef723849da6b0d2231142d89c00"
+            ],
+            "index": "pypi",
+            "version": "==5.5.1"
+        },
         "protobuf": {
             "hashes": [
                 "sha256:0e247612fadda953047f53301a7b0407cb0c3cb4ae25a6fde661597a04039b3c",
@@ -409,16 +418,6 @@
             ],
             "markers": "python_version >= '3'",
             "version": "==0.35.1"
-        }
-    },
-    "develop": {
-        "pbr": {
-            "hashes": [
-                "sha256:5fad80b613c402d5b7df7bd84812548b2a61e9977387a80a5fc5c396492b13c9",
-                "sha256:b236cde0ac9a6aedd5e3c34517b423cd4fd97ef723849da6b0d2231142d89c00"
-            ],
-            "index": "pypi",
-            "version": "==5.5.1"
         }
     }
 }
