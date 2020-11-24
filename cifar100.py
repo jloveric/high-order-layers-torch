@@ -62,7 +62,7 @@ class Net(LightningModule):
 
         self.pool = nn.MaxPool2d(2, 2)
 
-        self.fc1 = nn.Linear(16 * 5 * 5, 10)
+        self.fc1 = nn.Linear(16 * 5 * 5, 100)
 
     def forward(self, x):
         if self._layer_type == "standard":
@@ -83,14 +83,14 @@ class Net(LightningModule):
         return F.cross_entropy(y_hat, y)
 
     def train_dataloader(self):
-        trainset = torchvision.datasets.CIFAR10(
+        trainset = torchvision.datasets.CIFAR100(
             root='./data', train=True, download=True, transform=transform)
         trainloader = torch.utils.data.DataLoader(
             trainset, batch_size=4, shuffle=True, num_workers=10)
         return trainloader
 
     def test_dataloader(self):
-        testset = torchvision.datasets.CIFAR10(
+        testset = torchvision.datasets.CIFAR100(
             root='./data', train=False, download=True, transform=transform)
         testloader = torch.utils.data.DataLoader(
             testset, batch_size=4, shuffle=False, num_workers=10)
@@ -119,7 +119,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-def run_mnist(max_epochs: int = 1, gpus: int = 1, n: int = 7, batch_size: int = 16, segments: int = 4, layer_type: str = "piecewise"):
+def run_mnist(max_epochs: int = 1, gpus: int = 1, n: int = 3, batch_size: int = 16, segments: int = 2, layer_type: str = "continuous"):
     trainer = Trainer(max_epochs=max_epochs, gpus=gpus)
     model = Net(n=n, batch_size=batch_size,
                 segments=segments, layer_type=layer_type)
@@ -129,5 +129,4 @@ def run_mnist(max_epochs: int = 1, gpus: int = 1, n: int = 7, batch_size: int = 
     print('finished testing')
 
 
-if __name__ == "__main__":
-    run_mnist()
+run_mnist()
