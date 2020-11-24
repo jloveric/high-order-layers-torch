@@ -10,7 +10,7 @@ from pytorch_lightning import LightningModule, Trainer
 from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
 from functional_layers.FunctionalConvolution import PiecewisePolynomialConvolution2d as PiecewisePolyConv2d
 from functional_layers.FunctionalConvolution import PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d
-
+from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.metrics.functional import accuracy
 from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 
@@ -27,43 +27,50 @@ class Net(LightningModule):
         self._batch_size = batch_size
         self._layer_type = layer_type
 
-        if layer_type == "continuous" :
+        if layer_type == "continuous":
             self.conv1 = PolyConv2d(
                 n, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PolyConv2d(
                 n, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "piecewise" :
+        elif layer_type == "piecewise":
             self.conv1 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "discontinuous" :
+        elif layer_type == "discontinuous":
             self.conv1 = PiecewiseDiscontinuousPolyConv2d(
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PiecewiseDiscontinuousPolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "standard" :
+        elif layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
                 in_channels=1, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
 
         self.pool = nn.MaxPool2d(2, 2)
-        
+
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
     def forward(self, x):
-        if self._layer_type == "standard" :
+        if self._layer_type == "standard":
             x = self.pool(F.relu(self.conv1(x)))
             x = self.pool(F.relu(self.conv2(x)))
             x = x.reshape(-1, 16 * 4 * 4)
             x = self.fc1(x)
-        else :
+        else:
             x = self.pool(self.conv1(x))
             x = self.pool(self.conv2(x))
             x = x.reshape(-1, 16 * 4 * 4)
             x = self.fc1(x)
         return x
+
+    def setup(self, stage):
+        print('calling setup')
+        train = torchvision.datasets.MNIST(
+            root='./data', train=True, download=True, transform=transform)
+        self._train_subset, self._val_subset = torch.utils.data.random_split(
+            train, [50000, 10000], generator=torch.Generator().manual_seed(1))
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -71,9 +78,10 @@ class Net(LightningModule):
         return F.cross_entropy(y_hat, y)
 
     def train_dataloader(self):
-        trainset = torchvision.datasets.MNIST(
-            root='./data', train=True, download=True, transform=transform)
-        return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=10)
+        return torch.utils.data.DataLoader(self._train_subset, batch_size=self._batch_size, shuffle=True, num_workers=10)
+
+    def val_dataloader(self):
+        return torch.utils.data.DataLoader(self._val_subset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
@@ -103,9 +111,19 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=1, gpus=1)
-model = Net(n=3, batch_size=16, segments=8, layer_type="discontinuous")
-trainer.fit(model)
-print('testing')
-trainer.test(model)
-print('finished testing')
+def run_mnist(max_epochs: int = 100, gpus: int = 1, n: int = 3, batch_size: int = 16, segments: int = 2, layer_type: str = "piecewise"):
+    early_stop_callback = EarlyStopping(
+        monitor='val_loss', min_delta=0.00, patience=3, verbose=False, mode='min')
+
+    trainer = Trainer(max_epochs=max_epochs, gpus=gpus,
+                      callbacks=[early_stop_callback])
+    model = Net(n=n, batch_size=batch_size,
+                segments=segments, layer_type=layer_type)
+    trainer.fit(model)
+    print('testing')
+    trainer.test(model)
+    print('finished testing')
+
+
+if __name__ == "__main__":
+    run_mnist()

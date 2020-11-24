@@ -119,7 +119,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-def run_mnist(max_epochs: int = 1, gpus: int = 1, n: int = 3, batch_size: int = 16, segments: int = 2, layer_type: str = "continuous"):
+def run_cifar100(max_epochs: int = 1, gpus: int = 1, n: int = 3, batch_size: int = 16, segments: int = 2, layer_type: str = "discontinuous"):
     trainer = Trainer(max_epochs=max_epochs, gpus=gpus)
     model = Net(n=n, batch_size=batch_size,
                 segments=segments, layer_type=layer_type)
@@ -128,5 +128,5 @@ def run_mnist(max_epochs: int = 1, gpus: int = 1, n: int = 3, batch_size: int = 
     trainer.test(model)
     print('finished testing')
 
-
-run_mnist()
+if __name__ == "__main__" :
+    run_cifar100()
