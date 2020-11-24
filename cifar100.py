@@ -111,7 +111,7 @@ class Net(LightningModule):
     def eval_step(self, batch, batch_idx, name):
         x, y = batch
         logits = self(x)
-        loss = F.nll_loss(logits, y)
+        loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 

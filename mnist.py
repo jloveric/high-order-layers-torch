@@ -17,8 +17,11 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
 
-transform = transforms.Compose(
+transformStandard = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+transformPoly = transforms.Compose(
+    [transforms.ToTensor(), transforms.Normalize((0.0,), (1.0,))])
+#transformPoly = transformStandard
 
 classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
@@ -37,7 +40,9 @@ class Net(LightningModule):
         layer_type = cfg.layer_type
         segments = cfg.segments
 
+        self._transform = transformPoly
         if layer_type == "continuous":
+            
             self.conv1 = PolyConv2d(
                 n, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PolyConv2d(
@@ -52,18 +57,18 @@ class Net(LightningModule):
                 n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
             self.conv2 = PiecewiseDiscontinuousPolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "standard":
+        if layer_type == "standard":
+            self._transform = transformStandard
             self.conv1 = torch.nn.Conv2d(
                 in_channels=1, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
 
+
         w1 = 28-4
         w2 = (w1//2)-4
         c1 = 6
         c2 = 16
-        #self.layerNorm1 = nn.LayerNorm((c1, w1, w1))
-        #self.layerNorm2 = nn.LayerNorm((c2, w2, w2))
 
         self.pool = nn.MaxPool2d(2, 2)
 
@@ -88,7 +93,7 @@ class Net(LightningModule):
         num_extra = 50000-num_train
 
         train = torchvision.datasets.MNIST(
-            root=self._data_dir, train=True, download=True, transform=transform)
+            root=self._data_dir, train=True, download=True, transform=self._transform)
         self._train_subset, self._val_subset, extra = torch.utils.data.random_split(
             train, [num_train, 10000, num_extra], generator=torch.Generator().manual_seed(1))
 
@@ -105,7 +110,7 @@ class Net(LightningModule):
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root=self._data_dir, train=False, download=True, transform=transform)
+            root=self._data_dir, train=False, download=True, transform=self._transform)
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
@@ -114,7 +119,7 @@ class Net(LightningModule):
     def eval_step(self, batch, batch_idx, name):
         x, y = batch
         logits = self(x)
-        loss = F.nll_loss(logits, y)
+        loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
