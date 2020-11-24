@@ -1,7 +1,7 @@
 from .LagrangePolynomial import LagrangeExpand
 from pytorch_lightning import LightningModule, Trainer
 
-from functional_layers.PolynomialLayers import *
+from high_order_layers_torch.PolynomialLayers import *
 from torch.nn import Conv2d
 import torch.nn as nn
 import torch

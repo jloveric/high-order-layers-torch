@@ -1,8 +1,8 @@
 import os
 
 import unittest
-from functional_layers.LagrangePolynomial import *
-from functional_layers.FunctionalConvolution import *
+from high_order_layers_torch.LagrangePolynomial import *
+from high_order_layers_torch.FunctionalConvolution import *
 import numpy as np
 
 

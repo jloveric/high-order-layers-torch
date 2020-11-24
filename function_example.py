@@ -12,8 +12,8 @@ from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
 from torchvision import transforms
 from torch.utils.data import random_split
-from functional_layers.PolynomialLayers import *
-from functional_layers.LagrangePolynomial import *
+from high_order_layers_torch.PolynomialLayers import *
+from high_order_layers_torch.LagrangePolynomial import *
 
 import math
 import os

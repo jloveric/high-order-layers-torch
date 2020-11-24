@@ -8,12 +8,12 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
-import functional_layers.PolynomialLayers as poly
+import high_order_layers_torch.PolynomialLayers as poly
 from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
 from torchvision import transforms
 from torch.utils.data import random_split
-from functional_layers.PolynomialLayers import *
+from high_order_layers_torch.PolynomialLayers import *
 import math
 import os
 

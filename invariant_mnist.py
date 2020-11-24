@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
-from functional_layers.PolynomialLayers import PiecewisePolynomial, PiecewiseDiscontinuousPolynomial, Polynomial
+from high_order_layers_torch.PolynomialLayers import PiecewisePolynomial, PiecewiseDiscontinuousPolynomial, Polynomial
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 

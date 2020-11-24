@@ -7,11 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
-from functional_layers.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
-from functional_layers.FunctionalConvolution import FourierConvolution2d as FourierConv2d
+from high_order_layers_torch.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
+from high_order_layers_torch.FunctionalConvolution import FourierConvolution2d as FourierConv2d
 
 from pytorch_lightning.metrics.functional import accuracy
-from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
+from high_order_layers_torch.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
