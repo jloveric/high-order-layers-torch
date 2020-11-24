@@ -68,12 +68,12 @@ class Net(LightningModule):
 
     def train_dataloader(self):
         trainset = torchvision.datasets.MNIST(
-            root='./data', train=True, download=True, transform=transform)
+            root='./data', train=True, download=self.cfg.download, transform=transform)
         return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root='./data', train=False, download=True, transform=transform)
+            root='./data', train=False, download=self.cfg.download, transform=transform)
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
     def validation_step(self, batch, batch_idx):

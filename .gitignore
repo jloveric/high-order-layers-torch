@@ -134,3 +134,4 @@ data
 MNIST
 .vscode
 *.pth
+outputs

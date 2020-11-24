@@ -13,6 +13,9 @@ from functional_layers.FunctionalConvolution import PiecewiseDiscontinuousPolyno
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.metrics.functional import accuracy
 from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
+import hydra
+from omegaconf import DictConfig, OmegaConf
+import os
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -21,11 +24,16 @@ classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
 class Net(LightningModule):
-    def __init__(self, n, batch_size, segments=1, layer_type="continuous"):
+    def __init__(self, cfg: DictConfig):
         super().__init__()
-        self.n = n
-        self._batch_size = batch_size
-        self._layer_type = layer_type
+        self._cfg = cfg
+        self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        n = cfg.n
+        self._batch_size = cfg.batch_size
+        self._layer_type = cfg.layer_type
+        self._train_fraction = cfg.train_fraction
+        layer_type = cfg.layer_type
+        segments = cfg.segments
 
         if layer_type == "continuous":
             self.conv1 = PolyConv2d(
@@ -48,6 +56,13 @@ class Net(LightningModule):
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
 
+        w1 = 28-4
+        w2 = (w1//2)-4
+        c1 = 6
+        c2 = 16
+        #self.layerNorm1 = nn.LayerNorm((c1, w1, w1))
+        #self.layerNorm2 = nn.LayerNorm((c2, w2, w2))
+
         self.pool = nn.MaxPool2d(2, 2)
 
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
@@ -66,11 +81,14 @@ class Net(LightningModule):
         return x
 
     def setup(self, stage):
-        print('calling setup')
+        num_train = int(self._train_fraction*50000)
+        num_val = 10000
+        num_extra = 50000-num_train
+
         train = torchvision.datasets.MNIST(
-            root='./data', train=True, download=True, transform=transform)
-        self._train_subset, self._val_subset = torch.utils.data.random_split(
-            train, [50000, 10000], generator=torch.Generator().manual_seed(1))
+            root=self._data_dir, train=True, download=True, transform=transform)
+        self._train_subset, self._val_subset, extra = torch.utils.data.random_split(
+            train, [num_train, 10000, num_extra], generator=torch.Generator().manual_seed(1))
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -85,8 +103,8 @@ class Net(LightningModule):
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root='./data', train=False, download=True, transform=transform)
-        return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=False, num_workers=10)
+            root=self._data_dir, train=False, download=True, transform=transform)
+        return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
         return self.eval_step(batch, batch_idx, 'val')
@@ -111,14 +129,17 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-def run_mnist(max_epochs: int = 100, gpus: int = 1, n: int = 3, batch_size: int = 16, segments: int = 2, layer_type: str = "piecewise"):
+@hydra.main(config_name="./config/mnist_config")
+def run_mnist(cfg: DictConfig):
+    print(OmegaConf.to_yaml(cfg))
+    print("Working directory : {}".format(os.getcwd()))
+    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
     early_stop_callback = EarlyStopping(
         monitor='val_loss', min_delta=0.00, patience=3, verbose=False, mode='min')
 
-    trainer = Trainer(max_epochs=max_epochs, gpus=gpus,
+    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus,
                       callbacks=[early_stop_callback])
-    model = Net(n=n, batch_size=batch_size,
-                segments=segments, layer_type=layer_type)
+    model = Net(cfg)
     trainer.fit(model)
     print('testing')
     trainer.test(model)
