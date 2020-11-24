@@ -1,0 +1,7 @@
+max_epochs: 1
+gpus: 1 
+n: 5
+batch_size: 16 
+segments: 2
+layer_type: piecewise 
+train_fraction: 1.0
