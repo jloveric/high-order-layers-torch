@@ -9,3 +9,7 @@ Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagr
 ```python
 python mnist.py max_epochs=1 train_fraction=0.1 layer_type=piecewise segments=2
 ```
+## cifar100
+```
+python cifar100.py max_epochs=1 train_fraction=0.1 layer_type=piecewise segments=2 n=3
+```

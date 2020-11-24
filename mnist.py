@@ -26,6 +26,8 @@ classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 class Net(LightningModule):
     def __init__(self, cfg: DictConfig):
         super().__init__()
+        self.save_hyperparameters(cfg)
+
         self._cfg = cfg
         self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
         n = cfg.n

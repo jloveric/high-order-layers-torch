@@ -14,47 +14,43 @@ from functional_layers.FunctionalConvolution import PiecewiseDiscontinuousPolyno
 
 from pytorch_lightning.metrics.functional import accuracy
 from functional_layers.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
+import hydra
+from omegaconf import DictConfig, OmegaConf
+import os
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=4, shuffle=True, num_workers=2)
-
-testset = torchvision.datasets.CIFAR10(
-    root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(
-    testset, batch_size=4, shuffle=False, num_workers=2)
-
-classes = ('plane', 'car', 'bird', 'cat', 'deer',
-           'dog', 'frog', 'horse', 'ship', 'truck')
-
 
 class Net(LightningModule):
-    def __init__(self, n, batch_size, segments=1, layer_type="continuous"):
+    def __init__(self, cfg : DictConfig):
         super().__init__()
-        self.n = n
-        self._batch_size = batch_size
-        self._layer_type = layer_type
+        self._cfg = cfg
+        self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
 
-        if layer_type == "continuous":
+        n = cfg.n
+        self.n = cfg.n
+        self._batch_size = cfg.batch_size
+        self._layer_type = cfg.layer_type
+        self._train_fraction = cfg.train_fraction
+        segments = cfg.segments
+
+        if self._layer_type == "continuous":
             self.conv1 = PolyConv2d(
                 n, in_channels=3, out_channels=6, kernel_size=5)
             self.conv2 = PolyConv2d(
                 n, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "piecewise":
+        elif self._layer_type == "piecewise":
             self.conv1 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=3, out_channels=6, kernel_size=5)
             self.conv2 = PiecewisePolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "discontinuous":
+        elif self._layer_type == "discontinuous":
             self.conv1 = PiecewiseDiscontinuousPolyConv2d(
                 n, segments=segments, in_channels=3, out_channels=6, kernel_size=5)
             self.conv2 = PiecewiseDiscontinuousPolyConv2d(
                 n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "standard":
+        elif self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
                 in_channels=3, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
@@ -77,21 +73,34 @@ class Net(LightningModule):
             x = self.fc1(x)
         return x
 
+    def setup(self, stage):
+        num_train = int(self._train_fraction*40000)
+        num_val = 10000
+        num_extra = 40000-num_train
+
+        train = torchvision.datasets.CIFAR100(
+            root=self._data_dir, train=True, download=True, transform=transform)
+
+        self._train_subset, self._val_subset, extra = torch.utils.data.random_split(
+            train, [num_train, 10000, num_extra], generator=torch.Generator().manual_seed(1))
+
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
         return F.cross_entropy(y_hat, y)
 
     def train_dataloader(self):
-        trainset = torchvision.datasets.CIFAR100(
-            root='./data', train=True, download=True, transform=transform)
         trainloader = torch.utils.data.DataLoader(
-            trainset, batch_size=4, shuffle=True, num_workers=10)
+            self._train_subset, batch_size=4, shuffle=True, num_workers=10)
         return trainloader
+
+    def val_dataloader(self):
+        return torch.utils.data.DataLoader(self._val_subset, batch_size=self._batch_size, shuffle=False, num_workers=10)
+
 
     def test_dataloader(self):
         testset = torchvision.datasets.CIFAR100(
-            root='./data', train=False, download=True, transform=transform)
+            root=self._data_dir, train=False, download=True, transform=transform)
         testloader = torch.utils.data.DataLoader(
             testset, batch_size=4, shuffle=False, num_workers=10)
         return testloader
@@ -119,10 +128,14 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-def run_cifar100(max_epochs: int = 1, gpus: int = 1, n: int = 3, batch_size: int = 16, segments: int = 2, layer_type: str = "discontinuous"):
-    trainer = Trainer(max_epochs=max_epochs, gpus=gpus)
-    model = Net(n=n, batch_size=batch_size,
-                segments=segments, layer_type=layer_type)
+@hydra.main(config_name="./config/cifar100_config")
+def run_cifar100(cfg: DictConfig):
+    print(OmegaConf.to_yaml(cfg))
+    print("Working directory : {}".format(os.getcwd()))
+    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    
+    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)
+    model = Net(cfg)
     trainer.fit(model)
     print('testing')
     trainer.test(model)
