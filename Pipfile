@@ -9,6 +9,7 @@ pytorch-lightning = "*"
 hydra-core = "*"
 
 [packages]
+torch = "*"
 
 [requires]
 python_version = "3.8"
