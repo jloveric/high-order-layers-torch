@@ -51,7 +51,11 @@ class FourierConvolution2d(nn.Module):
 
 
 class PolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, in_channels: int, *args, **kwargs):
+    def __init__(self, n: int, in_channels: int, segments:int=1, *args, **kwargs):
+        """
+        Segments is not used in this function, but is included in the parameter list 
+        so it isn't passed to Conv2d which does not take arbitrary keywords.
+        """
         super().__init__()
         self.poly = Expansion2d(LagrangeExpand(n))
         self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
