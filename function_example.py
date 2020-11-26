@@ -66,14 +66,14 @@ class PolynomialFunctionApproximation(LightningModule):
         super().__init__()
         if function == "continuous":
             self.layer = PiecewisePolynomial(
-                n, 1, 1, segments)
+                n, 1, 1, segments, length=2.0)
         elif function == "discontinuous":
             self.layer = PiecewiseDiscontinuousPolynomial(
-                n, 1, 1, segments)
+                n, 1, 1, segments, length=2.0)
         elif function == "fourier":
-            self.layer = FourierSeries(n, 1, 1)
+            self.layer = FourierSeries(n, 1, 1, length=2.0)
         elif function == "polynomial":
-            self.layer = Polynomial(n, 1, 1)
+            self.layer = Polynomial(n, 1, 1, length=2.0)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -155,4 +155,8 @@ plt.figure(1)
 plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0)
 plt.figure(2)
 plot_approximation("continuous", modelSetC, 5, 2, gpus=0)
+plt.figure(3)
+plot_approximation("polynomial", modelSetP, 5, 2, gpus=0)
+plt.figure(4)
+plot_approximation("fourier", modelSetF, 5, 2, gpus=0)
 plt.show()

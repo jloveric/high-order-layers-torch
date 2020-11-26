@@ -42,9 +42,9 @@ class FourierBasis:
 
 
 class LagrangeBasis:
-    def __init__(self, n: int):
+    def __init__(self, n: int, length: float = 2.0):
         self.n = n
-        self.X = chebyshevLobatto(n)
+        self.X = (length/2.0)*chebyshevLobatto(n)
 
     def __call__(self, x, j: int):
 
@@ -76,7 +76,7 @@ class FourierExpand(BasisExpand):
 
 
 class LagrangePolyFlat(BasisFlat):
-    def __init__(self, n: int):
+    def __init__(self, n: int, length: float = 2.0):
         super().__init__(n, LagrangeBasis(n))
 
 

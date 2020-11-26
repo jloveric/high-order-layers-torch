@@ -27,17 +27,17 @@ class Function(nn.Module):
 
 
 class Polynomial(Function):
-    def __init__(self, n, in_features, out_features):
-        return super().__init__(n, in_features, out_features, LagrangePolyFlat(n))
+    def __init__(self, n, in_features, out_features, length: float = 2.0):
+        return super().__init__(n, in_features, out_features, LagrangePolyFlat(n, length=length))
 
 
 class FourierSeries(Function):
-    def __init__(self, n, in_features, out_features):
-        return super().__init__(n, in_features, out_features, FourierSeriesFlat(n))
+    def __init__(self, n: int, in_features: int, out_features: int, length: float = 2.0):
+        return super().__init__(n, in_features, out_features, FourierSeriesFlat(n, length=length))
 
 
 class PiecewisePolynomial(nn.Module):
-    def __init__(self, n, in_features, out_features, segments):
+    def __init__(self, n, in_features, out_features, segments, length: int = 2.0):
         super().__init__()
         self._poly = LagrangePoly(n)
         self._n = n
@@ -54,10 +54,12 @@ class PiecewisePolynomial(nn.Module):
         self.sum.data.uniform_(-1, 1)
         self.prod.data.uniform_(-1, 1)
         self.wrange = None
+        self._length = length
+        self._half = 0.5*length
 
     def forward(self, x):
         # get the segment index
-        id_min = (((x+1.0)/2.0)*self._segments).long()
+        id_min = (((x+self._half)/self._length)*self._segments).long()
         device = id_min.device
         id_min = torch.where(id_min <= self._segments-1, id_min,
                              torch.tensor(self._segments-1, device=device))
@@ -89,7 +91,7 @@ class PiecewisePolynomial(nn.Module):
         x_max = self._eta(id_max)
 
         # rescale to -1 to +1
-        x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
+        x_in = self._length*((x-x_min)/(x_max-x_min))-self._half
 
         fsum, fprod = self._poly.interpolate(x_in, w)
         res = fsum*self.sum+fprod*self.prod
@@ -105,7 +107,7 @@ class PiecewisePolynomial(nn.Module):
 
 
 class PiecewiseDiscontinuousPolynomial(nn.Module):
-    def __init__(self, n, in_features, out_features, segments):
+    def __init__(self, n, in_features, out_features, segments, length=2.0):
         super().__init__()
         self._poly = LagrangePoly(n)
         self._n = n
@@ -122,10 +124,12 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
             data=torch.Tensor(out_features), requires_grad=True)
         self.sum.data.uniform_(-1, 1)
         self.prod.data.uniform_(-1, 1)
+        self._length = length
+        self._half = 0.5*length
 
     def forward(self, x):
         # determine which segment it is in
-        id_min = (((x+1.0)/2.0)*self._segments).long()
+        id_min = (((x+self._half)/self._length)*self._segments).long()
         device = id_min.device
         id_min = torch.where(id_min <= self._segments-1, id_min,
                              torch.tensor(self._segments-1, device=device))
@@ -146,7 +150,7 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         x_max = self._eta(id_max)
 
         # rescale to -1 to +1
-        x_in = 2.0*((x-x_min)/(x_max-x_min))-1.0
+        x_in = self._length*((x-x_min)/(x_max-x_min))-self._half
         w_list = []
 
         wrange = wid_min_flat.unsqueeze(-1) + \
