@@ -56,18 +56,18 @@ class LagrangeBasis:
 
 
 class LagrangeExpand(BasisExpand):
-    def __init__(self, n: int):
-        super().__init__(LagrangeBasis(n), n)
+    def __init__(self, n: int, length:float=2.0):
+        super().__init__(LagrangeBasis(n, length=length), n)
 
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
-    def __init__(self, n: int, segments: int):
-        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments)
+    def __init__(self, n: int, segments: int, length:float=2.0):
+        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
 
 
 class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
-    def __init__(self, n: int, segments: int):
-        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments)
+    def __init__(self, n: int, segments: int, length:float=2.0):
+        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
 
 
 class FourierExpand(BasisExpand):

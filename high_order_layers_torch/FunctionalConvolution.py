@@ -57,7 +57,7 @@ class PolynomialConvolution2d(nn.Module):
         so it isn't passed to Conv2d which does not take arbitrary keywords.
         """
         super().__init__()
-        self.poly = Expansion2d(LagrangeExpand(n))
+        self.poly = Expansion2d(LagrangeExpand(n, length=length))
         self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
 
     def forward(self, x):
@@ -67,10 +67,10 @@ class PolynomialConvolution2d(nn.Module):
 
 
 class PiecewisePolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, *args, **kwargs):
+    def __init__(self, n: int, segments: int,  in_channels: int, length: float = 2.0, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(
-            PiecewisePolynomialExpand(n=n, segments=segments))
+            PiecewisePolynomialExpand(n=n, segments=segments, length=length))
         channels = ((n-1)*segments+1)*in_channels
         self.conv = Conv2d(in_channels=channels, **kwargs)
 
@@ -81,10 +81,10 @@ class PiecewisePolynomialConvolution2d(nn.Module):
 
 
 class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, *args, **kwargs):
+    def __init__(self, n: int, segments: int,  in_channels: int, length: float = 2.0, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(
-            PiecewiseDiscontinuousPolynomialExpand(n=n, segments=segments))
+            PiecewiseDiscontinuousPolynomialExpand(n=n, segments=segments, length=length))
         channels = n*segments*in_channels
         self.conv = Conv2d(in_channels=channels, **kwargs)
 
