@@ -39,9 +39,9 @@ class Expansion2d(nn.Module):
 
 class FourierConvolution2d(nn.Module):
 
-    def __init__(self, n: int, in_channels: int, *args, **kwargs):
+    def __init__(self, n: int, in_channels: int, length: float = 2.0, *args, **kwargs):
         super().__init__()
-        self.poly = Expansion2d(FourierExpand(n))
+        self.poly = Expansion2d(FourierExpand(n, length))
         self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
 
     def forward(self, x):
@@ -53,6 +53,7 @@ class FourierConvolution2d(nn.Module):
 class PolynomialConvolution2d(nn.Module):
     def __init__(self, n: int, in_channels: int, segments: int = 1, length: float = 2.0, *args, **kwargs):
         """
+        TODO: remove "segments" and del from kwargs manually when used.
         Segments is not used in this function, but is included in the parameter list 
         so it isn't passed to Conv2d which does not take arbitrary keywords.
         """

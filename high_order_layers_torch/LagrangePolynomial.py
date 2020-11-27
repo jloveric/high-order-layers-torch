@@ -71,8 +71,8 @@ class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
 
 
 class FourierExpand(BasisExpand):
-    def __init__(self, n: int):
-        super().__init__(FourierBasis(length=1), n)
+    def __init__(self, n: int, length: float):
+        super().__init__(FourierBasis(length=length), n)
 
 
 class LagrangePolyFlat(BasisFlat):
