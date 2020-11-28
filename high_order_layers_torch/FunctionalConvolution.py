@@ -53,7 +53,7 @@ class FourierConvolution2d(nn.Module):
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out/self._rescale
+        return out*self._rescale
 
 
 class PolynomialConvolution2d(nn.Module):
@@ -76,7 +76,7 @@ class PolynomialConvolution2d(nn.Module):
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out/self._rescale
+        return out*self._rescale
 
 
 class PiecewisePolynomialConvolution2d(nn.Module):
@@ -95,7 +95,7 @@ class PiecewisePolynomialConvolution2d(nn.Module):
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out/self._rescale
+        return out*self._rescale
 
 
 class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
@@ -114,4 +114,4 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out/self._rescale
+        return out*self._rescale
