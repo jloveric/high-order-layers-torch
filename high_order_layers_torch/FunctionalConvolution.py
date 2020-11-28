@@ -39,19 +39,24 @@ class Expansion2d(nn.Module):
 
 class FourierConvolution2d(nn.Module):
 
-    def __init__(self, n: int, in_channels: int, length: float = 2.0, *args, **kwargs):
+    def __init__(self, n: int, in_channels: int, length: float = 2.0, rescale_output=False, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(FourierExpand(n, length))
-        self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
+        self._channels = n*in_channels
+        self.conv = Conv2d(in_channels=self._channels, **kwargs)
+        self._total_in = self._channels*kernel_size*kernel_size
+        self._rescale = 1.0
+        if rescale_output is True:
+            self._rescale = 1.0/self._total_in
 
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out
+        return out/self._rescale
 
 
 class PolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, in_channels: int, segments: int = 1, length: float = 2.0, *args, **kwargs):
+    def __init__(self, n: int, in_channels: int, segments: int = 1, length: float = 2.0, rescale_output=False, *args, **kwargs):
         """
         TODO: remove "segments" and del from kwargs manually when used.
         Segments is not used in this function, but is included in the parameter list 
@@ -59,37 +64,50 @@ class PolynomialConvolution2d(nn.Module):
         """
         super().__init__()
         self.poly = Expansion2d(LagrangeExpand(n, length=length))
-        self.conv = Conv2d(in_channels=n*in_channels, **kwargs)
+        self._channels = n*in_channels
+        self.conv = Conv2d(in_channels=self._channels, **kwargs)
+        self._total_in = self._channels*kernel_size*kernel_size
+        self._rescale = 1.0
+        if rescale_output is True:
+            self._rescale = 1.0/self._total_in
 
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out
+        return out/self._rescale
 
 
 class PiecewisePolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, length: float = 2.0, *args, **kwargs):
+    def __init__(self, n: int, segments: int,  in_channels: int, length: float = 2.0, rescale_output: bool = False, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(
             PiecewisePolynomialExpand(n=n, segments=segments, length=length))
-        channels = ((n-1)*segments+1)*in_channels
-        self.conv = Conv2d(in_channels=channels, **kwargs)
+        self._channels = ((n-1)*segments+1)*in_channels
+        self.conv = Conv2d(in_channels=self._channels, **kwargs)
+        self._total_in = self._channels*kernel_size*kernel_size
+        self._rescale = 1.0
+        if rescale_output is True:
+            self._rescale = 1.0/self._total_in
 
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out
+        return out/self._rescale
 
 
 class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, length: float = 2.0, *args, **kwargs):
+    def __init__(self, n: int, segments: int,  in_channels: int, length: float = 2.0, rescale_output: bool = True, *args, **kwargs):
         super().__init__()
         self.poly = Expansion2d(
             PiecewiseDiscontinuousPolynomialExpand(n=n, segments=segments, length=length))
-        channels = n*segments*in_channels
-        self.conv = Conv2d(in_channels=channels, **kwargs)
+        self._channels = n*segments*in_channels
+        self.conv = Conv2d(in_channels=self._channels, **kwargs)
+        self._total_in = self._channels*kernel_size*kernel_size
+        self._rescale = 1.0
+        if rescale_output is True:
+            self._rescale = 1.0/self._total_in
 
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out
+        return out/self._rescale

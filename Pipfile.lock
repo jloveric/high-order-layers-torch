@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6244cf4874d41cb34a73fe847aa15e438a1403d238d0c79798490f03a0d779ce"
+            "sha256": "17f274a86f878717eb4849aa5e3a89a95b01d71d7ec0b5df9ce39a3ed2165a36"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -29,6 +29,11 @@
             ],
             "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==0.18.2"
+        },
+        "high-order-layers-torch": {
+            "editable": true,
+            "git": "git://github.com/jloveric/high-order-layers-torch",
+            "ref": "8d09df23cb9d1c2e2599796dea44582b93c2dd29"
         },
         "numpy": {
             "hashes": [
@@ -456,11 +461,11 @@
         },
         "tqdm": {
             "hashes": [
-                "sha256:3d3f1470d26642e88bd3f73353cb6ff4c51ef7d5d7efef763238f4bc1f7e4e81",
-                "sha256:5ff3f5232b19fa4c5531641e480b7fad4598819f708a32eb815e6ea41c5fa313"
+                "sha256:5c0d04e06ccc0da1bd3fa5ae4550effcce42fcad947b4a6cafa77bdc9b09ff22",
+                "sha256:9e7b8ab0ecbdbf0595adadd5f0ebbb9e69010e0bd48bbb0c15e550bf2a5292df"
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
-            "version": "==4.53.0"
+            "version": "==4.54.0"
         },
         "typing-extensions": {
             "hashes": [

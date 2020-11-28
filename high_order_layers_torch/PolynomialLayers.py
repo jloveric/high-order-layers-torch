@@ -5,14 +5,15 @@ from .LagrangePolynomial import *
 
 
 class Function(nn.Module):
-    def __init__(self, n, in_features, out_features, basis):
+    def __init__(self, n, in_features, out_features, basis, weight_magnitude: float = 1.0):
         super().__init__()
         self.poly = basis
         self.n = n
 
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n), requires_grad=True)
-        self.w.data.uniform_(-1, 1)
+        self.w.data.uniform_(-weight_magnitude/in_features,
+                             weight_magnitude/in_features)
 
         self.sum = torch.nn.Parameter(
             data=torch.Tensor(out_features), requires_grad=True)
@@ -37,7 +38,7 @@ class FourierSeries(Function):
 
 
 class PiecewisePolynomial(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length: int = 2.0):
+    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0):
         super().__init__()
         self._poly = LagrangePoly(n)
         self._n = n
@@ -46,7 +47,8 @@ class PiecewisePolynomial(nn.Module):
         self.out_features = out_features
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
-        self.w.data.uniform_(-1, 1)
+        self.w.data.uniform_(-weight_magnitude/in_features,
+                             weight_magnitude/in_features)
         self.sum = torch.nn.Parameter(
             data=torch.Tensor(out_features), requires_grad=True)
         self.prod = torch.nn.Parameter(
@@ -107,7 +109,7 @@ class PiecewisePolynomial(nn.Module):
 
 
 class PiecewiseDiscontinuousPolynomial(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length=2.0):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
         super().__init__()
         self._poly = LagrangePoly(n)
         self._n = n
@@ -116,7 +118,7 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         self.out_features = out_features
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n*segments), requires_grad=True)
-        self.w.data.uniform_(-1, 1)
+        self.w.data.uniform_(-1/in_features, 1/in_features)
 
         self.sum = torch.nn.Parameter(
             data=torch.Tensor(out_features), requires_grad=True)
