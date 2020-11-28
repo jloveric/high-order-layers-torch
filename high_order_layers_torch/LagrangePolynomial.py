@@ -77,15 +77,9 @@ class FourierExpand(BasisExpand):
 
 class LagrangePolyFlat(BasisFlat):
     def __init__(self, n: int, length: float = 2.0):
-        super().__init__(n, LagrangeBasis(n))
+        super().__init__(n, LagrangeBasis(n, length=length))
 
 
 class FourierSeriesFlat(BasisFlat):
     def __init__(self, n: int, length: int = 1.0):
         super().__init__(n, FourierBasis(length))
-
-
-# This may be redundant.
-class LagrangePoly(Basis):
-    def __init__(self, n: int):
-        super().__init__(n=n, basis=LagrangeBasis(n))

@@ -40,7 +40,7 @@ class FourierSeries(Function):
 class PiecewisePolynomial(nn.Module):
     def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0):
         super().__init__()
-        self._poly = LagrangePoly(n)
+        self._poly = LagrangePolyFlat(n)
         self._n = n
         self._segments = segments
         self.in_features = in_features
@@ -111,7 +111,7 @@ class PiecewisePolynomial(nn.Module):
 class PiecewiseDiscontinuousPolynomial(nn.Module):
     def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
         super().__init__()
-        self._poly = LagrangePoly(n)
+        self._poly = LagrangePolyFlat(n)
         self._n = n
         self._segments = segments
         self.in_features = in_features
