@@ -63,7 +63,7 @@ class FourierConvolution2d(nn.Module):
         self._channels = n*in_channels
         self.conv = Conv2d(in_channels=self._channels,
                            kernel_size=kernel_size, **kwargs)
-        self._total_in = self._channels*kernel_size*kernel_size
+        self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
             self._rescale = 1.0/self._total_in
@@ -93,7 +93,7 @@ class PolynomialConvolution2d(nn.Module):
         self._channels = n*in_channels
         self.conv = Conv2d(in_channels=self._channels,
                            kernel_size=kernel_size, **kwargs)
-        self._total_in = self._channels*kernel_size*kernel_size
+        self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
             self._rescale = 1.0/self._total_in
@@ -125,7 +125,7 @@ class PiecewisePolynomialConvolution2d(nn.Module):
         self._channels = ((n-1)*segments+1)*in_channels
         self.conv = Conv2d(in_channels=self._channels,
                            kernel_size=kernel_size, **kwargs)
-        self._total_in = self._channels*kernel_size*kernel_size
+        self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
             self._rescale = 1.0/self._total_in
@@ -156,7 +156,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
         self._channels = n*segments*in_channels
         self.conv = Conv2d(in_channels=self._channels,
                            kernel_size=kernel_size, **kwargs)
-        self._total_in = self._channels*kernel_size*kernel_size
+        self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
             self._rescale = 1.0/self._total_in

@@ -26,7 +26,7 @@ class BasisExpand:
 
 
 class PiecewiseExpand:
-    def __init__(self, basis, n: int, segments: int, length: float = 2.0):
+    def __init__(self, basis, n: int, segments: int, length: float = 2.0, sparse=False):
         super().__init__()
         self._basis = basis
         self._n = n
