@@ -211,13 +211,42 @@ class BasisFlat:
 
         # Compute sum and product at output
         out_sum = torch.sum(assemble, dim=2)
+
+        return out_sum
+
+class BasisFlatProd:
+    """
+    Single segment.
+    """
+
+    def __init__(self, n, basis):
+        self.n = n
+        self.basis = basis
+
+    def interpolate(self, x, w):
+        """
+        Args:
+            - x: size[batch, input]
+            - w: size[input, output, basis]
+        Returns:
+            - result: size[batch, output]
+        """
+
+        basis = []
+        for j in range(self.n):
+            basis_j = self.basis(x, j)
+            basis.append(basis_j)
+        basis = torch.stack(basis)
+        assemble = torch.einsum("ijk,lki->jlk", basis, w)
+
+        # Compute sum and product at output
         out_prod = torch.prod(assemble, dim=2)
 
-        return out_sum, out_prod
+        return out_prod
 
 
 class Basis:
-    # TODO: Is this the same as above?
+    # TODO: Is this the same as above? No! It is not!
     def __init__(self, n, basis):
         self.n = n
         self.basis = basis
@@ -241,6 +270,33 @@ class Basis:
 
         # Compute sum and product at output
         out_sum = torch.sum(assemble, dim=2)
+
+        return out_sum
+
+class BasisProd:
+    # TODO: Is this the same as above?
+    def __init__(self, n, basis):
+        self.n = n
+        self.basis = basis
+
+    def interpolate(self, x, w):
+        """
+        Args:
+            - x: size[batch, input]
+            - w: size[batch, input, output, basis]
+        Returns:
+            - result: size[batch, output]
+        """
+
+        mat = []
+        for j in range(self.n):
+            basis_j = self.basis(x, j)
+            mat.append(basis_j)
+        mat = torch.stack(mat)
+
+        assemble = torch.einsum("ijk,jkli->jlk", mat, w)
+
+        # Compute sum and product at output
         out_prod = torch.prod(assemble, dim=2)
 
-        return out_sum, out_prod
+        return out_prod

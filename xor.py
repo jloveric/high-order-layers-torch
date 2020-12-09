@@ -53,10 +53,14 @@ class NDFunctionApproximation(LightningModule):
         and no hidden layers.
         """
         super().__init__()
-        if continuous:
+        if continuous == "piecewise":
             polyfunc = poly.PiecewisePolynomial
-        else:
+        elif continuous == "discontinuous":
             polyfunc = poly.PiecewiseDiscontinuousPolynomial
+        elif continuous == "polynomial_prod" :
+            polyfunc = poly.Polynomial
+        else :
+            raise ValueError(f"{continuous} approximation type not recognized.")
 
         self.layer1 = polyfunc(
             poly_order+1, 2, 1, segments)
@@ -78,7 +82,7 @@ class NDFunctionApproximation(LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
 
-
+model_set_p = [{'name': f"Polynomial {i+1}", "order": i+1} for i in range(3)]
 model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(3)]
 model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1} for i in range(3)]
 
@@ -101,5 +105,5 @@ def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
         plt.ylabel('y')
 
 
-plot_approximation(True, model_set_c, 2, 2, 0)
+plot_approximation("piecewise", model_set_p, 2, 2, 0)
 plt.show()

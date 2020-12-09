@@ -79,6 +79,18 @@ class LagrangePolyFlat(BasisFlat):
     def __init__(self, n: int, length: float = 2.0):
         super().__init__(n, LagrangeBasis(n, length=length))
 
+class LagrangePolyFlatProd(BasisFlatProd):
+    def __init__(self, n: int, length: float = 2.0):
+        super().__init__(n, LagrangeBasis(n, length=length))
+
+class LagrangePoly(Basis):
+    def __init__(self, n: int, length: float = 2.0):
+        super().__init__(n, LagrangeBasis(n, length=length))
+
+class LagrangePolyProd(BasisProd):
+    def __init__(self, n: int, length: float = 2.0):
+        super().__init__(n, LagrangeBasis(n, length=length))
+
 
 class FourierSeriesFlat(BasisFlat):
     def __init__(self, n: int, length: int = 1.0):

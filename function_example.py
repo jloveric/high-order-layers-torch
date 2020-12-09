@@ -153,10 +153,14 @@ def plot_approximation(function, model_set, segments, epochs, gpus=0):
 
 plt.figure(1)
 plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0)
+
 plt.figure(2)
 plot_approximation("continuous", modelSetC, 5, 2, gpus=0)
+
 plt.figure(3)
 plot_approximation("polynomial", modelSetP, 5, 2, gpus=0)
+"""
 plt.figure(4)
 plot_approximation("fourier", modelSetF, 5, 2, gpus=0)
+"""
 plt.show()

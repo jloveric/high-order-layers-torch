@@ -15,16 +15,12 @@ class Function(nn.Module):
         self.w.data.uniform_(-weight_magnitude/in_features,
                              weight_magnitude/in_features)
 
-        self.sum = torch.nn.Parameter(
+        self.result = torch.nn.Parameter(
             data=torch.Tensor(out_features), requires_grad=True)
-        self.prod = torch.nn.Parameter(
-            data=torch.Tensor(out_features), requires_grad=True)
-        self.sum.data.uniform_(-1, 1)
-        self.prod.data.uniform_(-1, 1)
 
     def forward(self, x):
-        fsum, fprod = self.poly.interpolate(x, self.w)
-        return fsum*self.sum+fprod*self.prod
+        result = self.poly.interpolate(x, self.w)
+        return result
 
 
 class Polynomial(Function):
@@ -32,15 +28,20 @@ class Polynomial(Function):
         return super().__init__(n, in_features, out_features, LagrangePolyFlat(n, length=length))
 
 
+class PolynomialProd(Function):
+    def __init__(self, n, in_features, out_features, length: float = 2.0):
+        return super().__init__(n, in_features, out_features, LagrangePolyFlatProd(n, length=length))
+
+
 class FourierSeries(Function):
     def __init__(self, n: int, in_features: int, out_features: int, length: float = 2.0):
         return super().__init__(n, in_features, out_features, FourierSeriesFlat(n, length=length))
 
 
-class PiecewisePolynomial(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0):
+class Piecewise(nn.Module):
+    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0, poly=None):
         super().__init__()
-        self._poly = LagrangePolyFlat(n)
+        self._poly = poly(n)
         self._n = n
         self._segments = segments
         self.in_features = in_features
@@ -49,12 +50,6 @@ class PiecewisePolynomial(nn.Module):
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
         self.w.data.uniform_(-weight_magnitude/in_features,
                              weight_magnitude/in_features)
-        self.sum = torch.nn.Parameter(
-            data=torch.Tensor(out_features), requires_grad=True)
-        self.prod = torch.nn.Parameter(
-            data=torch.Tensor(out_features), requires_grad=True)
-        self.sum.data.uniform_(-1, 1)
-        self.prod.data.uniform_(-1, 1)
         self.wrange = None
         self._length = length
         self._half = 0.5*length
@@ -95,9 +90,8 @@ class PiecewisePolynomial(nn.Module):
         # rescale to -1 to +1
         x_in = self._length*((x-x_min)/(x_max-x_min))-self._half
 
-        fsum, fprod = self._poly.interpolate(x_in, w)
-        res = fsum*self.sum+fprod*self.prod
-        return res
+        result = self._poly.interpolate(x_in, w)
+        return result
 
     def _eta(self, index):
         """
@@ -108,10 +102,22 @@ class PiecewisePolynomial(nn.Module):
         return eta*2-1
 
 
-class PiecewiseDiscontinuousPolynomial(nn.Module):
+class PiecewisePolynomial(Piecewise):
     def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+        super().__init__(n, in_features, out_features, segments,
+                       length, weight_magnitude, poly=LagrangePoly)
+
+
+class PiecewisePolynomialProd(Piecewise):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+        super().__init__(n, in_features, out_features, segments,
+                       length, weight_magnitude, poly=LagrangePolyProd)
+
+
+class PiecewiseDiscontinuous(nn.Module):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, poly=None):
         super().__init__()
-        self._poly = LagrangePolyFlat(n)
+        self._poly = poly(n)
         self._n = n
         self._segments = segments
         self.in_features = in_features
@@ -120,12 +126,6 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
             out_features, in_features, n*segments), requires_grad=True)
         self.w.data.uniform_(-1/in_features, 1/in_features)
 
-        self.sum = torch.nn.Parameter(
-            data=torch.Tensor(out_features), requires_grad=True)
-        self.prod = torch.nn.Parameter(
-            data=torch.Tensor(out_features), requires_grad=True)
-        self.sum.data.uniform_(-1, 1)
-        self.prod.data.uniform_(-1, 1)
         self._length = length
         self._half = 0.5*length
 
@@ -168,9 +168,21 @@ class PiecewiseDiscontinuousPolynomial(nn.Module):
         w = w.view(self.out_features, -1, self.in_features, self._n)
         w = w.permute(1, 2, 0, 3)
 
-        fsum, fprod = self._poly.interpolate(x_in, w)
-        return fsum*self.sum+fprod*self.prod
+        result = self._poly.interpolate(x_in, w)
+        return result
 
     def _eta(self, index):
         eta = index/float(self._segments)
         return eta*2-1
+
+
+class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+        super().__init__(n, in_features, out_features, segments,
+                       length, weight_magnitude, poly=LagrangePoly)
+
+
+class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+        super().__init__(n, in_features, out_features, segments,
+                       length, weight_magnitude, poly=LagrangePolyProd)
