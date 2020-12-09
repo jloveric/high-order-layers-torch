@@ -105,13 +105,13 @@ class Piecewise(nn.Module):
 class PiecewisePolynomial(Piecewise):
     def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
         super().__init__(n, in_features, out_features, segments,
-                       length, weight_magnitude, poly=LagrangePoly)
+                         length, weight_magnitude, poly=LagrangePoly)
 
 
 class PiecewisePolynomialProd(Piecewise):
     def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
         super().__init__(n, in_features, out_features, segments,
-                       length, weight_magnitude, poly=LagrangePolyProd)
+                         length, weight_magnitude, poly=LagrangePolyProd)
 
 
 class PiecewiseDiscontinuous(nn.Module):
@@ -179,10 +179,10 @@ class PiecewiseDiscontinuous(nn.Module):
 class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
     def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
         super().__init__(n, in_features, out_features, segments,
-                       length, weight_magnitude, poly=LagrangePoly)
+                         length, weight_magnitude, poly=LagrangePoly)
 
 
 class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
     def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
         super().__init__(n, in_features, out_features, segments,
-                       length, weight_magnitude, poly=LagrangePolyProd)
+                         length, weight_magnitude, poly=LagrangePolyProd)

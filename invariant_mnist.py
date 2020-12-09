@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
-from high_order_layers_torch.PolynomialLayers import PiecewisePolynomial, PiecewiseDiscontinuousPolynomial, Polynomial
+from high_order_layers_torch.PolynomialLayers import *
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -49,6 +49,12 @@ class Net(LightningModule):
             self.layer2 = nn.LayerNorm(100)
             self.layer3 = Polynomial(
                 n, 100, 10)
+        elif layer_type == "polynomial_prod" :
+            self.layer1 = PolynomialProd(
+                n, 784, 100)
+            self.layer2 = nn.LayerNorm(100)
+            self.layer3 = PolynomialProd(
+                n, 100, 10)
 
         self.layer4 = nn.LayerNorm(10)
 
@@ -68,12 +74,12 @@ class Net(LightningModule):
 
     def train_dataloader(self):
         trainset = torchvision.datasets.MNIST(
-            root='./data', train=True, download=self.cfg.download, transform=transform)
+            root='./data', train=True, download=True, transform=transform)
         return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root='./data', train=False, download=self.cfg.download, transform=transform)
+            root='./data', train=False, download=True, transform=transform)
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
@@ -101,7 +107,7 @@ class Net(LightningModule):
 
 
 trainer = Trainer(max_epochs=10, gpus=1)
-model = Net(n=3, segments=2, batch_size=64, layer_type="continuous")
+model = Net(n=3, segments=2, batch_size=64, layer_type="polynomial_prod")
 trainer.fit(model)
 print('testing')
 trainer.test(model)
