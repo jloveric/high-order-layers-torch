@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jloveric/functional-layers.svg?branch=master)](https://travis-ci.org/jloveric/functional-layers)
+[![Build Status](https://travis-ci.org/jloveric/high-order-layers-torch.svg?branch=master)](https://travis-ci.org/jloveric/high-order-layers-torch)
 
 # Functional Layers in PyTorch
 This is a PyTorch implementation of my tensorflow [repository](https://github.com/jloveric/high-order-layers) and is more complete due to the flexibility of PyTorch.
