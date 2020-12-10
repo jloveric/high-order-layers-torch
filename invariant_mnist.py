@@ -9,6 +9,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import *
+from high_order_layers_torch.layers import *
+
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -31,6 +33,12 @@ class Net(LightningModule):
         self._batch_size = batch_size
         self.criterion = nn.CrossEntropyLoss()
 
+        self.layer1 = high_order_fc_layers(layer_type=layer_type, n=n, in_features=784, out_features=100, segments=segments)
+        self.layer2 = nn.LayerNorm(100)
+        self.layer3 = high_order_fc_layers(layer_type=layer_type, n=n, in_features=100, out_features=10, segements=segments)
+
+
+        """
         if layer_type == "continuous":
             self.layer1 = PiecewisePolynomial(
                 n, 784, 100, segments)
@@ -49,13 +57,13 @@ class Net(LightningModule):
             self.layer2 = nn.LayerNorm(100)
             self.layer3 = Polynomial(
                 n, 100, 10)
-        elif layer_type == "polynomial_prod" :
+        elif layer_type == "polynomial_prod":
             self.layer1 = PolynomialProd(
                 n, 784, 100)
             self.layer2 = nn.LayerNorm(100)
             self.layer3 = PolynomialProd(
                 n, 100, 10)
-
+        """
         self.layer4 = nn.LayerNorm(10)
 
     def forward(self, x):
@@ -106,8 +114,8 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=10, gpus=1)
-model = Net(n=3, segments=2, batch_size=64, layer_type="polynomial_prod")
+trainer = Trainer(max_epochs=100, gpus=1)
+model = Net(n=3, segments=2, batch_size=64, layer_type="polynomial")
 trainer.fit(model)
 print('testing')
 trainer.test(model)

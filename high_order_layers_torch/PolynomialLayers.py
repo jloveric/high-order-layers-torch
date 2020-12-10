@@ -5,7 +5,7 @@ from .LagrangePolynomial import *
 
 
 class Function(nn.Module):
-    def __init__(self, n, in_features, out_features, basis, weight_magnitude: float = 1.0):
+    def __init__(self, n, in_features, out_features, basis, weight_magnitude: float = 1.0, **kwargs):
         super().__init__()
         self.poly = basis
         self.n = n
@@ -24,22 +24,22 @@ class Function(nn.Module):
 
 
 class Polynomial(Function):
-    def __init__(self, n, in_features, out_features, length: float = 2.0):
+    def __init__(self, n, in_features, out_features, length: float = 2.0, **kwargs):
         return super().__init__(n, in_features, out_features, LagrangePolyFlat(n, length=length))
 
 
 class PolynomialProd(Function):
-    def __init__(self, n, in_features, out_features, length: float = 2.0):
+    def __init__(self, n, in_features, out_features, length: float = 2.0, **kwargs):
         return super().__init__(n, in_features, out_features, LagrangePolyFlatProd(n, length=length))
 
 
 class FourierSeries(Function):
-    def __init__(self, n: int, in_features: int, out_features: int, length: float = 2.0):
+    def __init__(self, n: int, in_features: int, out_features: int, length: float = 2.0, **kwargs):
         return super().__init__(n, in_features, out_features, FourierSeriesFlat(n, length=length))
 
 
 class Piecewise(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0, poly=None):
+    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0, poly=None, **kwargs):
         super().__init__()
         self._poly = poly(n)
         self._n = n
