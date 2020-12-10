@@ -1,0 +1,7 @@
+max_epochs: 100
+gpus: 1 
+n: 3
+batch_size: 16 
+segments: 2
+layer_type: polynomial 
+train_fraction: 1.0

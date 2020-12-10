@@ -10,6 +10,9 @@ import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import *
 from high_order_layers_torch.layers import *
+from omegaconf import DictConfig, OmegaConf
+import hydra
+import os
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -28,42 +31,18 @@ classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
 class Net(LightningModule):
-    def __init__(self, n, segments=2, batch_size=32, layer_type="continuous"):
+    def __init__(self, cfg):
         super().__init__()
-        self._batch_size = batch_size
+        self._cfg = cfg
+        self._batch_size = cfg.batch_size
         self.criterion = nn.CrossEntropyLoss()
+        self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
 
-        self.layer1 = high_order_fc_layers(layer_type=layer_type, n=n, in_features=784, out_features=100, segments=segments)
+        self.layer1 = high_order_fc_layers(
+            layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments)
         self.layer2 = nn.LayerNorm(100)
-        self.layer3 = high_order_fc_layers(layer_type=layer_type, n=n, in_features=100, out_features=10, segements=segments)
-
-
-        """
-        if layer_type == "continuous":
-            self.layer1 = PiecewisePolynomial(
-                n, 784, 100, segments)
-            self.layer2 = nn.LayerNorm(100)
-            self.layer3 = PiecewisePolynomial(
-                n, 100, 10, segments)
-        elif layer_type == "discontinuous":
-            self.layer1 = PiecewiseDiscontinuousPolynomial(
-                n, 784, 100, segments)
-            self.layer2 = nn.LayerNorm(100)
-            self.layer3 = PiecewiseDiscontinuousPolynomial(
-                n, 100, 10, segments)
-        elif layer_type == "polynomial":
-            self.layer1 = Polynomial(
-                n, 784, 100)
-            self.layer2 = nn.LayerNorm(100)
-            self.layer3 = Polynomial(
-                n, 100, 10)
-        elif layer_type == "polynomial_prod":
-            self.layer1 = PolynomialProd(
-                n, 784, 100)
-            self.layer2 = nn.LayerNorm(100)
-            self.layer3 = PolynomialProd(
-                n, 100, 10)
-        """
+        self.layer3 = high_order_fc_layers(
+            layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments)
         self.layer4 = nn.LayerNorm(10)
 
     def forward(self, x):
@@ -82,12 +61,12 @@ class Net(LightningModule):
 
     def train_dataloader(self):
         trainset = torchvision.datasets.MNIST(
-            root='./data', train=True, download=True, transform=transform)
+            root=self._data_dir, train=True, download=True, transform=transform)
         return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root='./data', train=False, download=True, transform=transform)
+            root=self._data_dir, train=False, download=True, transform=transform)
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
@@ -114,9 +93,18 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-trainer = Trainer(max_epochs=100, gpus=1)
-model = Net(n=3, segments=2, batch_size=64, layer_type="polynomial")
-trainer.fit(model)
-print('testing')
-trainer.test(model)
-print('finished testing')
+@hydra.main(config_name="./config/invariant_mnist")
+def invariant_mnist(cfg: DictConfig):
+    print(OmegaConf.to_yaml(cfg))
+    print("Working directory : {}".format(os.getcwd()))
+    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    trainer = Trainer(max_epochs=100, gpus=1)
+    model = Net(cfg)
+    trainer.fit(model)
+    print('testing')
+    trainer.test(model)
+    print('finished testing')
+
+
+if __name__ == "__main__":
+    invariant_mnist()
