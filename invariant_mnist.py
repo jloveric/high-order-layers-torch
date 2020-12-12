@@ -14,9 +14,9 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
 
-transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
+
+"""
 trainset = torchvision.datasets.MNIST(
     root='./data', train=True, download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(
@@ -26,7 +26,7 @@ testset = torchvision.datasets.MNIST(
     root='./data', train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(
     testset, batch_size=4, shuffle=False, num_workers=2)
-
+"""
 classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
@@ -37,6 +37,8 @@ class Net(LightningModule):
         self._batch_size = cfg.batch_size
         self.criterion = nn.CrossEntropyLoss()
         self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        self._train_fraction = cfg.train_fraction
+        self._transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
         self.layer1 = high_order_fc_layers(
             layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments)
@@ -44,6 +46,16 @@ class Net(LightningModule):
         self.layer3 = high_order_fc_layers(
             layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments)
         self.layer4 = nn.LayerNorm(10)
+
+    def setup(self, stage):
+        num_train = int(self._train_fraction*50000)
+        num_val = 10000
+        num_extra = 50000-num_train
+
+        train = torchvision.datasets.MNIST(
+            root=self._data_dir, train=True, download=True, transform=self._transform)
+        self._train_subset, self._val_subset, extra = torch.utils.data.random_split(
+            train, [num_train, 10000, num_extra], generator=torch.Generator().manual_seed(1))
 
     def forward(self, x):
         x = self.layer1(x)
@@ -60,13 +72,14 @@ class Net(LightningModule):
         return F.cross_entropy(y_hat, y)
 
     def train_dataloader(self):
-        trainset = torchvision.datasets.MNIST(
-            root=self._data_dir, train=True, download=True, transform=transform)
-        return torch.utils.data.DataLoader(trainset, batch_size=self._batch_size, shuffle=True, num_workers=10)
+        return torch.utils.data.DataLoader(self._train_subset, batch_size=self._batch_size, shuffle=True, num_workers=10)
+
+    def val_dataloader(self):
+        return torch.utils.data.DataLoader(self._val_subset, batch_size=self._batch_size, shuffle=True, num_workers=10)
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root=self._data_dir, train=False, download=True, transform=transform)
+            root=self._data_dir, train=False, download=True, transform=self._transform)
         return torch.utils.data.DataLoader(testset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
     def validation_step(self, batch, batch_idx):
