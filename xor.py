@@ -48,7 +48,7 @@ class XorDataset(Dataset):
 
 
 class NDFunctionApproximation(LightningModule):
-    def __init__(self, n, segments=2, layer_type="continuous"):
+    def __init__(self, n, segments=2, layer_type="continuous", linear_part=1.0):
         """
         Simple network consisting of 2 input and 1 output
         and no hidden layers.
@@ -56,10 +56,10 @@ class NDFunctionApproximation(LightningModule):
         super().__init__()
 
         self.layer1 = high_order_fc_layers(
-            layer_type=layer_type, n=n, in_features=2, out_features=1, segments=segments, alpha=0.0)
+            layer_type=layer_type, n=n, in_features=2, out_features=1, segments=segments, alpha=linear_part)
         self.layer2 = high_order_fc_layers(
-            layer_type=layer_type, n=n, in_features=1, out_features=1, segments=segments, alpha=0.0)
-        
+            layer_type=layer_type, n=n, in_features=1, out_features=1, segments=segments, alpha=linear_part)
+
     def forward(self, x):
         out1 = self.layer1(x)
         return out1
@@ -76,18 +76,20 @@ class NDFunctionApproximation(LightningModule):
         return torch.optim.Adam(self.parameters(), lr=0.02)
 
 
-model_set_p = [{'name': f"Polynomial {i+1}", "order": i+1} for i in range(2,5)]
-model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(2,5)]
+model_set_p = [{'name': f"Polynomial {i+1}", "order": i+1}
+               for i in range(2, 5)]
+model_set_c = [{'name': f"Continuous {i+1}", "order": i+1}
+               for i in range(2, 5)]
 model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1}
-               for i in range(2,5)]
+               for i in range(2, 5)]
 
 
-def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
+def plot_approximation(continuous, model_set, segments, epochs, fig_start=0, linear_part=0.0):
     for i in range(0, len(model_set)):
         plt.figure(i+fig_start)
         trainer = Trainer(max_epochs=epochs)
         model = NDFunctionApproximation(
-            n=model_set[i]['order'], segments=segments, layer_type=continuous)
+            n=model_set[i]['order'], segments=segments, layer_type=continuous, linear_part=linear_part)
         trainer.fit(model)
         predictions = model(xTest.view(xTest.size(0), -1))
         plt.scatter(
@@ -100,5 +102,5 @@ def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
         plt.ylabel('y')
 
 
-plot_approximation("continuous", model_set_p, 2, 4, 0)
+plot_approximation("continuous_prod", model_set_p, 2, 4, 0)
 plt.show()

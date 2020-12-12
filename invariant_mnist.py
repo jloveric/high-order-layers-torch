@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import *
+from high_order_layers_torch.layers import *
 from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
@@ -26,10 +27,10 @@ class Net(LightningModule):
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
         self.layer1 = high_order_fc_layers(
-            layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments)
+            layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments, alpha=cfg.linear_part)
         self.layer2 = nn.LayerNorm(100)
         self.layer3 = high_order_fc_layers(
-            layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments)
+            layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments, alpha=cfg.linear_part)
         self.layer4 = nn.LayerNorm(10)
 
     def setup(self, stage):
@@ -46,9 +47,9 @@ class Net(LightningModule):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x)
-        output = F.log_softmax(x, dim=1)
-        return output
+        #x = self.layer4(x)
+        #output = F.log_softmax(x, dim=1)
+        return x
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -74,7 +75,7 @@ class Net(LightningModule):
         x, y = batch
         x_new = x.view(x.shape[0], -1)
         logits = self(x_new)
-        loss = F.nll_loss(logits, y)
+        loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
@@ -96,7 +97,7 @@ def invariant_mnist(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
-    trainer = Trainer(max_epochs=100, gpus=1)
+    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=1)
     model = Net(cfg)
     trainer.fit(model)
     print('testing')

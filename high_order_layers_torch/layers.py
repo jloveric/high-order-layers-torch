@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
 from .PolynomialLayers import *
-from .PerturbationLayer import *
+from .ProductLayer import *
 
 fc_layers = {
     "continuous": PiecewisePolynomial,
@@ -13,7 +13,7 @@ fc_layers = {
     "discontinuous_prod": PiecewiseDiscontinuousPolynomialProd,
     "polynomial": Polynomial,
     "polynomial_prod": PolynomialProd,
-    "perturbation": Perturbation,
+    "product": Product,
 }
 
 

@@ -56,17 +56,17 @@ class LagrangeBasis:
 
 
 class LagrangeExpand(BasisExpand):
-    def __init__(self, n: int, length:float=2.0):
+    def __init__(self, n: int, length: float = 2.0):
         super().__init__(LagrangeBasis(n, length=length), n)
 
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
-    def __init__(self, n: int, segments: int, length:float=2.0):
+    def __init__(self, n: int, segments: int, length: float = 2.0):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
 
 
 class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
-    def __init__(self, n: int, segments: int, length:float=2.0):
+    def __init__(self, n: int, segments: int, length: float = 2.0):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
 
 
@@ -76,22 +76,25 @@ class FourierExpand(BasisExpand):
 
 
 class LagrangePolyFlat(BasisFlat):
-    def __init__(self, n: int, length: float = 2.0):
-        super().__init__(n, LagrangeBasis(n, length=length))
+    def __init__(self, n: int, length: float = 2.0, **kwargs):
+        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+
 
 class LagrangePolyFlatProd(BasisFlatProd):
-    def __init__(self, n: int, length: float = 2.0):
-        super().__init__(n, LagrangeBasis(n, length=length))
+    def __init__(self, n: int, length: float = 2.0, **kwargs):
+        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+
 
 class LagrangePoly(Basis):
-    def __init__(self, n: int, length: float = 2.0):
-        super().__init__(n, LagrangeBasis(n, length=length))
+    def __init__(self, n: int, length: float = 2.0, **kwargs):
+        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+
 
 class LagrangePolyProd(BasisProd):
-    def __init__(self, n: int, length: float = 2.0):
-        super().__init__(n, LagrangeBasis(n, length=length))
+    def __init__(self, n: int, length: float = 2.0, **kwargs):
+        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
 
 
 class FourierSeriesFlat(BasisFlat):
-    def __init__(self, n: int, length: int = 1.0):
-        super().__init__(n, FourierBasis(length))
+    def __init__(self, n: int, length: int = 1.0, **kwargs):
+        super().__init__(n, FourierBasis(length), **kwargs)

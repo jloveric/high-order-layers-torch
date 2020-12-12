@@ -11,11 +11,15 @@ pipenv install -e git+git://github.com/jloveric/high-order-layers-torch@master#e
 ```
 # Examples
 
-## mnist
+## mnist (convolutional)
 ```python
 python mnist.py max_epochs=1 train_fraction=0.1 layer_type=piecewise segments=2
 ```
-## cifar100
+## cifar100 (convolutional)
 ```
 python cifar100.py max_epochs=1 train_fraction=0.1 layer_type=piecewise segments=2 n=3
+```
+## invariant mnist (fully connected)
+```python
+python invariant_mnist.py max_epochs=1 train_fraction=0.1 layer_type=polynomial_prod segments=2 linear_part=0.0
 ```

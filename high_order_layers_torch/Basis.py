@@ -214,14 +214,16 @@ class BasisFlat:
 
         return out_sum
 
+
 class BasisFlatProd:
     """
     Single segment.
     """
 
-    def __init__(self, n, basis):
+    def __init__(self, n, basis, alpha=1.0):
         self.n = n
         self.basis = basis
+        self.alpha = alpha
 
     def interpolate(self, x, w):
         """
@@ -238,9 +240,12 @@ class BasisFlatProd:
             basis.append(basis_j)
         basis = torch.stack(basis)
         assemble = torch.einsum("ijk,lki->jlk", basis, w)
-        
+        this_sum = torch.sum(assemble, dim=2)
+
+        assemble = assemble+1
+
         # Compute sum and product at output
-        out_prod = torch.prod(assemble, dim=2)
+        out_prod = torch.prod(assemble, dim=2)-1+(1-self.alpha) * this_sum
 
         return out_prod
 
@@ -273,11 +278,13 @@ class Basis:
 
         return out_sum
 
+
 class BasisProd:
     # TODO: Is this the same as above?
-    def __init__(self, n, basis):
+    def __init__(self, n, basis, alpha=1.0):
         self.n = n
         self.basis = basis
+        self.alpha = alpha
 
     def interpolate(self, x, w):
         """
@@ -294,9 +301,13 @@ class BasisProd:
             mat.append(basis_j)
         mat = torch.stack(mat)
 
+        # jlk is [batch, output, input]
+        # batch=j, output=l, input=k, i=basis
         assemble = torch.einsum("ijk,jkli->jlk", mat, w)
+        this_sum = torch.sum(assemble, dim=2)
+        assemble = 1+assemble
 
-        # Compute sum and product at output
-        out_prod = torch.prod(assemble, dim=2)
+        # Compute the product possibly removing the linear term.
+        out_prod = torch.prod(assemble, dim=2)-1+(1-self.alpha) * this_sum
 
         return out_prod
