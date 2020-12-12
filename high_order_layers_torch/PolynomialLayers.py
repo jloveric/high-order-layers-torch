@@ -103,19 +103,19 @@ class Piecewise(nn.Module):
 
 
 class PiecewisePolynomial(Piecewise):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
         super().__init__(n, in_features, out_features, segments,
                          length, weight_magnitude, poly=LagrangePoly)
 
 
 class PiecewisePolynomialProd(Piecewise):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
         super().__init__(n, in_features, out_features, segments,
                          length, weight_magnitude, poly=LagrangePolyProd)
 
 
 class PiecewiseDiscontinuous(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, poly=None):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, poly=None, **kwargs):
         super().__init__()
         self._poly = poly(n)
         self._n = n
@@ -177,12 +177,12 @@ class PiecewiseDiscontinuous(nn.Module):
 
 
 class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
         super().__init__(n, in_features, out_features, segments,
                          length, weight_magnitude, poly=LagrangePoly)
 
 
 class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
         super().__init__(n, in_features, out_features, segments,
                          length, weight_magnitude, poly=LagrangePolyProd)

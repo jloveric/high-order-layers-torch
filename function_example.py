@@ -14,6 +14,7 @@ from torchvision import transforms
 from torch.utils.data import random_split
 from high_order_layers_torch.PolynomialLayers import *
 from high_order_layers_torch.LagrangePolynomial import *
+from high_order_layers_torch.layers import *
 
 import math
 import os
@@ -64,6 +65,9 @@ class PolynomialFunctionApproximation(LightningModule):
 
     def __init__(self, n, segments=2, function=True):
         super().__init__()
+        self.layer = high_order_fc_layers(
+            layer_type=function, n=1, in_features=1, out_features=1, segments=segments, length=2.0)
+        """
         if function == "continuous":
             self.layer = PiecewisePolynomial(
                 n, 1, 1, segments, length=2.0)
@@ -74,6 +78,7 @@ class PolynomialFunctionApproximation(LightningModule):
             self.layer = FourierSeries(n, 1, 1, length=2.0)
         elif function == "polynomial":
             self.layer = Polynomial(n, 1, 1, length=2.0)
+        """
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))

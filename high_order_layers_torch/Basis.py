@@ -238,7 +238,7 @@ class BasisFlatProd:
             basis.append(basis_j)
         basis = torch.stack(basis)
         assemble = torch.einsum("ijk,lki->jlk", basis, w)
-
+        
         # Compute sum and product at output
         out_prod = torch.prod(assemble, dim=2)
 

@@ -16,6 +16,7 @@ from torch.utils.data import random_split
 from high_order_layers_torch.PolynomialLayers import *
 import math
 import os
+from high_order_layers_torch.layers import *
 
 elements = 100
 a = torch.linspace(-1, 1,  elements)
@@ -47,26 +48,18 @@ class XorDataset(Dataset):
 
 
 class NDFunctionApproximation(LightningModule):
-    def __init__(self, poly_order, segments=2, continuous=True):
+    def __init__(self, n, segments=2, layer_type="continuous"):
         """
         Simple network consisting of 2 input and 1 output
         and no hidden layers.
         """
         super().__init__()
-        if continuous == "piecewise":
-            polyfunc = poly.PiecewisePolynomial
-        elif continuous == "discontinuous":
-            polyfunc = poly.PiecewiseDiscontinuousPolynomial
-        elif continuous == "polynomial_prod" :
-            polyfunc = poly.Polynomial
-        else :
-            raise ValueError(f"{continuous} approximation type not recognized.")
 
-        self.layer1 = polyfunc(
-            poly_order+1, 2, 1, segments)
-        self.layer2 = polyfunc(
-            poly_order+1, 1, 1, segments)
-
+        self.layer1 = high_order_fc_layers(
+            layer_type=layer_type, n=n, in_features=2, out_features=1, segments=segments, alpha=0.0)
+        self.layer2 = high_order_fc_layers(
+            layer_type=layer_type, n=n, in_features=1, out_features=1, segments=segments, alpha=0.0)
+        
     def forward(self, x):
         out1 = self.layer1(x)
         return out1
@@ -82,9 +75,11 @@ class NDFunctionApproximation(LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
 
-model_set_p = [{'name': f"Polynomial {i+1}", "order": i+1} for i in range(3)]
-model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(3)]
-model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1} for i in range(3)]
+
+model_set_p = [{'name': f"Polynomial {i+1}", "order": i+1} for i in range(2,5)]
+model_set_c = [{'name': f"Continuous {i+1}", "order": i+1} for i in range(2,5)]
+model_set_d = [{'name': f"Discontinuous {i+1}", "order": i+1}
+               for i in range(2,5)]
 
 
 def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
@@ -92,7 +87,7 @@ def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
         plt.figure(i+fig_start)
         trainer = Trainer(max_epochs=epochs)
         model = NDFunctionApproximation(
-            poly_order=model_set[i]['order'], segments=segments, continuous=continuous)
+            n=model_set[i]['order'], segments=segments, layer_type=continuous)
         trainer.fit(model)
         predictions = model(xTest.view(xTest.size(0), -1))
         plt.scatter(
@@ -105,5 +100,5 @@ def plot_approximation(continuous, model_set, segments, epochs, fig_start=0):
         plt.ylabel('y')
 
 
-plot_approximation("piecewise", model_set_p, 2, 2, 0)
+plot_approximation("continuous", model_set_p, 2, 4, 0)
 plt.show()
