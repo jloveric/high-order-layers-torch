@@ -7,15 +7,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
-from high_order_layers_torch.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
-from high_order_layers_torch.FunctionalConvolution import PiecewisePolynomialConvolution2d as PiecewisePolyConv2d
-from high_order_layers_torch.FunctionalConvolution import PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.metrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
+from high_order_layers_torch.layers import *
+
 
 transformStandard = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -41,28 +40,17 @@ class Net(LightningModule):
         segments = cfg.segments
 
         self._transform = transformPoly
-        if layer_type == "continuous":
-            
-            self.conv1 = PolyConv2d(
-                n, in_channels=1, out_channels=6, kernel_size=5)
-            self.conv2 = PolyConv2d(
-                n, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "piecewise":
-            self.conv1 = PiecewisePolyConv2d(
-                n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
-            self.conv2 = PiecewisePolyConv2d(
-                n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif layer_type == "discontinuous":
-            self.conv1 = PiecewiseDiscontinuousPolyConv2d(
-                n, segments=segments, in_channels=1, out_channels=6, kernel_size=5)
-            self.conv2 = PiecewiseDiscontinuousPolyConv2d(
-                n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        if layer_type == "standard":
-            self._transform = transformStandard
+        
+        if self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
                 in_channels=1, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
+        else:
+            self.conv1 = high_order_convolution_layers(
+                layer_type=self._layer_type, n=n, in_channels=1, out_channels=6, kernel_size=5, segments=cfg.segments)
+            self.conv2 = high_order_convolution_layers(
+                layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments)
 
 
         w1 = 28-4

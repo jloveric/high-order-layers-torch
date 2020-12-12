@@ -11,7 +11,7 @@ from pytorch_lightning import LightningModule, Trainer
 from high_order_layers_torch.FunctionalConvolution import PolynomialConvolution2d as PolyConv2d
 from high_order_layers_torch.FunctionalConvolution import PiecewisePolynomialConvolution2d as PiecewisePolyConv2d
 from high_order_layers_torch.FunctionalConvolution import PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d
-
+from high_order_layers_torch.layers import *
 from pytorch_lightning.metrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import PiecewiseDiscontinuousPolynomial, PiecewisePolynomial, Polynomial
 import hydra
@@ -23,7 +23,7 @@ transform = transforms.Compose(
 
 
 class Net(LightningModule):
-    def __init__(self, cfg : DictConfig):
+    def __init__(self, cfg: DictConfig):
         super().__init__()
         self._cfg = cfg
         self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
@@ -35,26 +35,16 @@ class Net(LightningModule):
         self._train_fraction = cfg.train_fraction
         segments = cfg.segments
 
-        if self._layer_type == "continuous":
-            self.conv1 = PolyConv2d(
-                n, in_channels=3, out_channels=6, kernel_size=5)
-            self.conv2 = PolyConv2d(
-                n, in_channels=6, out_channels=16, kernel_size=5)
-        elif self._layer_type == "piecewise":
-            self.conv1 = PiecewisePolyConv2d(
-                n, segments=segments, in_channels=3, out_channels=6, kernel_size=5)
-            self.conv2 = PiecewisePolyConv2d(
-                n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif self._layer_type == "discontinuous":
-            self.conv1 = PiecewiseDiscontinuousPolyConv2d(
-                n, segments=segments, in_channels=3, out_channels=6, kernel_size=5)
-            self.conv2 = PiecewiseDiscontinuousPolyConv2d(
-                n, segments=segments, in_channels=6, out_channels=16, kernel_size=5)
-        elif self._layer_type == "standard":
+        if self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
                 in_channels=3, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
+        else:
+            self.conv1 = high_order_convolution_layers(
+                layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments)
+            self.conv2 = high_order_convolution_layers(
+                layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments)
 
         self.pool = nn.MaxPool2d(2, 2)
 
@@ -97,7 +87,6 @@ class Net(LightningModule):
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self._val_subset, batch_size=self._batch_size, shuffle=False, num_workers=10)
 
-
     def test_dataloader(self):
         testset = torchvision.datasets.CIFAR100(
             root=self._data_dir, train=False, download=True, transform=transform)
@@ -133,7 +122,7 @@ def run_cifar100(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
-    
+
     trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)
     model = Net(cfg)
     trainer.fit(model)
@@ -141,5 +130,6 @@ def run_cifar100(cfg: DictConfig):
     trainer.test(model)
     print('finished testing')
 
-if __name__ == "__main__" :
+
+if __name__ == "__main__":
     run_cifar100()
