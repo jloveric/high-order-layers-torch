@@ -3,7 +3,7 @@ python:
   - '3.8.6'
 install:
   - pip install pipenv
-  - pipenv install
+  - pipenv install --dev
   - pipenv install pylint
 script:
   #- pylint **/*.py
