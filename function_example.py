@@ -66,30 +66,33 @@ class PolynomialFunctionApproximation(LightningModule):
     def __init__(self, n, segments=2, function=True):
         super().__init__()
 
-        if function == "product":
+        if function == "standard" :
+            print('Inside standard')
+            alpha = 0.0
+            layer1 = nn.Linear(in_features=1, out_features=n)
+            layer2 = nn.Linear(in_features=n, out_features=1)
+            self.layer = nn.Sequential(
+                layer1, 
+                nn.ReLU(), 
+                layer2, 
+            ) 
+
+        elif function == "product":
             print('Inside product')
             alpha = 0.0
             layer1 = high_order_fc_layers(
                 layer_type=function, in_features=1, out_features=n, alpha=1.0)
             layer2 = high_order_fc_layers(
-                layer_type=function, in_features=n, out_features=1, alpha=alpha)
-            self.layer = nn.Sequential(layer1, layer2)
+                layer_type=function, in_features=n, out_features=1, alpha=1.0)
+            self.layer = nn.Sequential(
+                layer1, 
+                #nn.ReLU(), 
+                layer2, 
+                #nn.ReLU()
+            )
         else:
             self.layer = high_order_fc_layers(
-                layer_type=function, n=1, in_features=1, out_features=1, segments=segments, length=2.0)
-
-        """
-        if function == "continuous":
-            self.layer = PiecewisePolynomial(
-                n, 1, 1, segments, length=2.0)
-        elif function == "discontinuous":
-            self.layer = PiecewiseDiscontinuousPolynomial(
-                n, 1, 1, segments, length=2.0)
-        elif function == "fourier":
-            self.layer = FourierSeries(n, 1, 1, length=2.0)
-        elif function == "polynomial":
-            self.layer = Polynomial(n, 1, 1, length=2.0)
-        """
+                layer_type=function, n=n, in_features=1, out_features=1, segments=segments, length=2.0)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -105,11 +108,16 @@ class PolynomialFunctionApproximation(LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.1)
 
-
 modelSetL = [
+    {'name': 'Linear 2', 'n': 2},
+    {'name': 'Linear 3', 'n': 8},
+    {'name': 'Linear 4', 'n': 16}
+]
+
+modelSetProd = [
     {'name': 'Product 2', 'n': 2},
-    {'name': 'Product 3', 'n': 4},
-    {'name': 'Product 4', 'n': 8}
+    {'name': 'Product 3', 'n': 8},
+    {'name': 'Product 4', 'n': 16}
 ]
 
 modelSetD = [
@@ -172,11 +180,13 @@ def plot_approximation(function, model_set, segments, epochs, gpus=0):
     plt.ylabel('y')
     plt.legend()
 
-
 plt.figure(0)
-plot_approximation("product", modelSetL, 1, 2, gpus=0)
+plot_approximation("standard", modelSetL, 1, 1, gpus=0)
 
 """
+plt.figure(0)
+plot_approximation("product", modelSetProd, 1, 20, gpus=0)
+
 plt.figure(1)
 plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0)
 
