@@ -17,6 +17,7 @@ def conv2d_wrapper(
     groups: int = 1,
     bias: bool = True,
     padding_mode: str = 'zeros',
+    weight_magnitude=1.0,
     **kwargs
 ):
     """
@@ -25,7 +26,7 @@ def conv2d_wrapper(
     conv2d.
     """
 
-    return Conv2d(
+    conv = Conv2d(
         in_channels=in_channels,
         out_channels=out_channels,
         kernel_size=kernel_size,
@@ -36,8 +37,15 @@ def conv2d_wrapper(
         bias=bias,
         padding_mode=padding_mode
     )
+    in_features = in_channels*kernel_size*kernel_size
 
-    pass
+    # We don't want to use the standard conv initialization
+    # since this is a bit different.
+    #conv.weight.data.uniform_(-weight_magnitude/in_features,
+    #                          weight_magnitude/in_features)
+    
+    conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
+    return conv
 
 
 class Expansion2d(nn.Module):
@@ -95,7 +103,7 @@ class FourierConvolution2d(nn.Module):
         self.poly = Expansion2d(FourierExpand(n, length))
         self._channels = n*in_channels
         self.conv = conv2d_wrapper(in_channels=self._channels,
-                           kernel_size=kernel_size, **kwargs)
+                                   kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
@@ -125,7 +133,7 @@ class PolynomialConvolution2d(nn.Module):
         self.poly = Expansion2d(LagrangeExpand(n, length=length))
         self._channels = n*in_channels
         self.conv = conv2d_wrapper(in_channels=self._channels,
-                           kernel_size=kernel_size, **kwargs)
+                                   kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
@@ -157,7 +165,7 @@ class PiecewisePolynomialConvolution2d(nn.Module):
             PiecewisePolynomialExpand(n=n, segments=segments, length=length))
         self._channels = ((n-1)*segments+1)*in_channels
         self.conv = conv2d_wrapper(in_channels=self._channels,
-                           kernel_size=kernel_size, **kwargs)
+                                   kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:
@@ -188,7 +196,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
             PiecewiseDiscontinuousPolynomialExpand(n=n, segments=segments, length=length))
         self._channels = n*segments*in_channels
         self.conv = conv2d_wrapper(in_channels=self._channels,
-                           kernel_size=kernel_size, **kwargs)
+                                   kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
         self._rescale = 1.0
         if rescale_output is True:

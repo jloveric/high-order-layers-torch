@@ -17,9 +17,34 @@ from high_order_layers_torch.PolynomialLayers import PiecewiseDiscontinuousPolyn
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
+from pytorch_lightning.metrics import Metric
+
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+class AccuracyTopK(Metric):
+    """
+    This will eventually be in pytorch-lightning, not yet merged so here it is.
+    """
+
+    def __init__(self, top_k=1, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.k = top_k
+        self.add_state("correct", default=torch.tensor(
+            0.0), dist_reduce_fx="sum")
+        self.add_state("total", default=torch.tensor(
+            0.0), dist_reduce_fx="sum")
+
+    def update(self, logits, y):
+        _, pred = logits.topk(self.k, dim=1)
+        pred = pred.t()
+        corr = pred.eq(y.view(1, -1).expand_as(pred))
+        self.correct += corr[:self.k].sum()
+        self.total += y.numel()
+
+    def compute(self):
+        return self.correct.float() / self.total
 
 
 class Net(LightningModule):
@@ -34,6 +59,7 @@ class Net(LightningModule):
         self._layer_type = cfg.layer_type
         self._train_fraction = cfg.train_fraction
         segments = cfg.segments
+        self._topk_metric = AccuracyTopK(top_k=5)
 
         if self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
@@ -43,9 +69,9 @@ class Net(LightningModule):
 
         else:
             self.conv1 = high_order_convolution_layers(
-                layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments)
+                layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output)
             self.conv2 = high_order_convolution_layers(
-                layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments)
+                layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output)
 
         self.pool = nn.MaxPool2d(2, 2)
         self.avg_pool = nn.AdaptiveAvgPool2d(5)
@@ -81,11 +107,23 @@ class Net(LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        return F.cross_entropy(y_hat, y)
+
+        loss = F.cross_entropy(y_hat, y)
+        preds = torch.argmax(y_hat, dim=1)
+
+        acc = accuracy(preds, y)
+        val = self._topk_metric(y_hat, y)
+        val = self._topk_metric.compute()
+        
+        self.log(f'train_loss', loss, prog_bar=True)
+        self.log(f'train_acc', acc, prog_bar=True)
+        self.log(f'train_acc5', val, prog_bar=True)
+
+        return loss
 
     def train_dataloader(self):
         trainloader = torch.utils.data.DataLoader(
-            self._train_subset, batch_size=4, shuffle=True, num_workers=10)
+            self._train_subset, batch_size=self._batch_size, shuffle=True, num_workers=10)
         return trainloader
 
     def val_dataloader(self):
@@ -108,9 +146,13 @@ class Net(LightningModule):
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
+        val = self._topk_metric(logits, y)
+        val = self._topk_metric.compute()
+
         # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f'{name}_loss', loss, prog_bar=True)
         self.log(f'{name}_acc', acc, prog_bar=True)
+        self.log(f'{name}_acc5', val, prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
