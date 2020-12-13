@@ -7,6 +7,11 @@ from .PolynomialLayers import *
 from .ProductLayer import *
 from .FunctionalConvolution import *
 
+"""
+def linear_wrapper(in_features: int, out_features: int, bias: bool = True, **kwargs):
+    return nn.Linear(in_features, out_features, bias)
+"""
+
 fc_layers = {
     "continuous": PiecewisePolynomial,
     "continuous_prod": PiecewisePolynomialProd,

@@ -29,6 +29,8 @@ class Product(Module):
 
     def reset_parameters(self) -> None:
         init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        self.weight.data.uniform_(-1/self.in_features,
+                             1/self.in_features)
 
         if self.bias is not None:
             fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
@@ -40,5 +42,6 @@ class Product(Module):
         this_sum = torch.sum(assemble, dim=1)
         assemble = assemble+1.0
         assemble = torch.prod(assemble, dim=1)-(1-self.alpha)*this_sum
-        assemble = assemble-1+self.bias
+        assemble = assemble-1 #+self.bias
+        
         return assemble
