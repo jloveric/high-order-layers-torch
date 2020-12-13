@@ -9,6 +9,7 @@ pytorch-lightning = "*"
 hydra-core = "*"
 matplotlib = "*"
 torchvision = "*"
+sphinx = "*"
 
 [packages]
 torch = "*"

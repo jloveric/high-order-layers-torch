@@ -40,6 +40,7 @@ class Net(LightningModule):
                 in_channels=3, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
+
         else:
             self.conv1 = high_order_convolution_layers(
                 layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments)
@@ -47,19 +48,22 @@ class Net(LightningModule):
                 layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments)
 
         self.pool = nn.MaxPool2d(2, 2)
-
+        self.avg_pool = nn.AdaptiveAvgPool2d(5)
+        self.flatten = nn.Flatten()
         self.fc1 = nn.Linear(16 * 5 * 5, 100)
 
     def forward(self, x):
         if self._layer_type == "standard":
             x = self.pool(F.relu(self.conv1(x)))
             x = self.pool(F.relu(self.conv2(x)))
-            x = x.reshape(-1, 16 * 5 * 5)
+            x = self.avg_pool(x)
+            x = self.flatten(x)
             x = self.fc1(x)
         else:
             x = self.pool(self.conv1(x))
             x = self.pool(self.conv2(x))
-            x = x.reshape(-1, 16 * 5 * 5)
+            x = self.avg_pool(x)
+            x = self.flatten(x)
             x = self.fc1(x)
         return x
 
