@@ -29,7 +29,7 @@ class simple_func():
         return 0.5 * torch.cos(self.factor * 1.0/(abs(x) + self.offset))
 
 
-xTest = np.arange(10000)/5000.0-1.0
+xTest = np.arange(10000)/1250.0-4.0
 xTest = torch.stack([torch.tensor(val) for val in xTest])
 
 xTest = xTest.view(-1, 1)
@@ -63,7 +63,7 @@ class PolynomialFunctionApproximation(LightningModule):
     and no hidden layers.
     """
 
-    def __init__(self, n, segments=2, function=True):
+    def __init__(self, n, segments=2, function=True, periodicity=None):
         super().__init__()
 
         if function == "standard" :
@@ -92,7 +92,7 @@ class PolynomialFunctionApproximation(LightningModule):
             )
         else:
             self.layer = high_order_fc_layers(
-                layer_type=function, n=n, in_features=1, out_features=1, segments=segments, length=2.0)
+                layer_type=function, n=n, in_features=1, out_features=1, segments=segments, length=2.0, periodicity=periodicity)
 
     def forward(self, x):
         return self.layer(x.view(x.size(0), -1))
@@ -156,13 +156,13 @@ colorIndex = ['red', 'green', 'blue', 'purple', 'black']
 symbol = ['+', 'x', 'o', 'v', '.']
 
 
-def plot_approximation(function, model_set, segments, epochs, gpus=0):
+def plot_approximation(function, model_set, segments, epochs, gpus=0, periodicity=None):
     for i in range(0, len(model_set)):
 
         trainer = Trainer(max_epochs=epochs, gpus=gpus)
 
         model = PolynomialFunctionApproximation(
-            n=model_set[i]['n'], segments=segments, function=function)
+            n=model_set[i]['n'], segments=segments, function=function, periodicity=periodicity)
 
         trainer.fit(model)
         predictions = model(xTest.float())
@@ -180,22 +180,23 @@ def plot_approximation(function, model_set, segments, epochs, gpus=0):
     plt.ylabel('y')
     plt.legend()
 
+"""
 plt.figure(0)
 plot_approximation("standard", modelSetL, 1, 1, gpus=0)
 
-"""
 plt.figure(0)
 plot_approximation("product", modelSetProd, 1, 20, gpus=0)
-
+"""
 plt.figure(1)
-plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0)
+plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0, periodicity=2)
 
 plt.figure(2)
-plot_approximation("continuous", modelSetC, 5, 2, gpus=0)
+plot_approximation("continuous", modelSetC, 5, 2, gpus=0, periodicity=2)
 
 plt.figure(3)
-plot_approximation("polynomial", modelSetP, 5, 2, gpus=0)
+plot_approximation("polynomial", modelSetP, 5, 2, gpus=0, periodicity=2)
 
+"""
 plt.figure(4)
 plot_approximation("fourier", modelSetF, 5, 2, gpus=0)
 """

@@ -4,12 +4,20 @@ from torch.autograd import Variable
 from .LagrangePolynomial import *
 
 
+def make_periodic(x, periodicity: float):
+    xp = x+0.5*periodicity
+    xp = torch.remainder(xp, 2*periodicity)  # always positive
+    xp = torch.where(xp > periodicity, 2*periodicity-xp, xp)
+    xp = xp - 0.5*periodicity
+    return xp
+
+
 class Function(nn.Module):
-    def __init__(self, n, in_features, out_features, basis, weight_magnitude: float = 1.0, **kwargs):
+    def __init__(self, n, in_features, out_features, basis, weight_magnitude: float = 1.0, periodicity: float = None, **kwargs):
         super().__init__()
         self.poly = basis
         self.n = n
-
+        self.periodicity = periodicity
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n), requires_grad=True)
         self.w.data.uniform_(-weight_magnitude/in_features,
@@ -19,18 +27,23 @@ class Function(nn.Module):
             data=torch.Tensor(out_features), requires_grad=True)
 
     def forward(self, x):
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
+
         result = self.poly.interpolate(x, self.w)
+
         return result
 
 
 class Polynomial(Function):
     def __init__(self, n, in_features, out_features, length: float = 2.0, **kwargs):
-        return super().__init__(n, in_features, out_features, LagrangePolyFlat(n, length=length))
+        return super().__init__(n, in_features, out_features, LagrangePolyFlat(n, length=length), **kwargs)
 
 
 class PolynomialProd(Function):
     def __init__(self, n, in_features, out_features, length: float = 2.0, **kwargs):
-        return super().__init__(n, in_features, out_features, LagrangePolyFlatProd(n, length=length))
+        return super().__init__(n, in_features, out_features, LagrangePolyFlatProd(n, length=length), **kwargs)
 
 
 class FourierSeries(Function):
@@ -39,13 +52,14 @@ class FourierSeries(Function):
 
 
 class Piecewise(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0, poly=None, **kwargs):
+    def __init__(self, n, in_features, out_features, segments, length: int = 2.0, weight_magnitude=1.0, poly=None, periodicity=None, **kwargs):
         super().__init__()
         self._poly = poly(n)
         self._n = n
         self._segments = segments
         self.in_features = in_features
         self.out_features = out_features
+        self.periodicity = periodicity
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
         self.w.data.uniform_(-weight_magnitude/in_features,
@@ -55,6 +69,11 @@ class Piecewise(nn.Module):
         self._half = 0.5*length
 
     def forward(self, x):
+
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
+
         # get the segment index
         id_min = (((x+self._half)/self._length)*self._segments).long()
         device = id_min.device
@@ -103,25 +122,26 @@ class Piecewise(nn.Module):
 
 
 class PiecewisePolynomial(Piecewise):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, **kwargs):
         super().__init__(n, in_features, out_features, segments,
-                         length, weight_magnitude, poly=LagrangePoly)
+                         length, weight_magnitude, poly=LagrangePoly, periodicity=periodicity)
 
 
 class PiecewisePolynomialProd(Piecewise):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, **kwargs):
         super().__init__(n, in_features, out_features, segments,
-                         length, weight_magnitude, poly=LagrangePolyProd)
+                         length, weight_magnitude, poly=LagrangePolyProd, periodicity=periodicity)
 
 
 class PiecewiseDiscontinuous(nn.Module):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, poly=None, **kwargs):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, poly=None, periodicity: float = None, ** kwargs):
         super().__init__()
         self._poly = poly(n)
         self._n = n
         self._segments = segments
         self.in_features = in_features
         self.out_features = out_features
+        self.periodicity = periodicity
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, n*segments), requires_grad=True)
         self.w.data.uniform_(-1/in_features, 1/in_features)
@@ -130,6 +150,10 @@ class PiecewiseDiscontinuous(nn.Module):
         self._half = 0.5*length
 
     def forward(self, x):
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
+
         # determine which segment it is in
         id_min = (((x+self._half)/self._length)*self._segments).long()
         device = id_min.device
@@ -177,12 +201,12 @@ class PiecewiseDiscontinuous(nn.Module):
 
 
 class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, **kwargs):
         super().__init__(n, in_features, out_features, segments,
-                         length, weight_magnitude, poly=LagrangePoly)
+                         length, weight_magnitude, poly=LagrangePoly, periodicity=periodicity)
 
 
 class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
-    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, **kwargs):
+    def __init__(self, n, in_features, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, **kwargs):
         super().__init__(n, in_features, out_features, segments,
-                         length, weight_magnitude, poly=LagrangePolyProd)
+                         length, weight_magnitude, poly=LagrangePolyProd, periodicity=periodicity)

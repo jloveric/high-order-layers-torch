@@ -6,3 +6,4 @@ segments: 2
 layer_type: piecewise 
 train_fraction: 1.0
 rescale_output: True
+linear_output: True

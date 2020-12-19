@@ -23,6 +23,7 @@ from pytorch_lightning.metrics import Metric
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
+
 class AccuracyTopK(Metric):
     """
     This will eventually be in pytorch-lightning, not yet merged so here it is.
@@ -76,7 +77,11 @@ class Net(LightningModule):
         self.pool = nn.MaxPool2d(2, 2)
         self.avg_pool = nn.AdaptiveAvgPool2d(5)
         self.flatten = nn.Flatten()
-        self.fc1 = nn.Linear(16 * 5 * 5, 100)
+        if cfg.linear_output:
+            self.fc1 = nn.Linear(16 * 5 * 5, 100)
+        else:
+            self.fc1 = high_order_fc_layers(
+                layer_type=self._layer_type, n=n, in_features=16*5*5, out_features=100, segments=cfg.segments)
 
     def forward(self, x):
         if self._layer_type == "standard":
@@ -114,7 +119,7 @@ class Net(LightningModule):
         acc = accuracy(preds, y)
         val = self._topk_metric(y_hat, y)
         val = self._topk_metric.compute()
-        
+
         self.log(f'train_loss', loss, prog_bar=True)
         self.log(f'train_acc', acc, prog_bar=True)
         self.log(f'train_acc5', val, prog_bar=True)
