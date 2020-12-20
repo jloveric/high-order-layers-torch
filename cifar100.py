@@ -53,7 +53,7 @@ class Net(LightningModule):
         super().__init__()
         self._cfg = cfg
         self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
-
+        self._lr = cfg.lr
         n = cfg.n
         self.n = cfg.n
         self._batch_size = cfg.batch_size
@@ -165,7 +165,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, 'test')
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.001)
+        return optim.Adam(self.parameters(), lr=self._lr)
 
 
 @hydra.main(config_name="./config/cifar100_config")
