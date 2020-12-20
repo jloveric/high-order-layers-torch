@@ -2,14 +2,7 @@ import torch.nn as nn
 import torch
 from torch.autograd import Variable
 from .LagrangePolynomial import *
-
-
-def make_periodic(x, periodicity: float):
-    xp = x+0.5*periodicity
-    xp = torch.remainder(xp, 2*periodicity)  # always positive
-    xp = torch.where(xp > periodicity, 2*periodicity-xp, xp)
-    xp = xp - 0.5*periodicity
-    return xp
+from .utils import *
 
 
 class Function(nn.Module):

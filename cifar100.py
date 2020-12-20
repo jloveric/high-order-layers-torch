@@ -70,9 +70,9 @@ class Net(LightningModule):
 
         else:
             self.conv1 = high_order_convolution_layers(
-                layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output)
+                layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output, periodicity=cfg.periodicity)
             self.conv2 = high_order_convolution_layers(
-                layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output)
+                layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output, periodicity=cfg.periodicity)
 
         self.pool = nn.MaxPool2d(2, 2)
         self.avg_pool = nn.AdaptiveAvgPool2d(5)

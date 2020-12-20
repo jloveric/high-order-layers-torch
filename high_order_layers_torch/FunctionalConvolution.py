@@ -5,6 +5,7 @@ from high_order_layers_torch.PolynomialLayers import *
 from torch.nn import Conv2d
 import torch.nn as nn
 import torch
+from .utils import *
 
 
 def conv2d_wrapper(
@@ -41,9 +42,9 @@ def conv2d_wrapper(
 
     # We don't want to use the standard conv initialization
     # since this is a bit different.
-    #conv.weight.data.uniform_(-weight_magnitude/in_features,
+    # conv.weight.data.uniform_(-weight_magnitude/in_features,
     #                          weight_magnitude/in_features)
-    
+
     conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
     return conv
 
@@ -116,7 +117,7 @@ class FourierConvolution2d(nn.Module):
 
 
 class PolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, in_channels: int, kernel_size: int, length: float = 2.0, rescale_output=False, *args, **kwargs):
+    def __init__(self, n: int, in_channels: int, kernel_size: int, length: float = 2.0, rescale_output=False, periodicity: float = None, *args, **kwargs):
         """
         Polynomial convolutional layer.
 
@@ -132,6 +133,7 @@ class PolynomialConvolution2d(nn.Module):
         super().__init__()
         self.poly = Expansion2d(LagrangeExpand(n, length=length))
         self._channels = n*in_channels
+        self.periodicity = periodicity
         self.conv = conv2d_wrapper(in_channels=self._channels,
                                    kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
@@ -140,13 +142,16 @@ class PolynomialConvolution2d(nn.Module):
             self._rescale = 1.0/self._total_in
 
     def forward(self, x):
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
         x = self.poly(x)
         out = self.conv(x)
         return out*self._rescale
 
 
 class PiecewisePolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, kernel_size: int, length: float = 2.0, rescale_output: bool = False, *args, **kwargs):
+    def __init__(self, n: int, segments: int,  in_channels: int, kernel_size: int, length: float = 2.0, rescale_output: bool = False, periodicity: float = None, *args, **kwargs):
         """
         Piecewise continuous polynomial convolutional layer.  The boundary between each polynomial are continuous. 
 
@@ -164,6 +169,7 @@ class PiecewisePolynomialConvolution2d(nn.Module):
         self.poly = Expansion2d(
             PiecewisePolynomialExpand(n=n, segments=segments, length=length))
         self._channels = ((n-1)*segments+1)*in_channels
+        self.periodicity = periodicity
         self.conv = conv2d_wrapper(in_channels=self._channels,
                                    kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
@@ -172,13 +178,16 @@ class PiecewisePolynomialConvolution2d(nn.Module):
             self._rescale = 1.0/self._total_in
 
     def forward(self, x):
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
         x = self.poly(x)
         out = self.conv(x)
         return out*self._rescale
 
 
 class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, kernel_size: int, length: float = 2.0, rescale_output: bool = True, *args, **kwargs):
+    def __init__(self, n: int, segments: int,  in_channels: int, kernel_size: int, length: float = 2.0, rescale_output: bool = False, periodicity: float = None, *args, **kwargs):
         """
         Discontinuous piecewise polynomial convolutional layer.  The boundary between each polynomial can be discontinuous. 
         Args :
@@ -195,6 +204,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
         self.poly = Expansion2d(
             PiecewiseDiscontinuousPolynomialExpand(n=n, segments=segments, length=length))
         self._channels = n*segments*in_channels
+        self.periodicity = periodicity
         self.conv = conv2d_wrapper(in_channels=self._channels,
                                    kernel_size=kernel_size, **kwargs)
         self._total_in = in_channels*kernel_size*kernel_size
@@ -203,6 +213,9 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
             self._rescale = 1.0/self._total_in
 
     def forward(self, x):
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
         x = self.poly(x)
         out = self.conv(x)
         return out*self._rescale
