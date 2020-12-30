@@ -75,3 +75,7 @@ self.layer3 = high_order_fc_layers(
     layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments, alpha=cfg.linear_part)
 self.layer4 = nn.LayerNorm(10)
 ```
+## Generate documentation
+```bash
+sphinx-apidoc -f -o source .
+```

@@ -61,12 +61,17 @@ class Net(LightningModule):
         self._train_fraction = cfg.train_fraction
         segments = cfg.segments
         self._topk_metric = AccuracyTopK(top_k=5)
-
+        self._nonlinearity = cfg.nonlinearity
         if self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
                 in_channels=3, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
+        if self._layer_type == "standard0":
+            self.conv1 = torch.nn.Conv2d(
+                in_channels=3, out_channels=6*n, kernel_size=5)
+            self.conv2 = torch.nn.Conv2d(
+                in_channels=6*n, out_channels=16, kernel_size=5)
 
         else:
             self.conv1 = high_order_convolution_layers(
@@ -84,7 +89,7 @@ class Net(LightningModule):
                 layer_type=self._layer_type, n=n, in_features=16*5*5, out_features=100, segments=cfg.segments)
 
     def forward(self, x):
-        if self._layer_type == "standard":
+        if self._nonlinearity is True:
             x = self.pool(F.relu(self.conv1(x)))
             x = self.pool(F.relu(self.conv2(x)))
             x = self.avg_pool(x)

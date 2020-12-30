@@ -16,9 +16,10 @@ def conv2d_wrapper(
     padding: int = 0,
     dilation: int = 1,
     groups: int = 1,
-    bias: bool = True,
+    bias: bool = False,
     padding_mode: str = 'zeros',
     weight_magnitude=1.0,
+    rescale_output=False,
     **kwargs
 ):
     """
@@ -26,7 +27,9 @@ def conv2d_wrapper(
     defaults.  Function allows you to pass extra arguments without braking
     conv2d.
     """
-
+    # TODO bias is being added to each kernel so same as the number of output
+    # channels.  We don't need these so I may need to re-write the convolutions
+    # 
     conv = Conv2d(
         in_channels=in_channels,
         out_channels=out_channels,
@@ -39,13 +42,17 @@ def conv2d_wrapper(
         padding_mode=padding_mode
     )
     in_features = in_channels*kernel_size*kernel_size
-
+    print('conv.weight.shape', conv.weight.shape)
     # We don't want to use the standard conv initialization
     # since this is a bit different.
-    # conv.weight.data.uniform_(-weight_magnitude/in_features,
-    #                          weight_magnitude/in_features)
-
-    conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
+    if rescale_output is False :
+        conv.weight.data.uniform_(-weight_magnitude/in_features,
+                              weight_magnitude/in_features)
+    elif rescale_output is True :
+        conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
+    else :
+        print('Using kaiming for weight initialization')
+        #raise ValueError(f'rescale_ouput must be True or False, got {rescale_output}')
     return conv
 
 
@@ -81,7 +88,8 @@ class Expansion2d(nn.Module):
             res, [res.shape[0], res.shape[1],
                   res.shape[2], res.shape[3]*res.shape[4]]
         )
-        res = res.permute(0, 3, 1, 2)
+        res = res.permute(0, 3, 1, 2) # batches, channels*(basis size), height, 
+        #print('res.shape', res.shape)
         return res
 
 
