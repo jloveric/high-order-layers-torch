@@ -60,7 +60,7 @@ python mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous n=4 segmen
 ```
 ## cifar100 (convolutional)
 ```
-python cifar100.py max_epochs=1 train_fraction=0.1 layer_type=continuous segments=2 n=3
+python cifar100.py -m max_epochs=20 train_fraction=1.0 layer_type=polynomial segments=2 n=7 nonlinearity=False rescale_output=False periodicity=2.0 lr=0.001 linear_output=False
 ```
 ## invariant mnist (fully connected)
 ```python

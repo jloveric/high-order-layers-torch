@@ -16,7 +16,6 @@ def conv2d_wrapper(
     padding: int = 0,
     dilation: int = 1,
     groups: int = 1,
-    bias: bool = False,
     padding_mode: str = 'zeros',
     weight_magnitude=1.0,
     rescale_output=False,
@@ -27,9 +26,7 @@ def conv2d_wrapper(
     defaults.  Function allows you to pass extra arguments without braking
     conv2d.
     """
-    # TODO bias is being added to each kernel so same as the number of output
-    # channels.  We don't need these so I may need to re-write the convolutions
-    # 
+    
     conv = Conv2d(
         in_channels=in_channels,
         out_channels=out_channels,
@@ -38,10 +35,11 @@ def conv2d_wrapper(
         padding=padding,
         dilation=dilation,
         groups=groups,
-        bias=bias,
+        bias=False, #Bias should always be false as the bias is already included in these methods.
         padding_mode=padding_mode
     )
     in_features = in_channels*kernel_size*kernel_size
+    print('in_channels', in_channels, 'out_channels', out_channels)
     print('conv.weight.shape', conv.weight.shape)
     # We don't want to use the standard conv initialization
     # since this is a bit different.
