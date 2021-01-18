@@ -5,7 +5,6 @@ verify_ssl = true
 
 [dev-packages]
 pbr = "*"
-pytorch-lightning = "*"
 hydra-core = "*"
 matplotlib = "*"
 torchvision = "*"
@@ -13,6 +12,7 @@ sphinx = "*"
 
 [packages]
 torch = "*"
+pytorch-lightning = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3"
