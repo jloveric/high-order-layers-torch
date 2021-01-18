@@ -54,6 +54,19 @@ pipenv install -e git+git://github.com/jloveric/high-order-layers-torch@master#e
 ```
 # Examples
 
+## Simple function approximation
+Approximating a simple function using a single input and single output (single layer) with no hidden layers
+to approximate a function using continuous and discontinuous piecewise polynomials (with 5 pieces) and simple
+polynomials and fourier series.  The standard approach using ReLU is non competitive.  To see more complex see
+the implicit representation page [here](https://github.com/jloveric/high-order-implicit-representation).
+
+![piecewise continuous polynomial](plots/piecewise_continuous.png)
+![piecewise discontinuous polynomial](plots/piecewise_discontinuous.png)
+![polynomial](plots/polynomial.png)
+![fourier series](plots/fourier_series.png)
+
+
+
 ## mnist (convolutional)
 ```python
 python mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous n=4 segments=2

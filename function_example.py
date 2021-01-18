@@ -8,12 +8,9 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
-from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
 from torchvision import transforms
 from torch.utils.data import random_split
-from high_order_layers_torch.PolynomialLayers import *
-from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.layers import *
 
 import math
@@ -29,7 +26,7 @@ class simple_func():
         return 0.5 * torch.cos(self.factor * 1.0/(abs(x) + self.offset))
 
 
-xTest = np.arange(10000)/1250.0-4.0
+xTest = np.arange(1000)/500.0-1.0
 xTest = torch.stack([torch.tensor(val) for val in xTest])
 
 xTest = xTest.view(-1, 1)
@@ -70,11 +67,15 @@ class PolynomialFunctionApproximation(LightningModule):
             print('Inside standard')
             alpha = 0.0
             layer1 = nn.Linear(in_features=1, out_features=n)
-            layer2 = nn.Linear(in_features=n, out_features=1)
+            layer2 = nn.Linear(in_features=n, out_features=n)
+            layer3 = nn.Linear(in_features=n, out_features=1)
+
             self.layer = nn.Sequential(
                 layer1, 
                 nn.ReLU(), 
-                layer2, 
+                layer2,
+                nn.ReLU(),
+                layer3
             ) 
 
         elif function == "product":
@@ -106,12 +107,12 @@ class PolynomialFunctionApproximation(LightningModule):
         return DataLoader(FunctionDataset(), batch_size=4)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.1)
+        return torch.optim.Adam(self.parameters(), lr=0.001)
 
 modelSetL = [
-    {'name': 'Linear 2', 'n': 2},
-    {'name': 'Linear 3', 'n': 8},
-    {'name': 'Linear 4', 'n': 16}
+    {'name': 'Relu 2', 'n': 2},
+    {'name': 'Relu 3', 'n': 8},
+    {'name': 'Relu 4', 'n': 16}
 ]
 
 modelSetProd = [
@@ -121,35 +122,35 @@ modelSetProd = [
 ]
 
 modelSetD = [
-    {'name': 'Discontinuous 1', 'n': 2},
+    {'name': 'Discontinuous', 'n': 2},
     #{'name': 'Discontinuous 2', 'order' : 2},
-    {'name': 'Discontinuous 3', 'n': 4},
+    {'name': 'Discontinuous', 'n': 4},
     #{'name': 'Discontinuous 4', 'order' : 4},
-    {'name': 'Discontinuous 5', 'n': 6}
+    {'name': 'Discontinuous', 'n': 6}
 ]
 
 modelSetC = [
-    {'name': 'Continuous 1', 'n': 2},
+    {'name': 'Continuous', 'n': 2},
     #{'name': 'Continuous 2', 'order' : 2},
-    {'name': 'Continuous 3', 'n': 4},
+    {'name': 'Continuous', 'n': 4},
     #{'name': 'Continuous 4', 'order' : 4},
-    {'name': 'Continuous 5', 'n': 6}
+    {'name': 'Continuous', 'n': 6}
 ]
 
 modelSetP = [
-    {'name': 'Polynomial 1', 'n': 2},
+    {'name': 'Polynomial', 'n': 10},
     #{'name': 'Continuous 2', 'order' : 2},
-    {'name': 'Polynomial 3', 'n': 4},
+    {'name': 'Polynomial', 'n': 20},
     #{'name': 'Continuous 4', 'order' : 4},
-    {'name': 'Polynomial 5', 'n': 6}
+    {'name': 'Polynomial', 'n': 30}
 ]
 
 modelSetF = [
-    {'name': 'Fourier 5', 'n': 5},
+    {'name': 'Fourier', 'n': 10},
     #{'name': 'Continuous 2', 'order' : 2},
-    {'name': 'Fourier 10', 'n': 11},
+    {'name': 'Fourier', 'n': 20},
     #{'name': 'Continuous 4', 'order' : 4},
-    {'name': 'Fourier 15', 'n': 21}
+    {'name': 'Fourier', 'n': 30}
 ]
 
 colorIndex = ['red', 'green', 'blue', 'purple', 'black']
@@ -171,7 +172,7 @@ def plot_approximation(function, model_set, segments, epochs, gpus=0, periodicit
             predictions.flatten().data.numpy(),
             c=colorIndex[i],
             marker=symbol[i],
-            label=model_set[i]['name'])
+            label=f"{model_set[i]['name']} {model_set[i]['n']}")
 
     plt.plot(xTest.data.numpy(), yTest.data.numpy(),
              '-', label='actual', color='black')
@@ -180,24 +181,35 @@ def plot_approximation(function, model_set, segments, epochs, gpus=0, periodicit
     plt.ylabel('y')
     plt.legend()
 
-"""
-plt.figure(0)
-plot_approximation("standard", modelSetL, 1, 1, gpus=0)
+epochs=20
 
+'''
 plt.figure(0)
-plot_approximation("product", modelSetProd, 1, 20, gpus=0)
+plot_approximation("standard", modelSetL, 1, epochs, gpus=0)
+plt.title('Relu Function Approximation')
+'''
 """
+plt.figure(0)
+plot_approximation("product", modelSetProd, 1, epochs, gpus=0)
+"""
+
 plt.figure(1)
-plot_approximation("discontinuous", modelSetD, 5, 2, gpus=0, periodicity=2)
+plot_approximation("discontinuous", modelSetD, 5, epochs, gpus=0, periodicity=2)
+plt.title('Piecewise Discontinuous Function Approximation')
+
 
 plt.figure(2)
-plot_approximation("continuous", modelSetC, 5, 2, gpus=0, periodicity=2)
+plot_approximation("continuous", modelSetC, 5, epochs, gpus=0, periodicity=2)
+plt.title('Piecewise Continuous Function Approximation')
+
 
 plt.figure(3)
-plot_approximation("polynomial", modelSetP, 5, 2, gpus=0, periodicity=2)
+plot_approximation("polynomial", modelSetP, 5, epochs, gpus=0, periodicity=2)
+plt.title('Polynomial Function Approximation')
 
-"""
+
 plt.figure(4)
-plot_approximation("fourier", modelSetF, 5, 2, gpus=0)
-"""
+plot_approximation("fourier", modelSetF, 5, epochs, gpus=0)
+plt.title('Fourier Function Approximation')
+
 plt.show()
