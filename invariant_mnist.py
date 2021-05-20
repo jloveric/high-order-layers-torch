@@ -27,10 +27,11 @@ class Net(LightningModule):
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
         self.layer1 = high_order_fc_layers(
-            layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments, alpha=cfg.linear_part)
+            layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments, alpha=cfg.linear_part, periodicity=cfg.periodicity)
+        
         self.layer2 = nn.LayerNorm(100)
         self.layer3 = high_order_fc_layers(
-            layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments, alpha=cfg.linear_part)
+            layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments, alpha=cfg.linear_part, periodicity=cfg.periodicity)
         self.layer4 = nn.LayerNorm(10)
 
     def setup(self, stage):
@@ -45,8 +46,8 @@ class Net(LightningModule):
 
     def forward(self, x):
         x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
+        #x = self.layer2(x)
+        #x = self.layer3(x)
         #x = self.layer4(x)
         #output = F.log_softmax(x, dim=1)
         return x
