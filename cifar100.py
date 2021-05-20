@@ -63,10 +63,14 @@ class Net(LightningModule):
         self._topk_metric = AccuracyTopK(top_k=5)
         self._nonlinearity = cfg.nonlinearity
         if self._layer_type == "standard":
+            out_channels1= 6*((n-1)*segments+1)
             self.conv1 = torch.nn.Conv2d(
-                in_channels=3, out_channels=6*((n-1)*segments+1), kernel_size=5)
+                in_channels=3, out_channels=out_channels1, kernel_size=5)
+            self.norm1 = nn.BatchNorm2d(out_channels1)
+            out_channels2=6*((n-1)*segments+1)
             self.conv2 = torch.nn.Conv2d(
-                in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
+                in_channels=out_channels2, out_channels=16, kernel_size=5)
+            self.norm2 = nn.BatchNorm2d(out_channels2)
         if self._layer_type == "standard0":
             self.conv1 = torch.nn.Conv2d(
                 in_channels=3, out_channels=6*n, kernel_size=5)
@@ -76,8 +80,10 @@ class Net(LightningModule):
         else:
             self.conv1 = high_order_convolution_layers(
                 layer_type=self._layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output, periodicity=cfg.periodicity)
+            self.norm1 = nn.BatchNorm2d(6)
             self.conv2 = high_order_convolution_layers(
                 layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments, rescale_output=cfg.rescale_output, periodicity=cfg.periodicity)
+            self.norm2 = nn.BatchNorm2d(16)
 
         self.pool = nn.MaxPool2d(2, 2)
         self.avg_pool = nn.AdaptiveAvgPool2d(5)
@@ -87,20 +93,27 @@ class Net(LightningModule):
         else:
             self.fc1 = high_order_fc_layers(
                 layer_type=self._layer_type, n=n, in_features=16*5*5, out_features=100, segments=cfg.segments)
+        self.norm3 = nn.LayerNorm(100)
 
     def forward(self, x):
         if self._nonlinearity is True:
             x = self.pool(F.relu(self.conv1(x)))
+            x = self.norm1(x)
             x = self.pool(F.relu(self.conv2(x)))
+            x = self.norm2(x)
             x = self.avg_pool(x)
             x = self.flatten(x)
             x = self.fc1(x)
+            x = self.norm3(x)
         else:
             x = self.pool(self.conv1(x))
+            x = self.norm1(x)
             x = self.pool(self.conv2(x))
+            x = self.norm2(x)
             x = self.avg_pool(x)
             x = self.flatten(x)
             x = self.fc1(x)
+            x = self.norm3(x)
         return x
 
     def setup(self, stage):
