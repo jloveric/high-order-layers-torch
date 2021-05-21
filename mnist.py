@@ -14,7 +14,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
 from high_order_layers_torch.layers import *
-
+from typing import Optional
 
 transformStandard = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -40,18 +40,21 @@ class Net(LightningModule):
         segments = cfg.segments
 
         self._transform = transformPoly
-        
+
+        in_channels = 1
+        if self._cfg.add_pos == True:
+            in_channels = 3
+
         if self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
-                in_channels=1, out_channels=6*((n-1)*segments+1), kernel_size=5)
+                in_channels=in_channels, out_channels=6*((n-1)*segments+1), kernel_size=5)
             self.conv2 = torch.nn.Conv2d(
                 in_channels=6*((n-1)*segments+1), out_channels=16, kernel_size=5)
         else:
             self.conv1 = high_order_convolution_layers(
-                layer_type=self._layer_type, n=n, in_channels=1, out_channels=6, kernel_size=5, segments=cfg.segments)
+                layer_type=self._layer_type, n=n, in_channels=in_channels, out_channels=6, kernel_size=5, segments=cfg.segments)
             self.conv2 = high_order_convolution_layers(
                 layer_type=self._layer_type, n=n, in_channels=6, out_channels=16, kernel_size=5, segments=cfg.segments)
-
 
         w1 = 28-4
         w2 = (w1//2)-4
@@ -62,7 +65,22 @@ class Net(LightningModule):
 
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
-    def forward(self, x):
+        # Create xy objects
+        xm = torch.linspace(-1, 1, 28, device=self.device)
+        ym = torch.linspace(-1, 1, 28, device=self.device)
+        xv, yv = torch.meshgrid(xm, ym)
+        xv = torch.stack(self._batch_size *
+                         [xv], dim=0)
+        yv = torch.stack(self._batch_size *
+                         [yv], dim=0)
+        # This is a hack.  Apparently self.device is not on cuda.
+        self._pos = torch.stack([xv, yv], dim=1).cuda()
+        
+    def forward(self, xin):
+
+        if self._cfg.add_pos == True:
+            x = torch.cat([xin, self._pos], dim=1)
+        
         if self._layer_type == "standard":
             x = self.pool(F.relu(self.conv1(x)))
             x = self.pool(F.relu(self.conv2(x)))
@@ -86,9 +104,7 @@ class Net(LightningModule):
             train, [num_train, 10000, num_extra], generator=torch.Generator().manual_seed(1))
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-        return F.cross_entropy(y_hat, y)
+        return self.eval_step(batch, batch_idx, 'train')
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(self._train_subset, batch_size=self._batch_size, shuffle=True, num_workers=10)
@@ -106,6 +122,7 @@ class Net(LightningModule):
 
     def eval_step(self, batch, batch_idx, name):
         x, y = batch
+
         logits = self(x)
         loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
