@@ -63,6 +63,10 @@ poetry shell
 ```bash
 pip install high-order-layers-torch
 ```
+or
+```
+poetry add high-order-layers-torch
+```
 
 # Examples
 
