@@ -90,8 +90,3 @@ self.layer4 = nn.LayerNorm(10)
 ```
 ## Implicit Representation
 An example of implicit representation can be found [here](https://github.com/jloveric/high-order-implicit-representation)
-
-## Generate documentation
-```bash
-sphinx-apidoc -f -o source .
-```
