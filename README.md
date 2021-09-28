@@ -49,9 +49,21 @@ Piecewise Discontinuous Lagrange Polynomial Chebyshev Points
 Fourier Series
 
 # Installing
-```bash
-pipenv install -e git+git://github.com/jloveric/high-order-layers-torch@master#egg=high_order_layers_torch
+## Installing locally
+This repo uses poetry, so run
 ```
+poetry install
+```
+and then
+```
+poetry shell
+```
+
+## Installing from pypi
+```bash
+pip install high-order-layers-torch
+```
+
 # Examples
 
 ## Simple function approximation
