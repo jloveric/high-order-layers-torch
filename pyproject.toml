@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "high-order-layers-torch"
-version = "1.0.0"
+version = "1.0.2"
 description = "High order layers in pytorch"
 authors = ["jloverich <john.loverich@gmail.com>"]
 license = "MIT"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
