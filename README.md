@@ -6,10 +6,12 @@ This is a PyTorch implementation of my tensorflow [repository](https://github.co
 
 Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagrange Polynomial, Fourier Series, sum and product layers in PyTorch.  The sparsity of using piecewise polynomial layers means that by adding new segments the representational power of your network increases, but the time to complete a forward step remains constant.  Implementation includes simple fully connected layers and convolution layers using these models.  More details to come.  This is a PyTorch implementation of this [paper](https://www.researchgate.net/publication/276923198_Discontinuous_Piecewise_Polynomial_Neural_Networks) including extension to Fourier Series and convolutional neural networks.
 
-The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.  Product is performed in this manner...
+The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.  Product is performed in this manner
 
-<img src="https://render.githubusercontent.com/render/math?math=product=(1 %2B f_{0})(1 %2B f_{1})...(1 %2B f_{n})-1">
+<img src="https://render.githubusercontent.com/render/math?math=product=\prod_{i}(1 %2B f_{i})-1+(1-alpha)\sum_{i}f_{i}">
 
+The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
+the alpha parameter.
 # Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
@@ -135,3 +137,15 @@ self.layer4 = nn.LayerNorm(10)
 ## Implicit Representation
 
 An example of implicit representation can be found [here](https://github.com/jloveric/high-order-implicit-representation)
+
+## Reference
+```
+@misc{Loverich2020,
+  author = {Loverich, John},
+  title = {High Order Layers Torch},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/jloveric/high-order-layers-torch}},
+}
+```
