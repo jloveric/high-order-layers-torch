@@ -8,7 +8,7 @@ Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagr
 
 The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.  Product is performed in this manner
 
-<img src="https://render.githubusercontent.com/render/math?math=product=\prod_{i}(1 %2B f_{i})-1+(1-alpha)\sum_{i}f_{i}">
+<img src="https://render.githubusercontent.com/render/math?math=product=\prod_{i}(1 %2B f_{i})-1+(1-\alpha)\sum_{i}f_{i}">
 
 The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
 the alpha parameter.
