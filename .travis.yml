@@ -7,4 +7,4 @@ install:
   - pipenv install pylint
 script:
   #- pylint **/*.py
-  - python -m test
+  - python test.py
