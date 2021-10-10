@@ -17,16 +17,17 @@ def conv2d_wrapper(
     dilation: int = 1,
     groups: int = 1,
     padding_mode: str = 'zeros',
-    weight_magnitude=1.0,
-    rescale_output=False,
-    **kwargs
+    weight_magnitude: float = 1.0,
+    rescale_output: bool = False,
+    verbose: bool = True,
+    ** kwargs
 ):
     """
     Inputs need to be an exact clone of those in torch conv2d including
     defaults.  Function allows you to pass extra arguments without braking
     conv2d.
     """
-    
+
     conv = Conv2d(
         in_channels=in_channels,
         out_channels=out_channels,
@@ -35,20 +36,24 @@ def conv2d_wrapper(
         padding=padding,
         dilation=dilation,
         groups=groups,
-        bias=False, #Bias should always be false as the bias is already included in these methods.
-        padding_mode=padding_mode
+        # Bias should always be false as the bias is already included in these methods.
+        bias=False,
+        padding_mode=padding_mode,
     )
     in_features = in_channels*kernel_size*kernel_size
-    print('in_channels', in_channels, 'out_channels', out_channels)
-    print('conv.weight.shape', conv.weight.shape)
+    
+    if verbose is True:
+        print('in_channels', in_channels, 'out_channels', out_channels)
+        print('conv.weight.shape', conv.weight.shape)
+    
     # We don't want to use the standard conv initialization
     # since this is a bit different.
-    if rescale_output is False :
+    if rescale_output is False:
         conv.weight.data.uniform_(-weight_magnitude/in_features,
-                              weight_magnitude/in_features)
-    elif rescale_output is True :
+                                  weight_magnitude/in_features)
+    elif rescale_output is True:
         conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
-    else :
+    else:
         print('Using kaiming for weight initialization')
         #raise ValueError(f'rescale_ouput must be True or False, got {rescale_output}')
     return conv
@@ -86,7 +91,8 @@ class Expansion2d(nn.Module):
             res, [res.shape[0], res.shape[1],
                   res.shape[2], res.shape[3]*res.shape[4]]
         )
-        res = res.permute(0, 3, 1, 2) # batches, channels*(basis size), height, 
+        # batches, channels*(basis size), height,
+        res = res.permute(0, 3, 1, 2)
         #print('res.shape', res.shape)
         return res
 
