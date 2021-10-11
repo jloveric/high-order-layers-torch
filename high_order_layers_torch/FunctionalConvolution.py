@@ -41,11 +41,11 @@ def conv2d_wrapper(
         padding_mode=padding_mode,
     )
     in_features = in_channels*kernel_size*kernel_size
-    
+
     if verbose is True:
         print('in_channels', in_channels, 'out_channels', out_channels)
         print('conv.weight.shape', conv.weight.shape)
-    
+
     # We don't want to use the standard conv initialization
     # since this is a bit different.
     if rescale_output is False:
@@ -55,7 +55,7 @@ def conv2d_wrapper(
         conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
     else:
         print('Using kaiming for weight initialization')
-        #raise ValueError(f'rescale_ouput must be True or False, got {rescale_output}')
+
     return conv
 
 
@@ -91,9 +91,42 @@ class Expansion2d(nn.Module):
             res, [res.shape[0], res.shape[1],
                   res.shape[2], res.shape[3]*res.shape[4]]
         )
-        # batches, channels*(basis size), height,
         res = res.permute(0, 3, 1, 2)
-        #print('res.shape', res.shape)
+        return res
+
+
+class Expansion1d(nn.Module):
+    def __init__(self, basis=None):
+        """
+        Expand an input by a function defined by basis.
+
+        Args :
+            - basis: function to expand input by.
+        """
+        super().__init__()
+        if basis == None:
+            raise Exception(
+                'You must define the basis function in ExpansionLayer2D')
+        self.basis = basis
+
+    def build(self, input_shape):
+        pass
+
+    def __call__(self, inputs):
+        """
+        Expand input
+        Args :
+            inputs : Tensor of shape [batches, channels, width]
+        Return :
+            Tensor of shape [batches, channels*(basis size), width]
+        """
+        res = self.basis(
+            inputs)  # outputs [basis_size, batches, channels, width]
+        res = res.permute(1, 3, 2, 0)
+        res = torch.reshape(
+            res, [res.shape[0], res.shape[1], res.shape[2]*res.shape[3]]
+        )
+        res = res.permute(0, 2, 1)  # batches, basis_size*channels, width
         return res
 
 
