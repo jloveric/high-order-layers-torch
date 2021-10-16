@@ -93,7 +93,8 @@ class Piecewise(nn.Module):
         self.out_features = out_features
         self.periodicity = periodicity
         self.w = torch.nn.Parameter(
-            data=torch.Tensor(out_features, in_features, ((n - 1) * segments + 1)),
+            data=torch.Tensor(out_features, in_features,
+                              ((n - 1) * segments + 1)),
             requires_grad=True,
         )
         self.w.data.uniform_(
@@ -117,7 +118,8 @@ class Piecewise(nn.Module):
             id_min,
             torch.tensor(self._segments - 1, device=device),
         )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
+        id_min = torch.where(id_min >= 0, id_min,
+                             torch.tensor(0, device=device))
         id_max = id_min + 1
 
         # determine which weights are active
@@ -250,7 +252,8 @@ class PiecewiseDiscontinuous(nn.Module):
             id_min,
             torch.tensor(self._segments - 1, device=device),
         )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
+        id_min = torch.where(id_min >= 0, id_min,
+                             torch.tensor(0, device=device))
         id_max = id_min + 1
 
         # determine which weights are active
@@ -338,3 +341,38 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
             poly=LagrangePolyProd,
             periodicity=periodicity,
         )
+
+
+def interpolate_polynomial_layer(layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial) -> None:
+
+    poly_in = layer_in._poly
+    segments_in = layer_in._segments
+    w_in = layer_in.w
+
+    poly_out = layer_out._poly
+    segments_out = layer_out._segments
+    w_out = layer_out.w
+
+    x_in = poly_in.basis.X.reshape(-1, 1)
+    x_out = poly_out.basis.X.reshape(-1, 1)
+
+    n_in = poly_in.basis.n
+    n_out = poly_out.basis.n
+
+    # Compute the weights on polynomial b from a
+    with torch.no_grad() : # No grad so we can assign leaf variable in place
+        for inputs in range(w_in.shape[0]):
+            for outputs in range(w_in.shape[1]):
+                for i in range(segments_in):
+                    print('x_out', x_out)
+                    print('x_out.shape', x_out.shape)
+                    print("w_in.shape", w_in.shape)
+                    w = w_in[inputs, outputs, i *
+                            (n_in-1):(i+1)*(n_in-1)+1].reshape(1,1, 1, -1)
+                    print('w', w.shape)
+                    print('x_out',x_out.shape)
+                    w_b = poly_in.interpolate(
+                        x_out, w)
+                    print('w_b.shape',w_b.shape)
+                    w_out[inputs, outputs, i *
+                        (n_out-1):(i+1)*(n_out-1)+1] = w_b.flatten()

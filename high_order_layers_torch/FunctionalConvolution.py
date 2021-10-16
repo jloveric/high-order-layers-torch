@@ -19,7 +19,7 @@ def conv2d_wrapper(
     padding_mode: str = 'zeros',
     weight_magnitude: float = 1.0,
     rescale_output: bool = False,
-    verbose: bool = True,
+    verbose: bool = False,
     ** kwargs
 ):
     """

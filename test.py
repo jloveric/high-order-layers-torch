@@ -1,8 +1,8 @@
 import os
-
-import unittest
+import pytest
 from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.FunctionalConvolution import *
+from high_order_layers_torch.PolynomialLayers import *
 
 
 def test_nodes():
@@ -18,6 +18,24 @@ def test_polynomial():
     x = torch.tensor([[0.5]])
     ans = poly.interpolate(x, w)
     assert abs(0.5-ans[0]) < 1.0e-6
+
+
+@pytest.mark.parametrize("n_in,n_out,in_features,out_features,segments", [(3, 5, 3, 2, 5), (5, 5, 2, 3, 2), (7, 5, 3, 2, 5)])
+def test_interpolate_layer(n_in: int, n_out: int, in_features: int, out_features: int, segments: int):
+    layer_in = PiecewisePolynomial(
+        n=n_in, in_features=in_features, out_features=out_features, segments=segments)
+    layer_out = PiecewisePolynomial(
+        n=n_out, in_features=in_features, out_features=out_features, segments=segments)
+    interpolate_polynomial_layer(layer_in=layer_in, layer_out=layer_out)
+
+    x_in = torch.rand(2, in_features)
+    x_out_start = layer_in(x_in)
+    x_out_end = layer_out(x_in)
+
+    if n_in <= n_out:  # There should be no loss of information
+        assert torch.allclose(x_out_start, x_out_end, rtol=1e-5)
+    else:
+        pass
 
 
 def test_compare():
@@ -116,3 +134,4 @@ def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
     assert aout.shape[1] == 2
     assert aout.shape[2] == 2
     assert aout.shape[3] == 2
+

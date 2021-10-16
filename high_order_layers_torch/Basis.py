@@ -12,7 +12,7 @@ class BasisExpand:
         """
         Args:
             - x: size[batch, input]
-        Returns:
+        Returns:Piecewise
             - result: size[batch, output]
         """
 
@@ -258,13 +258,17 @@ class Basis:
 
     def interpolate(self, x, w):
         """
+        Interpolate based on batched weights which is necessary for piecewise
+        networks.
         Args:
             - x: size[batch, input]
-            - w: size[batch, input, output, basis]
+            - w: size[batch, input, output, basis] weights are "batched" because
+                the piecewise nature means that each input activates a different set
+                of weights.
         Returns:
             - result: size[batch, output]
         """
-
+        print('x is', x.shape, 'y is',w.shape)
         mat = []
         for j in range(self.n):
             basis_j = self.basis(x, j)
