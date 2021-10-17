@@ -364,15 +364,9 @@ def interpolate_polynomial_layer(layer_in: PiecewisePolynomial, layer_out: Piece
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
                 for i in range(segments_in):
-                    print('x_out', x_out)
-                    print('x_out.shape', x_out.shape)
-                    print("w_in.shape", w_in.shape)
                     w = w_in[inputs, outputs, i *
                             (n_in-1):(i+1)*(n_in-1)+1].reshape(1,1, 1, -1)
-                    print('w', w.shape)
-                    print('x_out',x_out.shape)
                     w_b = poly_in.interpolate(
                         x_out, w)
-                    print('w_b.shape',w_b.shape)
                     w_out[inputs, outputs, i *
                         (n_out-1):(i+1)*(n_out-1)+1] = w_b.flatten()

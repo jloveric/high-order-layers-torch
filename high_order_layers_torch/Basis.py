@@ -268,7 +268,6 @@ class Basis:
         Returns:
             - result: size[batch, output]
         """
-        print('x is', x.shape, 'y is',w.shape)
         mat = []
         for j in range(self.n):
             basis_j = self.basis(x, j)

@@ -88,9 +88,6 @@ def interpolate_high_order_mlp(network_in : HighOrderMLP, network_out : HighOrde
     layers_in = [module for module in network_in.model.modules() if not isinstance(module, nn.Sequential)]
     layers_out = [module for module in network_out.model.modules() if not isinstance(module, nn.Sequential)]
 
-    print('layers_in', layers_in)
-    print('layers_out', layers_out)
-
     layer_pairs = zip(layers_in, layers_out)
 
     for l_in, l_out in layer_pairs:
