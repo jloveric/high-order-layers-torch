@@ -60,10 +60,7 @@ class Net(LightningModule):
         return x
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        x_new = x.view(x.shape[0], -1)
-        y_hat = self(x_new)
-        return F.cross_entropy(y_hat, y)
+        return self.eval_step(batch, batch_idx, "train")
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
