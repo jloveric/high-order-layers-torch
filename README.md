@@ -118,20 +118,13 @@ python cifar100.py -m max_epochs=20 train_fraction=1.0 layer_type=polynomial seg
 ```
 
 ## invariant mnist (fully connected)
-
+Without polynomial refinement
 ```python
-python invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=polynomial n=5
+python invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=polynomial n=5 p_refine=False
 ```
-
-Constructing the network
-
+with polynomial refinement (p-refinement)
 ```
-self.layer1 = high_order_fc_layers(
-    layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments, alpha=cfg.linear_part)
-self.layer2 = nn.LayerNorm(100)
-self.layer3 = high_order_fc_layers(
-    layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments, alpha=cfg.linear_part)
-self.layer4 = nn.LayerNorm(10)
+python invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=continuous n=2 p_refine=False target_n=5 p_refine=True
 ```
 
 ## Implicit Representation
