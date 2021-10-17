@@ -101,14 +101,15 @@ def invariant_mnist(cfg: DictConfig):
         trainer = Trainer(max_epochs=cfg.max_epochs//diff, gpus=1)
         for order in range(cfg.n, cfg.target_n):
             print(f"Training order {order}")
-
             trainer.fit(model)
+            trainer.test(model)
             cfg.n = order+1
             next_model = Net(cfg)
+            
             interpolate_high_order_mlp(
                 network_in=model.layer, network_out=next_model.layer)
-            model = next_model
-
+            model=next_model
+    trainer.fit(model)
     trainer.test(model)
     print('finished testing')
 
