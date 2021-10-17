@@ -12,6 +12,7 @@ The layers used here do not require additional activation functions and use a si
 
 The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
 the alpha parameter.
+
 # Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
