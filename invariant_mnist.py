@@ -10,6 +10,7 @@ import torch.optim as optim
 from pytorch_lightning.metrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import *
 from high_order_layers_torch.layers import *
+from high_order_layers_torch.networks import *
 from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
@@ -26,13 +27,8 @@ class Net(LightningModule):
         self._transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
-        self.layer1 = high_order_fc_layers(
-            layer_type=cfg.layer_type, n=cfg.n, in_features=784, out_features=100, segments=cfg.segments, alpha=cfg.linear_part, periodicity=cfg.periodicity)
-        
-        self.layer2 = nn.LayerNorm(100)
-        self.layer3 = high_order_fc_layers(
-            layer_type=cfg.layer_type, n=cfg.n, in_features=100, out_features=10, segments=cfg.segments, alpha=cfg.linear_part, periodicity=cfg.periodicity)
-        self.layer4 = nn.LayerNorm(10)
+        self.layer = HighOrderMLP(layer_type=cfg.layer_type, n=cfg.n, in_width=784,
+                                  out_width=10, in_segments=cfg.segments, out_segments=cfg.segments, hidden_segments=cfg.segments, periodicity=cfg.periodicity, hidden_layers=1, hidden_width=100)
 
     def setup(self, stage):
         num_train = int(self._train_fraction*50000)
@@ -45,11 +41,7 @@ class Net(LightningModule):
             train, [num_train, 10000, num_extra], generator=torch.Generator().manual_seed(1))
 
     def forward(self, x):
-        x = self.layer1(x)
-        #x = self.layer2(x)
-        #x = self.layer3(x)
-        #x = self.layer4(x)
-        #output = F.log_softmax(x, dim=1)
+        x = self.layer(x)
         return x
 
     def training_step(self, batch, batch_idx):
@@ -93,15 +85,30 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-@hydra.main(config_name="./config/invariant_mnist")
+@hydra.main(config_path="config", config_name="invariant_mnist")
 def invariant_mnist(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
-    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=1)
-    model = Net(cfg)
-    trainer.fit(model)
-    print('testing')
+
+    if cfg.p_refine is False:
+        trainer = Trainer(max_epochs=cfg.max_epochs, gpus=1)
+        model = Net(cfg)
+        trainer.fit(model)
+    else:
+        diff = cfg.target_n-cfg.n
+        model = Net(cfg)
+        trainer = Trainer(max_epochs=cfg.max_epochs//diff, gpus=1)
+        for order in range(cfg.n, cfg.target_n):
+            print(f"Training order {order}")
+
+            trainer.fit(model)
+            cfg.n = order+1
+            next_model = Net(cfg)
+            interpolate_high_order_mlp(
+                network_in=model.layer, network_out=next_model.layer)
+            model = next_model
+
     trainer.test(model)
     print('finished testing')
 
