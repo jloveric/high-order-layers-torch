@@ -28,7 +28,7 @@ class Net(LightningModule):
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
         self.layer = HighOrderMLP(layer_type=cfg.layer_type, n=cfg.n, in_width=784,
-                                  out_width=10, in_segments=cfg.segments, out_segments=cfg.segments, hidden_segments=cfg.segments, periodicity=cfg.periodicity, hidden_layers=1, hidden_width=100)
+                                  out_width=10, in_segments=cfg.segments, out_segments=cfg.segments, hidden_segments=cfg.segments, periodicity=cfg.periodicity, hidden_layers=0, hidden_width=100)
 
     def setup(self, stage):
         num_train = int(self._train_fraction*50000)
