@@ -123,8 +123,9 @@ def invariant_mnist(cfg: DictConfig):
     else:
         diff = cfg.target_n - cfg.n
         model = Net(cfg)
-        trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=1)
+
         for order in range(cfg.n, cfg.target_n):
+            trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=1)
             print(f"Training order {order}")
             trainer.fit(model)
             trainer.test(model)
@@ -135,6 +136,7 @@ def invariant_mnist(cfg: DictConfig):
                 network_in=model.layer, network_out=next_model.layer
             )
             model = next_model
+    trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=1)
     trainer.fit(model)
     trainer.test(model)
     print("finished testing")
