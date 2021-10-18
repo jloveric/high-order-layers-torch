@@ -1,14 +1,15 @@
 max_epochs: 100
-gpus: 1 
+gpus: 1
 n: 2
 batch_size: 64
 segments: 2
-layer_type: polynomial 
+layer_type: polynomial
 train_fraction: 1.0
 periodicity: 2.0
 p_refine: True
-target_n : 5
-
+target_n: 5
+gradient_clip_val: 0
+optimizer: adam #adahessian
 # When using products setting linear_part=1.0
 # keeps the linear part of the product, while
 # setting to 0 removes it.  Helpful if you don't

@@ -14,6 +14,7 @@ from high_order_layers_torch.networks import *
 from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
+import torch_optimizer as alt_optim
 
 
 class Net(LightningModule):
@@ -27,6 +28,9 @@ class Net(LightningModule):
         self._transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
         )
+
+        # We want to use second order optimizers
+        # self.automatic_optimization = False
 
         self.layer = HighOrderMLP(
             layer_type=cfg.layer_type,
@@ -60,7 +64,21 @@ class Net(LightningModule):
         return x
 
     def training_step(self, batch, batch_idx):
-        return self.eval_step(batch, batch_idx, "train")
+        opt = self.optimizers()
+
+        loss = self.eval_step(batch, batch_idx, "train")
+        """
+        opt.zero_grad()
+        if self._cfg.optimizer in ["adahessian"]:
+            self.manual_backward(loss, create_graph=True)
+        else:
+            self.manual_backward(loss, create_graph=False)
+        torch.nn.utils.clip_grad_norm_(
+            self.layer.parameters(), self._cfg.gradient_clip_val
+        )
+        opt.step()
+        """
+        return loss
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
@@ -104,7 +122,24 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.001)
+        if self._cfg.optimizer == "adahessian":
+            return alt_optim.Adahessian(
+                self.layer.parameters(),
+                lr=1.0,
+                betas=(0.9, 0.999),
+                eps=1e-4,
+                weight_decay=0.0,
+                hessian_power=1.0,
+            )
+        elif self._cfg.optimizer == "adam":
+            return optim.Adam(self.parameters(), lr=0.001)
+        elif self._cfg.optimizer == "lbfgs":
+            return optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
+        else:
+            raise ValueError(f"Optimizer {self._cfg.optimizer} not recognized")
+
+    # def configure_optimizers(self):
+    #    return optim.Adam(self.parameters(), lr=0.001)
 
 
 @hydra.main(config_path="config", config_name="invariant_mnist")
