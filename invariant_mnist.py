@@ -30,7 +30,7 @@ class Net(LightningModule):
         )
 
         # We want to use second order optimizers
-        # self.automatic_optimization = False
+        self.automatic_optimization = False
 
         self.layer = HighOrderMLP(
             layer_type=cfg.layer_type,
@@ -67,17 +67,17 @@ class Net(LightningModule):
         opt = self.optimizers()
 
         loss = self.eval_step(batch, batch_idx, "train")
-        """
+        
         opt.zero_grad()
         if self._cfg.optimizer in ["adahessian"]:
             self.manual_backward(loss, create_graph=True)
         else:
             self.manual_backward(loss, create_graph=False)
-        torch.nn.utils.clip_grad_norm_(
-            self.layer.parameters(), self._cfg.gradient_clip_val
-        )
+        #torch.nn.utils.clip_grad_norm_(
+        #    self.parameters(), self._cfg.gradient_clip_val
+        #)
         opt.step()
-        """
+        
         return loss
 
     def train_dataloader(self):
@@ -112,7 +112,6 @@ class Net(LightningModule):
         preds = torch.argmax(logits, dim=1)
         acc = accuracy(preds, y)
 
-        # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f"{name}_loss", loss, prog_bar=True)
         self.log(f"{name}_acc", acc, prog_bar=True)
         return loss
@@ -124,7 +123,7 @@ class Net(LightningModule):
     def configure_optimizers(self):
         if self._cfg.optimizer == "adahessian":
             return alt_optim.Adahessian(
-                self.layer.parameters(),
+                self.parameters(),
                 lr=1.0,
                 betas=(0.9, 0.999),
                 eps=1e-4,
