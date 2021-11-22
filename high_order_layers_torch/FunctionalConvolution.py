@@ -1,14 +1,15 @@
 from .LagrangePolynomial import LagrangeExpand
 from pytorch_lightning import LightningModule, Trainer
-
+from typing import Optional, Union
 from high_order_layers_torch.PolynomialLayers import *
-from torch.nn import Conv2d
+from torch.nn import Conv1d, Conv2d, Conv3d
 import torch.nn as nn
 import torch
 from .utils import *
+from abc import ABC
 
 
-def conv2d_wrapper(
+def conv_wrapper(
     in_channels: int,
     out_channels: int,
     kernel_size: int,
@@ -16,11 +17,12 @@ def conv2d_wrapper(
     padding: int = 0,
     dilation: int = 1,
     groups: int = 1,
-    padding_mode: str = 'zeros',
+    padding_mode: str = "zeros",
     weight_magnitude: float = 1.0,
     rescale_output: bool = False,
     verbose: bool = False,
-    ** kwargs
+    convolution: Optional[Union[Conv1d, Conv2d, Conv3d]] = Conv2d,
+    **kwargs
 ):
     """
     Inputs need to be an exact clone of those in torch conv2d including
@@ -28,7 +30,7 @@ def conv2d_wrapper(
     conv2d.
     """
 
-    conv = Conv2d(
+    conv = convolution(
         in_channels=in_channels,
         out_channels=out_channels,
         kernel_size=kernel_size,
@@ -40,25 +42,27 @@ def conv2d_wrapper(
         bias=False,
         padding_mode=padding_mode,
     )
-    in_features = in_channels*kernel_size*kernel_size
+    in_features = in_channels * kernel_size * kernel_size
 
     if verbose is True:
-        print('in_channels', in_channels, 'out_channels', out_channels)
-        print('conv.weight.shape', conv.weight.shape)
+        print("in_channels", in_channels, "out_channels", out_channels)
+        print("conv.weight.shape", conv.weight.shape)
 
     # We don't want to use the standard conv initialization
     # since this is a bit different.
     if rescale_output is False:
-        conv.weight.data.uniform_(-weight_magnitude/in_features,
-                                  weight_magnitude/in_features)
+        conv.weight.data.uniform_(
+            -weight_magnitude / in_features, weight_magnitude / in_features
+        )
     elif rescale_output is True:
         conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
     else:
-        print('Using kaiming for weight initialization')
+        print("Using kaiming for weight initialization")
 
     return conv
 
 
+# TODO: Pretty sure this doesn't need to be an nn.Module
 class Expansion2d(nn.Module):
     def __init__(self, basis=None):
         """
@@ -69,8 +73,7 @@ class Expansion2d(nn.Module):
         """
         super().__init__()
         if basis == None:
-            raise Exception(
-                'You must define the basis function in ExpansionLayer2D')
+            raise Exception("You must define the basis function in ExpansionLayer2D")
         self.basis = basis
 
     def build(self, input_shape):
@@ -85,11 +88,11 @@ class Expansion2d(nn.Module):
             Tensor of shape [batches, channels*(basis size), height, width]
         """
         res = self.basis(
-            inputs)  # outputs [basis_size, batches, channels, height, width]
+            inputs
+        )  # outputs [basis_size, batches, channels, height, width]
         res = res.permute(1, 3, 4, 2, 0)
         res = torch.reshape(
-            res, [res.shape[0], res.shape[1],
-                  res.shape[2], res.shape[3]*res.shape[4]]
+            res, [res.shape[0], res.shape[1], res.shape[2], res.shape[3] * res.shape[4]]
         )
         res = res.permute(0, 3, 1, 2)
         return res
@@ -105,8 +108,7 @@ class Expansion1d(nn.Module):
         """
         super().__init__()
         if basis == None:
-            raise Exception(
-                'You must define the basis function in ExpansionLayer2D')
+            raise Exception("You must define the basis function in ExpansionLayer2D")
         self.basis = basis
 
     def build(self, input_shape):
@@ -120,19 +122,28 @@ class Expansion1d(nn.Module):
         Return :
             Tensor of shape [batches, channels*(basis size), width]
         """
-        res = self.basis(
-            inputs)  # outputs [basis_size, batches, channels, width]
+        res = self.basis(inputs)  # outputs [basis_size, batches, channels, width]
         res = res.permute(1, 3, 2, 0)
         res = torch.reshape(
-            res, [res.shape[0], res.shape[1], res.shape[2]*res.shape[3]]
+            res, [res.shape[0], res.shape[1], res.shape[2] * res.shape[3]]
         )
         res = res.permute(0, 2, 1)  # batches, basis_size*channels, width
         return res
 
 
-class FourierConvolution2d(nn.Module):
-
-    def __init__(self, n: int, in_channels: int, kernel_size: int, length: float = 2.0, rescale_output=False, *args, **kwargs):
+class FourierConvolution(nn.Module):
+    def __init__(
+        self,
+        n: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output=False,
+        expansion: Union[Expansion1d, Expansion2d] = None,
+        convolution: Union[Conv1d, Conv2d, Conv3d] = None,
+        *args,
+        **kwargs
+    ):
         """
         Fourier series convolutional layer.
 
@@ -146,23 +157,86 @@ class FourierConvolution2d(nn.Module):
                 in effect taking the average.  This is generally not necessary for the fourier series.
         """
         super().__init__()
-        self.poly = Expansion2d(FourierExpand(n, length))
-        self._channels = n*in_channels
-        self.conv = conv2d_wrapper(in_channels=self._channels,
-                                   kernel_size=kernel_size, **kwargs)
-        self._total_in = in_channels*kernel_size*kernel_size
+        self.poly = expansion(FourierExpand(n, length))
+        self._channels = n * in_channels
+        self.conv = conv_wrapper(
+            in_channels=self._channels,
+            kernel_size=kernel_size,
+            convolution=convolution,
+            **kwargs
+        )
+        self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
         if rescale_output is True:
-            self._rescale = 1.0/self._total_in
+            self._rescale = 1.0 / self._total_in
 
     def forward(self, x):
         x = self.poly(x)
         out = self.conv(x)
-        return out*self._rescale
+        return out * self._rescale
 
 
-class PolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, in_channels: int, kernel_size: int, length: float = 2.0, rescale_output=False, periodicity: float = None, *args, **kwargs):
+class FourierConvolution2d(FourierConvolution):
+    def __init__(
+        self,
+        n: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output=False,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            expansion=Expansion2d,
+            convolution=Conv2d,
+            *args,
+            **kwargs
+        )
+
+
+class FourierConvolution1d(FourierConvolution):
+    def __init__(
+        self,
+        n: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output=False,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            conv_wrapper=Conv1d,
+            *args,
+            **kwargs
+        )
+
+
+class PolynomialConvolution(nn.Module):
+    def __init__(
+        self,
+        n: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output=False,
+        periodicity: float = None,
+        expansion: Union[Expansion1d, Expansion2d] = None,
+        convolution: Union[Conv1d, Conv2d, Conv3d] = None,
+        *args,
+        **kwargs
+    ):
         """
         Polynomial convolutional layer.
 
@@ -176,15 +250,19 @@ class PolynomialConvolution2d(nn.Module):
                 in effect taking the average.
         """
         super().__init__()
-        self.poly = Expansion2d(LagrangeExpand(n, length=length))
-        self._channels = n*in_channels
+        self.poly = expansion(LagrangeExpand(n, length=length))
+        self._channels = n * in_channels
         self.periodicity = periodicity
-        self.conv = conv2d_wrapper(in_channels=self._channels,
-                                   kernel_size=kernel_size, **kwargs)
-        self._total_in = in_channels*kernel_size*kernel_size
+        self.conv = conv_wrapper(
+            in_channels=self._channels,
+            kernel_size=kernel_size,
+            convolution=convolution,
+            **kwargs
+        )
+        self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
         if rescale_output is True:
-            self._rescale = 1.0/self._total_in
+            self._rescale = 1.0 / self._total_in
 
     def forward(self, x):
         periodicity = self.periodicity
@@ -192,13 +270,77 @@ class PolynomialConvolution2d(nn.Module):
             x = make_periodic(x, periodicity)
         x = self.poly(x)
         out = self.conv(x)
-        return out*self._rescale
+        return out * self._rescale
+
+
+class PolynomialConvolution2d(PolynomialConvolution):
+    def __init__(
+        self,
+        n: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output=False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            periodicity=periodicity,
+            expansion=Expansion2d,
+            convolution=Conv2d,
+            *args,
+            **kwargs
+        )
+
+
+# TODO: Test this works!
+class PolynomialConvolution1d(PolynomialConvolution):
+    def __init__(
+        self,
+        n: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output=False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            periodicity=periodicity,
+            expansion=Expansion1d,
+            convolution=Conv1d,
+            *args,
+            **kwargs
+        )
 
 
 class PiecewisePolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, kernel_size: int, length: float = 2.0, rescale_output: bool = False, periodicity: float = None, *args, **kwargs):
+    def __init__(
+        self,
+        n: int,
+        segments: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
         """
-        Piecewise continuous polynomial convolutional layer.  The boundary between each polynomial are continuous. 
+        Piecewise continuous polynomial convolutional layer.  The boundary between each polynomial are continuous.
 
         Args :
             - n : number of weights or nodes.  Polynomial order is n-1 so quadratic would be n=3.
@@ -212,15 +354,17 @@ class PiecewisePolynomialConvolution2d(nn.Module):
         """
         super().__init__()
         self.poly = Expansion2d(
-            PiecewisePolynomialExpand(n=n, segments=segments, length=length))
-        self._channels = ((n-1)*segments+1)*in_channels
+            PiecewisePolynomialExpand(n=n, segments=segments, length=length)
+        )
+        self._channels = ((n - 1) * segments + 1) * in_channels
         self.periodicity = periodicity
-        self.conv = conv2d_wrapper(in_channels=self._channels,
-                                   kernel_size=kernel_size, **kwargs)
-        self._total_in = in_channels*kernel_size*kernel_size
+        self.conv = conv_wrapper(
+            in_channels=self._channels, kernel_size=kernel_size, **kwargs
+        )
+        self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
         if rescale_output is True:
-            self._rescale = 1.0/self._total_in
+            self._rescale = 1.0 / self._total_in
 
     def forward(self, x):
         periodicity = self.periodicity
@@ -228,13 +372,24 @@ class PiecewisePolynomialConvolution2d(nn.Module):
             x = make_periodic(x, periodicity)
         x = self.poly(x)
         out = self.conv(x)
-        return out*self._rescale
+        return out * self._rescale
 
 
 class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
-    def __init__(self, n: int, segments: int,  in_channels: int, kernel_size: int, length: float = 2.0, rescale_output: bool = False, periodicity: float = None, *args, **kwargs):
+    def __init__(
+        self,
+        n: int,
+        segments: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
         """
-        Discontinuous piecewise polynomial convolutional layer.  The boundary between each polynomial can be discontinuous. 
+        Discontinuous piecewise polynomial convolutional layer.  The boundary between each polynomial can be discontinuous.
         Args :
             - n : number of weights or nodes.  Polynomial order is n-1 so quadratic would be n=3.
             - segments: The number of segments in the piecewise polynomial.
@@ -247,15 +402,19 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
         """
         super().__init__()
         self.poly = Expansion2d(
-            PiecewiseDiscontinuousPolynomialExpand(n=n, segments=segments, length=length))
-        self._channels = n*segments*in_channels
+            PiecewiseDiscontinuousPolynomialExpand(
+                n=n, segments=segments, length=length
+            )
+        )
+        self._channels = n * segments * in_channels
         self.periodicity = periodicity
-        self.conv = conv2d_wrapper(in_channels=self._channels,
-                                   kernel_size=kernel_size, **kwargs)
-        self._total_in = in_channels*kernel_size*kernel_size
+        self.conv = conv_wrapper(
+            in_channels=self._channels, kernel_size=kernel_size, **kwargs
+        )
+        self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
         if rescale_output is True:
-            self._rescale = 1.0/self._total_in
+            self._rescale = 1.0 / self._total_in
 
     def forward(self, x):
         periodicity = self.periodicity
@@ -263,4 +422,4 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
             x = make_periodic(x, periodicity)
         x = self.poly(x)
         out = self.conv(x)
-        return out*self._rescale
+        return out * self._rescale
