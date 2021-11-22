@@ -67,18 +67,18 @@ class Net(LightningModule):
         opt = self.optimizers()
 
         loss = self.eval_step(batch, batch_idx, "train")
-        
+
         opt.zero_grad()
         if self._cfg.optimizer in ["adahessian"]:
             self.manual_backward(loss, create_graph=True)
         else:
             self.manual_backward(loss, create_graph=False)
-        #torch.nn.utils.clip_grad_norm_(
+        # torch.nn.utils.clip_grad_norm_(
         #    self.parameters(), self._cfg.gradient_clip_val
-        #)
+        # )
         opt.step()
-        
-        return loss
+
+        # return loss
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
@@ -147,6 +147,7 @@ def invariant_mnist(cfg: DictConfig):
     print("Working directory : {}".format(os.getcwd()))
     print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
 
+    diff = 1
     if cfg.p_refine is False:
         trainer = Trainer(max_epochs=cfg.max_epochs, gpus=1)
         model = Net(cfg)
