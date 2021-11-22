@@ -132,6 +132,10 @@ python invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=continuous 
 
 An example of implicit representation can be found [here](https://github.com/jloveric/high-order-implicit-representation)
 
+## Test
+```
+pytest test.py 
+```
 ## Reference
 ```
 @misc{Loverich2020,

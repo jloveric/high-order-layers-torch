@@ -87,6 +87,28 @@ def test_poly_convolution_2d_produces_correct_sizes():
     assert aout.shape[3] == 2
 
 
+def test_poly_convolution_1d_produces_correct_sizes():
+
+    in_channels = 2
+    out_channels = 2
+    kernel_size = 4
+    stride = 1
+    width = 5
+    n = 3
+
+    values = {"n": n, "in_channels": in_channels, "out_channels": out_channels,
+              "kernel_size": kernel_size, "stride": stride}
+
+    x = torch.rand(1, in_channels, width)
+    a = PolynomialConvolution1d(**values)
+
+    aout = a(x)
+    print('aout.shape', aout.shape)
+    assert aout.shape[0] == 1
+    assert aout.shape[1] == 2
+    assert aout.shape[2] == 2
+
+
 def test_piecewise_poly_convolution_2d_produces_correct_sizes():
 
     in_channels = 2
@@ -137,9 +159,9 @@ def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
     assert aout.shape[3] == 2
 
 
-@pytest.mark.parametrize("segments,in_width,out_width,hidden_layers,hidden_width,n0,n1", [(2,5,5,2,5,2,3), (2,5,3,3,3,3,5)])
+@pytest.mark.parametrize("segments,in_width,out_width,hidden_layers,hidden_width,n0,n1", [(2, 5, 5, 2, 5, 2, 3), (2, 5, 3, 3, 3, 3, 5)])
 def test_interpolate_mlp(segments, in_width, out_width, hidden_layers, hidden_width, n0, n1):
-    
+
     network_in = HighOrderMLP(layer_type="continuous", n=n0, in_width=in_width, out_width=out_width, hidden_layers=hidden_layers, hidden_width=hidden_width, n_in=n0,
                               n_out=n0, n_hidden=n0, in_segments=segments, out_segments=segments, hidden_segments=segments)
     network_out = HighOrderMLP(layer_type="continuous", n=n1, in_width=in_width, out_width=out_width, hidden_layers=hidden_layers, hidden_width=hidden_width, n_in=n1,
@@ -151,4 +173,3 @@ def test_interpolate_mlp(segments, in_width, out_width, hidden_layers, hidden_wi
     y0 = network_in(x)
     y1 = network_out(x)
     assert torch.allclose(y0, y1, rtol=1e-4)
-
