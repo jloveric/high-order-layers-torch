@@ -131,6 +131,7 @@ class Expansion1d(nn.Module):
         return res
 
 
+# TODO: redo all these with mixins (instead of specialization) since it will be more compact.
 class FourierConvolution(nn.Module):
     def __init__(
         self,
@@ -326,7 +327,7 @@ class PolynomialConvolution1d(PolynomialConvolution):
         )
 
 
-class PiecewisePolynomialConvolution2d(nn.Module):
+class PiecewisePolynomialConvolution(nn.Module):
     def __init__(
         self,
         n: int,
@@ -336,6 +337,8 @@ class PiecewisePolynomialConvolution2d(nn.Module):
         length: float = 2.0,
         rescale_output: bool = False,
         periodicity: float = None,
+        expansion: Union[Expansion1d, Expansion2d] = None,
+        convolution: Union[Conv1d, Conv2d, Conv3d] = None,
         *args,
         **kwargs
     ):
@@ -353,13 +356,16 @@ class PiecewisePolynomialConvolution2d(nn.Module):
                 in effect taking the average.
         """
         super().__init__()
-        self.poly = Expansion2d(
+        self.poly = expansion(
             PiecewisePolynomialExpand(n=n, segments=segments, length=length)
         )
         self._channels = ((n - 1) * segments + 1) * in_channels
         self.periodicity = periodicity
         self.conv = conv_wrapper(
-            in_channels=self._channels, kernel_size=kernel_size, **kwargs
+            in_channels=self._channels,
+            kernel_size=kernel_size,
+            convolution=convolution,
+            **kwargs
         )
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
@@ -375,7 +381,7 @@ class PiecewisePolynomialConvolution2d(nn.Module):
         return out * self._rescale
 
 
-class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
+class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
     def __init__(
         self,
         n: int,
@@ -385,6 +391,64 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
         length: float = 2.0,
         rescale_output: bool = False,
         periodicity: float = None,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            segments=segments,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            periodicity=periodicity,
+            expansion=Expansion2d,
+            convolution=Conv2d,
+            *args,
+            **kwargs
+        )
+
+
+class PiecewisePolynomialConvolution1d(PiecewisePolynomialConvolution):
+    def __init__(
+        self,
+        n: int,
+        segments: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            segments=segments,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            periodicity=periodicity,
+            expansion=Expansion1d,
+            convolution=Conv1d,
+            *args,
+            **kwargs
+        )
+
+
+class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
+    def __init__(
+        self,
+        n: int,
+        segments: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        expansion: Union[Expansion1d, Expansion2d] = None,
+        convolution: Union[Conv1d, Conv2d, Conv3d] = None,
         *args,
         **kwargs
     ):
@@ -401,7 +465,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
                 in effect taking the average.
         """
         super().__init__()
-        self.poly = Expansion2d(
+        self.poly = expansion(
             PiecewiseDiscontinuousPolynomialExpand(
                 n=n, segments=segments, length=length
             )
@@ -409,7 +473,10 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
         self._channels = n * segments * in_channels
         self.periodicity = periodicity
         self.conv = conv_wrapper(
-            in_channels=self._channels, kernel_size=kernel_size, **kwargs
+            in_channels=self._channels,
+            kernel_size=kernel_size,
+            convolution=convolution,
+            **kwargs
         )
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
@@ -423,3 +490,63 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(nn.Module):
         x = self.poly(x)
         out = self.conv(x)
         return out * self._rescale
+
+
+class PiecewiseDiscontinuousPolynomialConvolution2d(
+    PiecewiseDiscontinuousPolynomialConvolution
+):
+    def __init__(
+        self,
+        n: int,
+        segments: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            segments=segments,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            periodicity=periodicity,
+            expansion=Expansion2d,
+            convolution=Conv2d,
+            *args,
+            **kwargs
+        )
+
+
+class PiecewiseDiscontinuousPolynomialConvolution1d(
+    PiecewiseDiscontinuousPolynomialConvolution
+):
+    def __init__(
+        self,
+        n: int,
+        segments: int,
+        in_channels: int,
+        kernel_size: int,
+        length: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            n=n,
+            segments=segments,
+            in_channels=in_channels,
+            kernel_size=kernel_size,
+            length=length,
+            rescale_output=rescale_output,
+            periodicity=periodicity,
+            expansion=Expansion1d,
+            convolution=Conv1d,
+            *args,
+            **kwargs
+        )

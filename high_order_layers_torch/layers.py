@@ -20,18 +20,22 @@ fc_layers = {
     "polynomial": Polynomial,
     "polynomial_prod": PolynomialProd,
     "product": Product,
-    "fourier": FourierSeries
+    "fourier": FourierSeries,
 }
 
 convolutional_layers = {
     "continuous": PiecewisePolynomialConvolution2d,
+    "continuous1d": PiecewisePolynomialConvolution1d,
     "continuous_prod": None,  # PiecewisePolynomialProd,
     "discontinuous": PiecewiseDiscontinuousPolynomialConvolution2d,
+    "discontinuous1d": PiecewiseDiscontinuousPolynomialConvolution1d,
     "discontinuous_prod": None,  # PiecewiseDiscontinuousPolynomialProd,
     "polynomial": PolynomialConvolution2d,
+    "polynomial1d": PolynomialConvolution1d,
     "polynomial_prod": None,  # PolynomialConvolutionProd2d,
     "product": None,  # ProductConvolution2d,
-    "fourier": FourierConvolution2d
+    "fourier": FourierConvolution2d,
+    "fourier1d": FourierConvolution1d,
 }
 
 
@@ -41,7 +45,8 @@ def high_order_fc_layers(layer_type: str, **kwargs):
         return fc_layers[layer_type](**kwargs)
 
     raise ValueError(
-        f"Fully connected layer type {layer_type} not recognized.  Must be one of {list(fc_layers.keys())}")
+        f"Fully connected layer type {layer_type} not recognized.  Must be one of {list(fc_layers.keys())}"
+    )
 
 
 def high_order_convolution_layers(layer_type: str, **kwargs):
@@ -50,4 +55,5 @@ def high_order_convolution_layers(layer_type: str, **kwargs):
         return convolutional_layers[layer_type](**kwargs)
 
     raise ValueError(
-        f"Convolutional layer type {layer_type} not recognized.  Must be one of {list(convolutional_layers.keys())}")
+        f"Convolutional layer type {layer_type} not recognized.  Must be one of {list(convolutional_layers.keys())}"
+    )
