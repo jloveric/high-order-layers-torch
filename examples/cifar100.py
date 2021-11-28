@@ -232,7 +232,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=self._lr)
 
 
-@hydra.main(config_path="config", config_name="cifar100_config")
+@hydra.main(config_path="../config", config_name="cifar100_config")
 def run_cifar100(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))

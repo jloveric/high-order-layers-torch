@@ -141,7 +141,7 @@ class Net(LightningModule):
     #    return optim.Adam(self.parameters(), lr=0.001)
 
 
-@hydra.main(config_path="config", config_name="invariant_mnist")
+@hydra.main(config_path="../config", config_name="invariant_mnist")
 def invariant_mnist(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
