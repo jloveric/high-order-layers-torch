@@ -153,6 +153,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
 
         layer_list = []
         for i in range(len(channels) - 1):
+            print("index", i)
             if normalization is not None:
                 layer_list.append(normalization)
 

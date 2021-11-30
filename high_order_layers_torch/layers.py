@@ -2,7 +2,6 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from pytorch_lightning.metrics.functional import accuracy
 from .PolynomialLayers import *
 from .ProductLayer import *
 from .FunctionalConvolution import *
