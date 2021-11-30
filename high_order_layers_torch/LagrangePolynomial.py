@@ -18,7 +18,7 @@ def chebyshevLobatto(n: int):
 
     ans = -torch.cos(k * math.pi / (n - 1))
 
-    ans = torch.where(torch.abs(ans) < 1e-15, 0*ans, ans)
+    ans = torch.where(torch.abs(ans) < 1e-15, 0 * ans, ans)
 
     return ans
 
@@ -30,25 +30,24 @@ class FourierBasis:
     def __call__(self, x, j: int):
 
         if j == 0:
-            return 0.5+0.0*x
+            return 0.5 + 0.0 * x
 
-        i = (j+1)//2
+        i = (j + 1) // 2
         if j % 2 == 0:
-            ans = torch.cos(math.pi*i*x/self.length)
+            ans = torch.cos(math.pi * i * x / self.length)
         else:
-            ans = torch.sin(math.pi*i*x/self.length)
+            ans = torch.sin(math.pi * i * x / self.length)
         return ans
 
 
 class LagrangeBasis:
     def __init__(self, n: int, length: float = 2.0):
         self.n = n
-        self.X = (length/2.0)*chebyshevLobatto(n)
+        self.X = (length / 2.0) * chebyshevLobatto(n)
 
     def __call__(self, x, j: int):
 
-        b = [(x - self.X[m]) / (self.X[j] - self.X[m])
-             for m in range(self.n) if m != j]
+        b = [(x - self.X[m]) / (self.X[j] - self.X[m]) for m in range(self.n) if m != j]
         b = torch.stack(b)
         ans = torch.prod(b, dim=0)
         return ans
@@ -60,6 +59,11 @@ class LagrangeExpand(BasisExpand):
 
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
+    def __init__(self, n: int, segments: int, length: float = 2.0):
+        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
+
+
+class PiecewisePolynomialExpand1d(PiecewiseExpand1d):
     def __init__(self, n: int, segments: int, length: float = 2.0):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
 

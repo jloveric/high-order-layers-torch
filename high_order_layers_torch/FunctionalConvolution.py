@@ -1,6 +1,6 @@
 from .LagrangePolynomial import LagrangeExpand
 from pytorch_lightning import LightningModule, Trainer
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from high_order_layers_torch.PolynomialLayers import *
 from torch.nn import Conv1d, Conv2d, Conv3d
 import torch.nn as nn
@@ -339,6 +339,7 @@ class PiecewisePolynomialConvolution(nn.Module):
         periodicity: float = None,
         expansion: Union[Expansion1d, Expansion2d] = None,
         convolution: Union[Conv1d, Conv2d, Conv3d] = None,
+        expansion_function: Any = None,
         *args,
         **kwargs
     ):
@@ -356,9 +357,7 @@ class PiecewisePolynomialConvolution(nn.Module):
                 in effect taking the average.
         """
         super().__init__()
-        self.poly = expansion(
-            PiecewisePolynomialExpand(n=n, segments=segments, length=length)
-        )
+        self.poly = expansion(expansion_function(n=n, segments=segments, length=length))
         self._channels = ((n - 1) * segments + 1) * in_channels
         self.periodicity = periodicity
         self.conv = conv_wrapper(
@@ -404,6 +403,7 @@ class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
             periodicity=periodicity,
             expansion=Expansion2d,
             convolution=Conv2d,
+            expansion_function=PiecewisePolynomialExpand,
             *args,
             **kwargs
         )
@@ -432,6 +432,7 @@ class PiecewisePolynomialConvolution1d(PiecewisePolynomialConvolution):
             periodicity=periodicity,
             expansion=Expansion1d,
             convolution=Conv1d,
+            expansion_function=PiecewisePolynomialExpand1d,
             *args,
             **kwargs
         )

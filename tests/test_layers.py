@@ -135,8 +135,8 @@ def test_piecewise_poly_convolution_2d_produces_correct_sizes():
     assert aout.shape[3] == 2
 
 
-"""
-Currently broken!
+
+#Currently broken!
 def test_piecewise_poly_convolution_1d_produces_correct_sizes():
 
     in_channels = 2
@@ -160,11 +160,11 @@ def test_piecewise_poly_convolution_1d_produces_correct_sizes():
 
     aout = a(x)
 
+    print('a.out.shape', aout.shape)
+
     assert aout.shape[0] == 1
     assert aout.shape[1] == 2
     assert aout.shape[2] == 2
-    assert aout.shape[3] == 2
-"""
 
 
 def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
