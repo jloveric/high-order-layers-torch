@@ -13,8 +13,6 @@ import torch
 def test_interpolate_fully_convolutional_network(
     segments, n, kernel_size, ctype, channels, layers
 ):
-
-    #size = 5
     width = 100
 
     model = HighOrderFullyConvolutionalNetwork(

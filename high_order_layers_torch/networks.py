@@ -176,6 +176,11 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         return self.model(x)
 
 
+class HighOrderMLPMixerBlock(nn.Module):
+    # Follow this block https://papers.nips.cc/paper/2021/file/cba0a4ee5ccd02fda0fe3f9a3e7b89fe-Paper.pdf
+    pass
+
+
 def interpolate_high_order_mlp(network_in: HighOrderMLP, network_out: HighOrderMLP):
     """
     Create a new network with weights interpolated from network_in.  If network_out has higher
