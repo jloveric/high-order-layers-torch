@@ -333,6 +333,7 @@ class PiecewisePolynomialConvolution(nn.Module):
         n: int,
         segments: int,
         in_channels: int,
+        out_channels: int,
         kernel_size: int,
         length: float = 2.0,
         rescale_output: bool = False,
@@ -359,9 +360,12 @@ class PiecewisePolynomialConvolution(nn.Module):
         super().__init__()
         self.poly = expansion(expansion_function(n=n, segments=segments, length=length))
         self._channels = ((n - 1) * segments + 1) * in_channels
+        self._out_channels =out_channels
         self.periodicity = periodicity
+
         self.conv = conv_wrapper(
             in_channels=self._channels,
+            out_channels=self._out_channels,
             kernel_size=kernel_size,
             convolution=convolution,
             **kwargs

@@ -125,7 +125,7 @@ def test_piecewise_poly_convolution_2d_produces_correct_sizes():
     }
 
     x = torch.rand(1, in_channels, height, width)
-    a = PiecewisePolynomialConvolution2d(segments=1, **values)
+    a = PiecewisePolynomialConvolution2d(segments=4, **values)
 
     aout = a(x)
 
@@ -173,8 +173,8 @@ def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
     out_channels = 2
     kernel_size = 4
     stride = 1
-    height = 5
-    width = 5
+    height = 6
+    width = 7
     n = 3
 
     values = {
@@ -192,5 +192,5 @@ def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
 
     assert aout.shape[0] == 1
     assert aout.shape[1] == 2
-    assert aout.shape[2] == 2
-    assert aout.shape[3] == 2
+    assert aout.shape[2] == 3
+    assert aout.shape[3] == 4
