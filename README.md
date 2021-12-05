@@ -106,6 +106,12 @@ the implicit representation page [here](https://github.com/jloveric/high-order-i
 ![polynomial](plots/polynomial.png)
 ![fourier series](plots/fourier_series.png)
 
+## XOR : 0.5 for x*y > 0 else -0.5
+Simple XOR problem, the function is discontinuous along the axis and we try and fit that function
+![piecewise discontinuous polynomial](plots/xor_discontinuous.png)
+![piecewise continuous polynomial](plots/xor_continuous.png)
+![polynomial](plots/xor_polynomial.png)
+
 ## mnist (convolutional)
 
 ```python

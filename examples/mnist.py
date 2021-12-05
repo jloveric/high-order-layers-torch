@@ -8,12 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import EarlyStopping
-from pytorch_lightning.metrics.functional import accuracy
-from high_order_layers_torch.PolynomialLayers import (
-    PiecewiseDiscontinuousPolynomial,
-    PiecewisePolynomial,
-    Polynomial,
-)
+from torchmetrics.functional import accuracy
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import os

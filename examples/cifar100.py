@@ -18,23 +18,19 @@ from high_order_layers_torch.FunctionalConvolution import (
     PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d,
 )
 from high_order_layers_torch.layers import *
-from pytorch_lightning.metrics.functional import accuracy
-from high_order_layers_torch.PolynomialLayers import (
-    PiecewiseDiscontinuousPolynomial,
-    PiecewisePolynomial,
-    Polynomial,
-)
+from torchmetrics import Accuracy
+from torchmetrics.functional import accuracy
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
-from pytorch_lightning.metrics import Metric
+from torchmetrics import Metric
 
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
 
-
+'''
 class AccuracyTopK(Metric):
     """
     This will eventually be in pytorch-lightning, not yet merged so here it is.
@@ -55,6 +51,7 @@ class AccuracyTopK(Metric):
 
     def compute(self):
         return self.correct.float() / self.total
+'''
 
 
 class Net(LightningModule):
@@ -69,7 +66,7 @@ class Net(LightningModule):
         self._layer_type = cfg.layer_type
         self._train_fraction = cfg.train_fraction
         segments = cfg.segments
-        self._topk_metric = AccuracyTopK(top_k=5)
+        self._topk_metric = Accuracy(top_k=5)
         self._nonlinearity = cfg.nonlinearity
         if self._layer_type == "standard":
             out_channels1 = 6 * ((n - 1) * segments + 1)

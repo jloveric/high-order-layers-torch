@@ -19,6 +19,7 @@ torchvision = "*"
 pytest = "*"
 torch-optimizer = "^0.1.0"
 black = {version = "^21.11b1", allow-prereleases = true}
+torchmetrics = "^0.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
