@@ -59,10 +59,10 @@ conv_layer = high_order_convolution_layers(layer_type=layer_type, n=n, in_channe
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 | layer_type   | representation       |
 |--------------|----------------------|
-|continuous   | piecewise continuous polynomial
-|discontinuous | piecewise discontinuous polynomial
-|polynomial | single polynomial
-|fourier | fourier series convolution
+|continuous(1d,2d)   | piecewise continuous polynomial
+|discontinuous(1d,2d) | piecewise discontinuous polynomial
+|polynomial(1d,2d) | single polynomial
+|fourier(1d,2d) | fourier series convolution
 
 # Installing
 
