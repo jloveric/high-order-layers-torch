@@ -360,7 +360,7 @@ class PiecewisePolynomialConvolution(nn.Module):
         super().__init__()
         self.poly = expansion(expansion_function(n=n, segments=segments, length=length))
         self._channels = ((n - 1) * segments + 1) * in_channels
-        self._out_channels =out_channels
+        self._out_channels = out_channels
         self.periodicity = periodicity
 
         self.conv = conv_wrapper(
@@ -454,6 +454,7 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
         periodicity: float = None,
         expansion: Union[Expansion1d, Expansion2d] = None,
         convolution: Union[Conv1d, Conv2d, Conv3d] = None,
+        expansion_function: Any = None,
         *args,
         **kwargs
     ):
@@ -470,11 +471,7 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
                 in effect taking the average.
         """
         super().__init__()
-        self.poly = expansion(
-            PiecewiseDiscontinuousPolynomialExpand(
-                n=n, segments=segments, length=length
-            )
-        )
+        self.poly = expansion(expansion_function(n=n, segments=segments, length=length))
         self._channels = n * segments * in_channels
         self.periodicity = periodicity
         self.conv = conv_wrapper(
@@ -522,6 +519,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(
             periodicity=periodicity,
             expansion=Expansion2d,
             convolution=Conv2d,
+            expansion_function=PiecewiseDiscontinuousPolynomialExpand,
             *args,
             **kwargs
         )
@@ -552,6 +550,7 @@ class PiecewiseDiscontinuousPolynomialConvolution1d(
             periodicity=periodicity,
             expansion=Expansion1d,
             convolution=Conv1d,
+            expansion_function=PiecewiseDiscontinuousPolynomialExpand1d,
             *args,
             **kwargs
         )
