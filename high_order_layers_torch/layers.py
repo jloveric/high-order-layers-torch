@@ -6,10 +6,6 @@ from .PolynomialLayers import *
 from .ProductLayer import *
 from .FunctionalConvolution import *
 
-"""
-def linear_wrapper(in_features: int, out_features: int, bias: bool = True, **kwargs):
-    return nn.Linear(in_features, out_features, bias)
-"""
 
 fc_layers = {
     "continuous": PiecewisePolynomial,
@@ -23,17 +19,17 @@ fc_layers = {
 }
 
 convolutional_layers = {
-    "continuous": PiecewisePolynomialConvolution2d,
+    "continuous2d": PiecewisePolynomialConvolution2d,
     "continuous1d": PiecewisePolynomialConvolution1d,
-    "continuous_prod": None,  # PiecewisePolynomialProd,
-    "discontinuous": PiecewiseDiscontinuousPolynomialConvolution2d,
+    "continuous_prod2d": None,  # PiecewisePolynomialProd,
+    "discontinuous2d": PiecewiseDiscontinuousPolynomialConvolution2d,
     "discontinuous1d": PiecewiseDiscontinuousPolynomialConvolution1d,
-    "discontinuous_prod": None,  # PiecewiseDiscontinuousPolynomialProd,
-    "polynomial": PolynomialConvolution2d,
+    "discontinuous_prod2d": None,  # PiecewiseDiscontinuousPolynomialProd,
+    "polynomial2d": PolynomialConvolution2d,
     "polynomial1d": PolynomialConvolution1d,
-    "polynomial_prod": None,  # PolynomialConvolutionProd2d,
-    "product": None,  # ProductConvolution2d,
-    "fourier": FourierConvolution2d,
+    "polynomial_prod2d": None,  # PolynomialConvolutionProd2d,
+    "product2d": None,  # ProductConvolution2d,
+    "fourier2d": FourierConvolution2d,
     "fourier1d": FourierConvolution1d,
 }
 
