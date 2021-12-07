@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jloveric/high-order-layers-torch.svg?branch=master)](https://travis-ci.org/jloveric/high-order-layers-torch)
+![Build Status](https://github.com/jloveric/high-order-layers-torch/actions/workflows/python-app.yml/badge.svg)
 
 # Functional Layers in PyTorch
 
