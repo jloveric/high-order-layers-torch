@@ -5,4 +5,4 @@ batch_size: 16
 segments: 2
 layer_type: continuous2d
 train_fraction: 1.0
-add_pos: True
+add_pos: False

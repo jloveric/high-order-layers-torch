@@ -1,5 +1,6 @@
 from examples.invariant_mnist import invariant_mnist
 from examples.cifar100 import cifar100
+from examples.mnist import mnist
 from omegaconf import DictConfig, OmegaConf
 import pytest
 
@@ -47,5 +48,23 @@ def test_cifar100():
         }
     )
     result = cifar100(cfg=cfg)
+    assert result[0]["test_acc"] is not None
+    assert result[0]["test_loss"] is not None
+
+
+def test_mnist():
+    cfg = DictConfig(
+        content={
+            "max_epochs": 1,
+            "gpus": 0,
+            "n": 3,
+            "batch_size": 16,
+            "segments": 2,
+            "layer_type": "continuous2d",
+            "train_fraction": 0.01,
+            "add_pos": False,
+        }
+    )
+    result = mnist(cfg=cfg)
     assert result[0]["test_acc"] is not None
     assert result[0]["test_loss"] is not None

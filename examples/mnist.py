@@ -32,7 +32,10 @@ class Net(LightningModule):
         self.save_hyperparameters(cfg)
 
         self._cfg = cfg
-        self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        try:
+            self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        except:
+            self._data_dir = "../data"
         n = cfg.n
         self._batch_size = cfg.batch_size
         self._layer_type = cfg.layer_type
@@ -83,18 +86,21 @@ class Net(LightningModule):
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
         # Create xy objects
-        xm = torch.linspace(-1, 1, 28, device=self.device)
-        ym = torch.linspace(-1, 1, 28, device=self.device)
-        xv, yv = torch.meshgrid(xm, ym)
-        xv = torch.stack(self._batch_size * [xv], dim=0)
-        yv = torch.stack(self._batch_size * [yv], dim=0)
-        # This is a hack.  Apparently self.device is not on cuda.
-        self._pos = torch.stack([xv, yv], dim=1).cuda()
+        if self._cfg.add_pos == True :
+            xm = torch.linspace(-1, 1, 28, device=self.device)
+            ym = torch.linspace(-1, 1, 28, device=self.device)
+            xv, yv = torch.meshgrid(xm, ym)
+            xv = torch.stack(self._batch_size * [xv], dim=0)
+            yv = torch.stack(self._batch_size * [yv], dim=0)
+            # This is a hack.  Apparently self.device is not on cuda.
+            self._pos = torch.stack([xv, yv], dim=1).cuda()
 
     def forward(self, xin):
 
         if self._cfg.add_pos == True:
             x = torch.cat([xin, self._pos], dim=1)
+        else :
+            x = xin
 
         if self._layer_type == "standard":
             x = self.pool(F.relu(self.conv1(x)))
@@ -170,11 +176,15 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=0.001)
 
 
-@hydra.main(config_path="../config", config_name="mnist_config")
-def run_mnist(cfg: DictConfig):
+def mnist(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
-    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+
+    try:
+        print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    except:
+        pass
+
     early_stop_callback = EarlyStopping(
         monitor="val_loss", min_delta=0.00, patience=3, verbose=False, mode="min"
     )
@@ -185,9 +195,15 @@ def run_mnist(cfg: DictConfig):
     model = Net(cfg)
     trainer.fit(model)
     print("testing")
-    trainer.test(model)
+    results = trainer.test(model)
     print("finished testing")
+    return results
+
+
+@hydra.main(config_path="../config", config_name="mnist_config")
+def run(cfg: DictConfig):
+    mnist(cfg)
 
 
 if __name__ == "__main__":
-    run_mnist()
+    run()
