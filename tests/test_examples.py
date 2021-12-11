@@ -30,8 +30,7 @@ def test_invariant_mnist(p_refine: bool):
     assert result[0]["test_loss"] is not None
 
 
-@pytest.mark.parametrize("p_refine", [True, False])
-def test_cifar100(p_refine: bool):
+def test_cifar100():
     cfg = DictConfig(
         content={
             "max_epochs": 1,
