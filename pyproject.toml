@@ -10,6 +10,7 @@ readme = "README.md"
 python = ">=3.9"
 torch = "*"
 pytorch-lightning = "*"
+torchmetrics = "^0.6.1"
 
 [tool.poetry.dev-dependencies]
 pbr = "*"

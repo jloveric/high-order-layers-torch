@@ -7,7 +7,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from pytorch_lightning.metrics.functional import accuracy
+from torchmetrics.functional import accuracy
 from high_order_layers_torch.PolynomialLayers import *
 from high_order_layers_torch.layers import *
 from high_order_layers_torch.networks import *
