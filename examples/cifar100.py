@@ -58,7 +58,10 @@ class Net(LightningModule):
     def __init__(self, cfg: DictConfig):
         super().__init__()
         self._cfg = cfg
-        self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        try:
+            self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        except:
+            self._data_dir = "../data"
         self._lr = cfg.lr
         n = cfg.n
         self.n = cfg.n
@@ -229,19 +232,27 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=self._lr)
 
 
-@hydra.main(config_path="../config", config_name="cifar100_config")
-def run_cifar100(cfg: DictConfig):
+def cifar100(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
-    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    try :
+        print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    except :
+        pass
 
     trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)
     model = Net(cfg)
     trainer.fit(model)
     print("testing")
-    trainer.test(model)
+    result = trainer.test(model)
     print("finished testing")
+    return result
+
+
+@hydra.main(config_path="../config", config_name="cifar100_config")
+def run(cfg: DictConfig):
+    cifar100(cfg=cfg)
 
 
 if __name__ == "__main__":
-    run_cifar100()
+    run()

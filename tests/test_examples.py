@@ -1,4 +1,5 @@
 from examples.invariant_mnist import invariant_mnist
+from examples.cifar100 import cifar100
 from omegaconf import DictConfig, OmegaConf
 from hydra import initialize, compose
 import pytest
@@ -25,5 +26,28 @@ def test_invariant_mnist(p_refine: bool):
         }
     )
     result = invariant_mnist(cfg=cfg)
+    assert result[0]["test_acc"] is not None
+    assert result[0]["test_loss"] is not None
+
+
+@pytest.mark.parametrize("p_refine", [True, False])
+def test_cifar100(p_refine: bool):
+    cfg = DictConfig(
+        content={
+            "max_epochs": 1,
+            "gpus": 0,
+            "n": 5,
+            "batch_size": 128,
+            "segments": 2,
+            "layer_type": "continuous2d",
+            "train_fraction": 0.001,
+            "rescale_output": False,
+            "linear_output": True,
+            "periodicity": 2.0,
+            "lr": 0.001,
+            "nonlinearity": False,
+        }
+    )
+    result = cifar100(cfg=cfg)
     assert result[0]["test_acc"] is not None
     assert result[0]["test_loss"] is not None
