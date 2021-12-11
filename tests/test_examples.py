@@ -1,7 +1,6 @@
 from examples.invariant_mnist import invariant_mnist
 from examples.cifar100 import cifar100
 from omegaconf import DictConfig, OmegaConf
-from hydra import initialize, compose
 import pytest
 
 
