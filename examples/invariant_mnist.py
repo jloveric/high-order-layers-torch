@@ -23,8 +23,12 @@ class Net(LightningModule):
         self._cfg = cfg
         self._batch_size = cfg.batch_size
         self.criterion = nn.CrossEntropyLoss()
-        self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        try:
+            self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
+        except:
+            self._data_dir = "../data"
         self._train_fraction = cfg.train_fraction
+        self._val_fraction = cfg.val_fraction
         self._transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
         )
@@ -47,7 +51,7 @@ class Net(LightningModule):
 
     def setup(self, stage):
         num_train = int(self._train_fraction * 50000)
-        num_val = 10000
+        num_val = int(self._val_fraction * 10000)
         num_extra = 50000 - num_train
 
         train = torchvision.datasets.MNIST(
@@ -141,15 +145,17 @@ class Net(LightningModule):
     #    return optim.Adam(self.parameters(), lr=0.001)
 
 
-@hydra.main(config_path="../config", config_name="invariant_mnist")
 def invariant_mnist(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
-    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    try:
+        print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+    except:
+        pass
 
     diff = 1
     if cfg.p_refine is False:
-        trainer = Trainer(max_epochs=cfg.max_epochs, gpus=1)
+        trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)
         model = Net(cfg)
         trainer.fit(model)
     else:
@@ -157,7 +163,7 @@ def invariant_mnist(cfg: DictConfig):
         model = Net(cfg)
 
         for order in range(cfg.n, cfg.target_n):
-            trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=1)
+            trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=cfg.gpus)
             print(f"Training order {order}")
             trainer.fit(model)
             trainer.test(model)
@@ -168,11 +174,17 @@ def invariant_mnist(cfg: DictConfig):
                 network_in=model.layer, network_out=next_model.layer
             )
             model = next_model
-    trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=1)
-    trainer.fit(model)
-    trainer.test(model)
-    print("finished testing")
+        trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=cfg.gpus)
+
+    result = trainer.test(model)
+    print('result', result)
+    return result
+
+
+@hydra.main(config_path="../config", config_name="invariant_mnist")
+def run(cfg: DictConfig):
+    invariant_mnist(cfg)
 
 
 if __name__ == "__main__":
-    invariant_mnist()
+    run()

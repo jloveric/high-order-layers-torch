@@ -5,6 +5,7 @@ batch_size: 64
 segments: 2
 layer_type: polynomial
 train_fraction: 1.0
+val_fraction: 1.0
 periodicity: 2.0
 p_refine: True
 target_n: 5
