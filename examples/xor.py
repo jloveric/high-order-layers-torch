@@ -104,10 +104,10 @@ model_set_d = [
 ]
 
 
-def plot_approximation(model_set, segments, epochs, fig_start=0, linear_part=0.0):
+def plot_approximation(model_set, segments, epochs, fig_start=0, linear_part=0.0, plot=True):
+    pred_set=[]
     for i in range(0, len(model_set)):
-        # plt.figure(i + fig_start)
-        plt.subplot(2, 2, i + 1)
+        
         trainer = Trainer(max_epochs=epochs)
         model = NDFunctionApproximation(
             n=model_set[i]["order"],
@@ -117,18 +117,19 @@ def plot_approximation(model_set, segments, epochs, fig_start=0, linear_part=0.0
         )
         trainer.fit(model)
         predictions = model(xTest.view(xTest.size(0), -1))
+        pred_set.append(predictions)
+        if plot is True :
+            plt.subplot(2, 2, i + 1)
+            plt.scatter(
+                xTest.data.numpy()[:, 0],
+                xTest.data.numpy()[:, 1],
+                c=predictions.flatten().data.numpy(),
+            )
 
-        plt.scatter(
-            xTest.data.numpy()[:, 0],
-            xTest.data.numpy()[:, 1],
-            c=predictions.flatten().data.numpy(),
-        )
-
-        # plt.colorbar()
-        plt.title(f"{model_set[i]['name']} with {segments} segments.")
-        # plt.xlabel("x")
-        # plt.ylabel("y")
+            plt.title(f"{model_set[i]['name']} with {segments} segments.")
+    return pred_set
 
 
-plot_approximation(model_set_d, segments=2, epochs=40, linear_part=0)
-plt.show()
+if __name__ == "__main__":
+    plot_approximation(model_set_d, segments=2, epochs=40, linear_part=0, plot=True)
+    plt.show()

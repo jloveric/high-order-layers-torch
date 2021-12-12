@@ -1,5 +1,6 @@
 from examples.invariant_mnist import invariant_mnist
 from examples.cifar100 import cifar100
+from examples.xor import plot_approximation, model_set_d
 from examples.mnist import mnist
 from omegaconf import DictConfig, OmegaConf
 import pytest
@@ -68,3 +69,9 @@ def test_mnist():
     result = mnist(cfg=cfg)
     assert result[0]["test_acc"] is not None
     assert result[0]["test_loss"] is not None
+
+
+def test_xor():
+    result = plot_approximation(model_set=model_set_d, segments=2, epochs=1, plot=False)
+    print("result", result)
+    assert len(result) > 0
