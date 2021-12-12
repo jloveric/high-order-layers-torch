@@ -56,7 +56,8 @@ classes = (
     "truck",
 )
 
-
+# TODO: combine mnist, cifar10 and cifar100 to use a single network that uses
+# fully convolutional network with different heads to reduce code.
 class Net(LightningModule):
     def __init__(self, n, batch_size, segments=1, layer_type="continuous"):
         super().__init__()

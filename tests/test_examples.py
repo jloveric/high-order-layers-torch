@@ -3,10 +3,11 @@ from examples.cifar100 import cifar100
 from examples.xor import plot_approximation, model_set_d
 from examples.mnist import mnist
 from examples.function_example import plot_results
+from examples.cifar10 import run_cifar10
 from omegaconf import DictConfig, OmegaConf
 import pytest
 
-'''
+
 @pytest.mark.parametrize("p_refine", [True, False])
 def test_invariant_mnist(p_refine: bool):
     cfg = DictConfig(
@@ -76,6 +77,12 @@ def test_xor():
     result = plot_approximation(model_set=model_set_d, segments=2, epochs=1, plot=False)
     print("result", result)
     assert len(result) > 0
-'''
+
 def test_function_approximation() :
     result = plot_results(epochs=1,segments=5)
+
+
+'''
+def test_cifar10() :
+    run_cifar10(max_epochs=1, gpus=0, n=2, segments=2, layer_type="continuous")
+'''
