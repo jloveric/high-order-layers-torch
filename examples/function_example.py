@@ -227,19 +227,7 @@ def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
 
         if plot is True:
             plt.title("Piecewise Discontinuous Function Approximation")
-    '''
-    plt.figure(2)
-    plot_approximation("continuous", modelSetC, 5, epochs, gpus=0, periodicity=2)
-    plt.title("Piecewise Continuous Function Approximation")
-
-    plt.figure(3)
-    plot_approximation("polynomial", modelSetP, 5, epochs, gpus=0, periodicity=2)
-    plt.title("Polynomial Function Approximation")
-
-    plt.figure(4)
-    plot_approximation("fourier", modelSetF, 5, epochs, gpus=0)
-    plt.title("Fourier Function Approximation")
-    '''
+    
     if plot is True :
         plt.show()
 
