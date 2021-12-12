@@ -197,7 +197,7 @@ def plot_approximation(
         plt.legend()
 
 
-def plot_results(epochs: int=20, segments: int=5):
+def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
 
     """
     plt.figure(0)
@@ -209,10 +209,25 @@ def plot_results(epochs: int=20, segments: int=5):
     plot_approximation("product", modelSetProd, 1, epochs, gpus=0)
     """
 
-    plt.figure(1)
-    plot_approximation("discontinuous", modelSetD, 5, epochs, gpus=0, periodicity=2)
-    plt.title("Piecewise Discontinuous Function Approximation")
+    data = [
+        {
+            "title": "Piecewise Discontinuous Function Approximation",
+            "layer": "discontinuous",
+            "model_set" : modelSetD,
+        },
+        {"title": "Piecewise Continuous Function Approximation", "layer": "continuous", "model_set" : modelSetC},
+        {"title": "Polynomial function approximation", "layer": "polynomial", "model_set" : modelSetP},
+        {"title": "Fourier function approximation", "layer": "fourier","model_set":modelSetF},
+    ]
 
+    for index, element in enumerate(data) :
+        if plot is True:
+            plt.figure(index)
+        plot_approximation(element["layer"], element["model_set"], 5, epochs, gpus=0, periodicity=2)
+
+        if plot is True:
+            plt.title("Piecewise Discontinuous Function Approximation")
+    '''
     plt.figure(2)
     plot_approximation("continuous", modelSetC, 5, epochs, gpus=0, periodicity=2)
     plt.title("Piecewise Continuous Function Approximation")
@@ -224,8 +239,9 @@ def plot_results(epochs: int=20, segments: int=5):
     plt.figure(4)
     plot_approximation("fourier", modelSetF, 5, epochs, gpus=0)
     plt.title("Fourier Function Approximation")
-
-    plt.show()
+    '''
+    if plot is True :
+        plt.show()
 
 
 if __name__ == "__main__":
