@@ -742,7 +742,7 @@ typing-extensions = "*"
 
 [[package]]
 name = "torch-optimizer"
-version = "0.1.0"
+version = "0.3.0"
 description = "pytorch-optimizer"
 category = "dev"
 optional = false
@@ -750,7 +750,7 @@ python-versions = ">=3.6.0"
 
 [package.dependencies]
 pytorch-ranger = ">=0.1.1"
-torch = ">=1.1.0"
+torch = ">=1.5.0"
 
 [[package]]
 name = "torchmetrics"
@@ -865,7 +865,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9"
-content-hash = "0d01f9763c4438cdbd3f8bce5661e90d12e8162ee3f8f511f1d422d7570041d4"
+content-hash = "ff6d12412c49cdf3ed42be16d2f80b8f23fffe75116dea6cac3eec4c70589703"
 
 [metadata.files]
 absl-py = [
@@ -1594,8 +1594,8 @@ torch = [
     {file = "torch-1.10.0-cp39-none-macosx_11_0_arm64.whl", hash = "sha256:eea675ec01ec4b4a0655fd2984f166a5ca3b933dae6ad4eb4e52eba7026dc176"},
 ]
 torch-optimizer = [
-    {file = "torch-optimizer-0.1.0.tar.gz", hash = "sha256:3f67b71838a23a149afa7b3e1d9d7d3fd7c83b5758c8f3744900de1584969cf5"},
-    {file = "torch_optimizer-0.1.0-py3-none-any.whl", hash = "sha256:b7adaed38b66a5c5105a59b30a71c4ab7c9954baf0acabd969fee3dac954657d"},
+    {file = "torch-optimizer-0.3.0.tar.gz", hash = "sha256:b2180629df9d6cd7a2aeabe71fa4a872bba938e8e275965092568cd9931b924c"},
+    {file = "torch_optimizer-0.3.0-py3-none-any.whl", hash = "sha256:7de8e57315e43561cdd0370a1b67303cc8ef1b053f9b5573de629a62390f2af9"},
 ]
 torchmetrics = [
     {file = "torchmetrics-0.6.1-py3-none-any.whl", hash = "sha256:1e03ddce9072e4d08589bd27506886ba93bfd9496d7e89c08fba373484aaef50"},

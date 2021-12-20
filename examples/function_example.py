@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 from pytorch_lightning import LightningModule, Trainer
 from torch.utils.data import random_split
 from high_order_layers_torch.layers import *
+import torch_optimizer as alt_optim
 
 
 class simple_func:
@@ -56,8 +57,10 @@ class PolynomialFunctionApproximation(LightningModule):
     and no hidden layers.
     """
 
-    def __init__(self, n, segments=2, function=True, periodicity=None):
+    def __init__(self, n, segments=2, function=True, periodicity=None, opt:str="adam"):
         super().__init__()
+        self.automatic_optimization = False
+        self.optimizer = opt
 
         if function == "standard":
             print("Inside standard")
@@ -98,15 +101,41 @@ class PolynomialFunctionApproximation(LightningModule):
         return self.layer(x.view(x.size(0), -1))
 
     def training_step(self, batch, batch_idx):
+        opt = self.optimizers()
         x, y = batch
         y_hat = self(x)
-        return {"loss": F.mse_loss(y_hat, y)}
+
+        loss = F.mse_loss(y_hat, y)
+
+        opt.zero_grad()
+        if self.optimizer in ["adahessian"]:
+            self.manual_backward(loss, create_graph=True)
+        else:
+            self.manual_backward(loss, create_graph=False)
+
+        opt.step()
+
+        return {"loss": loss}
 
     def train_dataloader(self):
         return DataLoader(FunctionDataset(), batch_size=4)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001)
+        if self.optimizer == "adahessian":
+            return alt_optim.Adahessian(
+                self.layer.parameters(),
+                lr=1.0,
+                betas=(0.9, 0.999),
+                eps=1e-4,
+                weight_decay=0.0,
+                hessian_power=1.0,
+            )
+        elif self.optimizer == "adam":
+            return optim.Adam(self.parameters(), lr=0.001)
+        elif self.optimizer == "lbfgs":
+            return optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
+        else:
+            raise ValueError(f"Optimizer {self.optimizer} not recognized")
 
 
 modelSetL = [
@@ -158,7 +187,7 @@ symbol = ["+", "x", "o", "v", "."]
 
 
 def plot_approximation(
-    function, model_set, segments, epochs, gpus=0, periodicity=None, plot_result=True
+    function, model_set, segments, epochs, gpus=0, periodicity=None, plot_result=True, opt="adam", #"adahessian"
 ):
     for i in range(0, len(model_set)):
 
@@ -169,6 +198,7 @@ def plot_approximation(
             segments=segments,
             function=function,
             periodicity=periodicity,
+            opt=opt
         )
 
         trainer.fit(model)
