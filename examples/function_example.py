@@ -187,7 +187,7 @@ symbol = ["+", "x", "o", "v", "."]
 
 
 def plot_approximation(
-    function, model_set, segments, epochs, gpus=0, periodicity=None, plot_result=True, opt="adam", #"adahessian"
+    function, model_set, segments, epochs, gpus=0, periodicity=None, plot_result=True, opt="adam"
 ):
     for i in range(0, len(model_set)):
 
