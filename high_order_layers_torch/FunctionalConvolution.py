@@ -22,11 +22,11 @@ def conv_wrapper(
     rescale_output: bool = False,
     verbose: bool = False,
     convolution: Optional[Union[Conv1d, Conv2d, Conv3d]] = Conv2d,
-    **kwargs
+    **kwargs,
 ):
     """
     Inputs need to be an exact clone of those in torch conv2d including
-    defaults.  Function allows you to pass extra arguments without braking
+    defaults.  Function allows you to pass extra arguments without breaking
     conv2d.
     """
 
@@ -45,8 +45,8 @@ def conv_wrapper(
     in_features = in_channels * kernel_size * kernel_size
 
     if verbose is True:
-        print("in_channels", in_channels, "out_channels", out_channels)
-        print("conv.weight.shape", conv.weight.shape)
+        print(f"in_channels {in_channels} out_channels {out_channels}")
+        print(f"conv.weight.shape {conv.weight.shape}")
 
     # We don't want to use the standard conv initialization
     # since this is a bit different.
@@ -143,7 +143,7 @@ class FourierConvolution(nn.Module):
         expansion: Union[Expansion1d, Expansion2d] = None,
         convolution: Union[Conv1d, Conv2d, Conv3d] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Fourier series convolutional layer.
@@ -164,7 +164,7 @@ class FourierConvolution(nn.Module):
             in_channels=self._channels,
             kernel_size=kernel_size,
             convolution=convolution,
-            **kwargs
+            **kwargs,
         )
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
@@ -186,7 +186,7 @@ class FourierConvolution2d(FourierConvolution):
         length: float = 2.0,
         rescale_output=False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -197,7 +197,7 @@ class FourierConvolution2d(FourierConvolution):
             expansion=Expansion2d,
             convolution=Conv2d,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -210,7 +210,7 @@ class FourierConvolution1d(FourierConvolution):
         length: float = 2.0,
         rescale_output=False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -220,7 +220,7 @@ class FourierConvolution1d(FourierConvolution):
             rescale_output=rescale_output,
             conv_wrapper=Conv1d,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -236,7 +236,7 @@ class PolynomialConvolution(nn.Module):
         expansion: Union[Expansion1d, Expansion2d] = None,
         convolution: Union[Conv1d, Conv2d, Conv3d] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Polynomial convolutional layer.
@@ -258,7 +258,7 @@ class PolynomialConvolution(nn.Module):
             in_channels=self._channels,
             kernel_size=kernel_size,
             convolution=convolution,
-            **kwargs
+            **kwargs,
         )
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
@@ -284,7 +284,7 @@ class PolynomialConvolution2d(PolynomialConvolution):
         rescale_output=False,
         periodicity: float = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -296,7 +296,7 @@ class PolynomialConvolution2d(PolynomialConvolution):
             expansion=Expansion2d,
             convolution=Conv2d,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -311,7 +311,7 @@ class PolynomialConvolution1d(PolynomialConvolution):
         rescale_output=False,
         periodicity: float = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -323,7 +323,7 @@ class PolynomialConvolution1d(PolynomialConvolution):
             expansion=Expansion1d,
             convolution=Conv1d,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -342,7 +342,7 @@ class PiecewisePolynomialConvolution(nn.Module):
         convolution: Union[Conv1d, Conv2d, Conv3d] = None,
         expansion_function: Any = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Piecewise continuous polynomial convolutional layer.  The boundary between each polynomial are continuous.
@@ -368,7 +368,7 @@ class PiecewisePolynomialConvolution(nn.Module):
             out_channels=self._out_channels,
             kernel_size=kernel_size,
             convolution=convolution,
-            **kwargs
+            **kwargs,
         )
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
@@ -395,7 +395,7 @@ class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
         rescale_output: bool = False,
         periodicity: float = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -409,7 +409,7 @@ class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
             convolution=Conv2d,
             expansion_function=PiecewisePolynomialExpand,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -424,7 +424,7 @@ class PiecewisePolynomialConvolution1d(PiecewisePolynomialConvolution):
         rescale_output: bool = False,
         periodicity: float = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -438,7 +438,7 @@ class PiecewisePolynomialConvolution1d(PiecewisePolynomialConvolution):
             convolution=Conv1d,
             expansion_function=PiecewisePolynomialExpand1d,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -456,7 +456,7 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
         convolution: Union[Conv1d, Conv2d, Conv3d] = None,
         expansion_function: Any = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Discontinuous piecewise polynomial convolutional layer.  The boundary between each polynomial can be discontinuous.
@@ -478,7 +478,7 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
             in_channels=self._channels,
             kernel_size=kernel_size,
             convolution=convolution,
-            **kwargs
+            **kwargs,
         )
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
@@ -507,7 +507,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(
         rescale_output: bool = False,
         periodicity: float = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -521,7 +521,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(
             convolution=Conv2d,
             expansion_function=PiecewiseDiscontinuousPolynomialExpand,
             *args,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -538,7 +538,7 @@ class PiecewiseDiscontinuousPolynomialConvolution1d(
         rescale_output: bool = False,
         periodicity: float = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n=n,
@@ -552,5 +552,5 @@ class PiecewiseDiscontinuousPolynomialConvolution1d(
             convolution=Conv1d,
             expansion_function=PiecewiseDiscontinuousPolynomialExpand1d,
             *args,
-            **kwargs
+            **kwargs,
         )

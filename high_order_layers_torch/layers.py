@@ -5,6 +5,7 @@ import torch.optim as optim
 from .PolynomialLayers import *
 from .ProductLayer import *
 from .FunctionalConvolution import *
+from .FunctionalConvolutionTranspose import *
 
 
 fc_layers = {
@@ -33,6 +34,10 @@ convolutional_layers = {
     "fourier1d": FourierConvolution1d,
 }
 
+convolutional_transpose_layers = {
+    "continuous2d": PiecewisePolynomialConvolutionTranspose2d
+}
+
 
 def high_order_fc_layers(layer_type: str, **kwargs):
 
@@ -51,4 +56,14 @@ def high_order_convolution_layers(layer_type: str, **kwargs):
 
     raise ValueError(
         f"Convolutional layer type {layer_type} not recognized.  Must be one of {list(convolutional_layers.keys())}"
+    )
+
+
+def high_order_convolution_transpose_layers(layer_type: str, **kwargs):
+
+    if layer_type in convolutional_layers.keys():
+        return convolutional_transpose_layers[layer_type](**kwargs)
+
+    raise ValueError(
+        f"ConvolutionalTranspose layer type {layer_type} not recognized.  Must be one of {list(convolutional_transpose_layers.keys())}"
     )
