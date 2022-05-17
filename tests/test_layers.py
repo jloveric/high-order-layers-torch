@@ -2,10 +2,11 @@ import os
 import pytest
 from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.FunctionalConvolution import *
+from high_order_layers_torch.FunctionalConvolutionTranspose import *
 from high_order_layers_torch.PolynomialLayers import *
 from high_order_layers_torch.networks import *
 
-
+"""
 def test_nodes():
     ans = chebyshevLobatto(20)
     assert ans.shape[0] == 20
@@ -135,8 +136,7 @@ def test_piecewise_poly_convolution_2d_produces_correct_sizes():
     assert aout.shape[3] == 2
 
 
-
-#Currently broken!
+# Currently broken!
 def test_piecewise_poly_convolution_1d_produces_correct_sizes():
 
     in_channels = 2
@@ -160,7 +160,7 @@ def test_piecewise_poly_convolution_1d_produces_correct_sizes():
 
     aout = a(x)
 
-    print('a.out.shape', aout.shape)
+    print("a.out.shape", aout.shape)
 
     assert aout.shape[0] == 1
     assert aout.shape[1] == 2
@@ -194,3 +194,37 @@ def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
     assert aout.shape[1] == 2
     assert aout.shape[2] == 3
     assert aout.shape[3] == 4
+"""
+
+
+def test_piecewise_poly_convolution_transpose_2d_produces_correct_sizes():
+
+    in_channels = 2
+    out_channels = 2
+    kernel_size = 4
+    output_padding = 0
+    padding = 0
+    stride = 1
+    height = 5
+    width = 5
+    n = 3
+
+    values = {
+        "n": n,
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "output_padding": output_padding,
+        "padding": padding,
+    }
+
+    x = torch.rand(1, in_channels, height, width)
+    a = PiecewisePolynomialConvolutionTranspose2d(segments=4, **values)
+
+    aout = a(x)
+
+    assert aout.shape[0] == 1
+    assert aout.shape[1] == out_channels
+    assert aout.shape[2] == height + kernel_size - 1
+    assert aout.shape[3] == width + kernel_size - 1
