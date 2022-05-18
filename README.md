@@ -107,7 +107,7 @@ the implicit representation page [here](https://github.com/jloveric/high-order-i
 ![fourier series](plots/fourier_series.png)
 
 ## XOR : 0.5 for x*y > 0 else -0.5
-Simple XOR problem using the standard network struction (2 inputs 2 hidden 1 output) this will also work with no hidden layers. The function is discontinuous along the axis and we try and fit that function. Using piecewise discontinuous layers the model can match the function exactly.  
+Simple XOR problem using the standard network structure (2 inputs 2 hidden 1 output) this will also work with no hidden layers. The function is discontinuous along the axis and we try and fit that function. Using piecewise discontinuous layers the model can match the function exactly.  
 ![piecewise discontinuous polynomial](plots/xor_discontinuous.png)
 With piecewise continuous it doesn't work quite as well.
 ![piecewise continuous polynomial](plots/xor_continuous.png)
