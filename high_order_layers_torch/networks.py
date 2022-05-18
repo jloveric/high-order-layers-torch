@@ -239,6 +239,9 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         return self.model(x)
 
 
+# Copied from https://github.com/AntixK/PyTorch-VAE/blob/master/models/vanilla_vae.py
+# and modified to work with arbitrary encoder / decoder so it that it works with
+# high order networks.
 class VanillaVAE(nn.Module):
     def __init__(
         self,
@@ -264,8 +267,10 @@ class VanillaVAE(nn.Module):
         """
         Encodes the input by passing through the encoder network
         and returns the latent codes.
-        :param input: (Tensor) Input tensor to encoder [N x C x H x W]
-        :return: (Tensor) List of latent codes
+        Args :
+            input: (Tensor) Input tensor to encoder [N x C x H x W]
+        Returns :
+            (Tensor) List of latent codes
         """
         result = self.encoder(input)
         result = torch.flatten(result, start_dim=1)
@@ -281,8 +286,10 @@ class VanillaVAE(nn.Module):
         """
         Maps the given latent codes
         onto the image space.
-        :param z: (Tensor) [B x D]
-        :return: (Tensor) [B x C x H x W]
+        Args :
+            z: (Tensor) [B x D]
+
+        returns (Tensor) [B x C x H x W]
         """
         result = self.decoder_input(z)
         result = result.view(-1, 512, 2, 2)
@@ -292,11 +299,11 @@ class VanillaVAE(nn.Module):
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
         """
-        Reparameterization trick to sample from N(mu, var) from
-        N(0,1).
-        :param mu: (Tensor) Mean of the latent Gaussian [B x D]
-        :param logvar: (Tensor) Standard deviation of the latent Gaussian [B x D]
-        :return: (Tensor) [B x D]
+        Reparameterization trick to sample from N(mu, var) from N(0,1).
+        Args :
+            mu: (Tensor) Mean of the latent Gaussian [B x D]
+            logvar: (Tensor) Standard deviation of the latent Gaussian [B x D]
+        return (Tensor) [B x D]
         """
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
@@ -310,10 +317,10 @@ class VanillaVAE(nn.Module):
     def loss_function(self, *args, **kwargs) -> dict:
         """
         Computes the VAE loss function.
-        KL(N(\mu, \sigma), N(0, 1)) = \log \frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2}
-        :param args:
-        :param kwargs:
-        :return:
+        Args :
+            args:
+            kwargs:
+        Returns:
         """
         recons = args[0]
         input = args[1]
@@ -338,9 +345,10 @@ class VanillaVAE(nn.Module):
         """
         Samples from the latent space and return the corresponding
         image space map.
-        :param num_samples: (Int) Number of samples
-        :param current_device: (Int) Device to run the model
-        :return: (Tensor)
+        Args :
+            num_samples: (Int) Number of samples
+            current_device: (Int) Device to run the model
+        Returns (Tensor)
         """
         z = torch.randn(num_samples, self.latent_dim)
 
@@ -352,8 +360,10 @@ class VanillaVAE(nn.Module):
     def generate(self, x: Tensor, **kwargs) -> Tensor:
         """
         Given an input image x, returns the reconstructed image
-        :param x: (Tensor) [B x C x H x W]
-        :return: (Tensor) [B x C x H x W]
+        Args :
+            x: (Tensor) [B x C x H x W]
+        Returns :
+            (Tensor) [B x C x H x W]
         """
 
         return self.forward(x)[0]
