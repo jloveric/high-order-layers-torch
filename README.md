@@ -140,7 +140,7 @@ python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=co
 
 An example of implicit representation can be found [here](https://github.com/jloveric/high-order-implicit-representation)
 
-## Test
+## Test and Coverage
 After installing and running
 ```
 poetry shell
@@ -148,6 +148,14 @@ poetry shell
 run
 ```
 pytest 
+```
+for coverage, run
+```
+coverage run -m pytest
+```
+and then
+```
+coverage report
 ```
 ## Reference
 ```

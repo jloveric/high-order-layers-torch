@@ -93,8 +93,7 @@ class Piecewise(nn.Module):
         self.out_features = out_features
         self.periodicity = periodicity
         self.w = torch.nn.Parameter(
-            data=torch.Tensor(out_features, in_features,
-                              ((n - 1) * segments + 1)),
+            data=torch.Tensor(out_features, in_features, ((n - 1) * segments + 1)),
             requires_grad=True,
         )
         self.w.data.uniform_(
@@ -118,8 +117,7 @@ class Piecewise(nn.Module):
             id_min,
             torch.tensor(self._segments - 1, device=device),
         )
-        id_min = torch.where(id_min >= 0, id_min,
-                             torch.tensor(0, device=device))
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         id_max = id_min + 1
 
         # determine which weights are active
@@ -133,8 +131,13 @@ class Piecewise(nn.Module):
             -1
         )
 
-        windex = (torch.arange(wrange.shape[0] * wrange.shape[1]) // self._n) % (
-            self.in_features
+        windex = (
+            torch.div(
+                torch.arange(wrange.shape[0] * wrange.shape[1]),
+                self._n,
+                rounding_mode="floor",
+            )
+            % self.in_features
         )
         wrange = wrange.flatten()
 
@@ -252,8 +255,7 @@ class PiecewiseDiscontinuous(nn.Module):
             id_min,
             torch.tensor(self._segments - 1, device=device),
         )
-        id_min = torch.where(id_min >= 0, id_min,
-                             torch.tensor(0, device=device))
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         id_max = id_min + 1
 
         # determine which weights are active
@@ -278,7 +280,11 @@ class PiecewiseDiscontinuous(nn.Module):
 
         # should be size batches*inputs*n
         windex = (
-            torch.arange(wrange.shape[0] * wrange.shape[1]) // self._n
+            torch.div(
+                torch.arange(wrange.shape[0] * wrange.shape[1]),
+                self._n,
+                rounding_mode="floor",
+            )
         ) % self.in_features
         wrange = wrange.flatten()
 
@@ -343,7 +349,9 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
         )
 
 
-def interpolate_polynomial_layer(layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial) -> None:
+def interpolate_polynomial_layer(
+    layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
+) -> None:
 
     poly_in = layer_in._poly
     segments_in = layer_in._segments
@@ -360,13 +368,14 @@ def interpolate_polynomial_layer(layer_in: PiecewisePolynomial, layer_out: Piece
     n_out = poly_out.basis.n
 
     # Compute the weights on polynomial b from a
-    with torch.no_grad() : # No grad so we can assign leaf variable in place
+    with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
                 for i in range(segments_in):
-                    w = w_in[inputs, outputs, i *
-                            (n_in-1):(i+1)*(n_in-1)+1].reshape(1,1, 1, -1)
-                    w_b = poly_in.interpolate(
-                        x_out, w)
-                    w_out[inputs, outputs, i *
-                        (n_out-1):(i+1)*(n_out-1)+1] = w_b.flatten()
+                    w = w_in[
+                        inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
+                    ].reshape(1, 1, 1, -1)
+                    w_b = poly_in.interpolate(x_out, w)
+                    w_out[
+                        inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
+                    ] = w_b.flatten()

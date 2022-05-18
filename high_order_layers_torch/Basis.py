@@ -161,7 +161,7 @@ class PiecewiseExpand1d:
         )
 
         # This needs to be
-        windex = torch.arange(wrange.numel()) // self._n
+        windex = torch.div(torch.arange(wrange.numel()), self._n, rounding_mode="floor")
 
         print("out.shape", out.shape)
         out = out.permute(1, 2, 3, 0)
@@ -243,7 +243,7 @@ class PiecewiseDiscontinuousExpand:
         )
 
         # This needs to be
-        windex = torch.arange(wrange.numel()) // self._n
+        windex = torch.div(torch.arange(wrange.numel()), self._n, rounding_mode="floor")
 
         out = out.permute(1, 2, 3, 4, 0)
 
@@ -321,7 +321,7 @@ class PiecewiseDiscontinuousExpand1d:
         )
 
         # This needs to be
-        windex = torch.arange(wrange.numel()) // self._n
+        windex = torch.div(torch.arange(wrange.numel()), self._n, rounding_mode="floor")
 
         out = out.permute(1, 2, 3, 0)
 

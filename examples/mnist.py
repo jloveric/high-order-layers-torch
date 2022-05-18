@@ -86,7 +86,7 @@ class Net(LightningModule):
         self.fc1 = nn.Linear(16 * 4 * 4, 10)
 
         # Create xy objects
-        if self._cfg.add_pos == True :
+        if self._cfg.add_pos == True:
             xm = torch.linspace(-1, 1, 28, device=self.device)
             ym = torch.linspace(-1, 1, 28, device=self.device)
             xv, yv = torch.meshgrid(xm, ym)
@@ -99,7 +99,7 @@ class Net(LightningModule):
 
         if self._cfg.add_pos == True:
             x = torch.cat([xin, self._pos], dim=1)
-        else :
+        else:
             x = xin
 
         if self._layer_type == "standard":
@@ -149,7 +149,7 @@ class Net(LightningModule):
             root=self._data_dir, train=False, download=True, transform=self._transform
         )
         return torch.utils.data.DataLoader(
-            testset, batch_size=self._batch_size, shuffle=True, num_workers=10
+            testset, batch_size=self._batch_size, shuffle=False, num_workers=10
         )
 
     def validation_step(self, batch, batch_idx):
@@ -194,8 +194,10 @@ def mnist(cfg: DictConfig):
     )
     model = Net(cfg)
     trainer.fit(model)
+
     print("testing")
     results = trainer.test(model)
+
     print("finished testing")
     return results
 

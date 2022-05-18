@@ -94,7 +94,7 @@ class Net(LightningModule):
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(
-            self._val_subset, batch_size=self._batch_size, shuffle=True, num_workers=10
+            self._val_subset, batch_size=self._batch_size, shuffle=False, num_workers=10
         )
 
     def test_dataloader(self):
@@ -177,7 +177,7 @@ def invariant_mnist(cfg: DictConfig):
         trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=cfg.gpus)
 
     result = trainer.test(model)
-    print('result', result)
+    print("result", result)
     return result
 
 
