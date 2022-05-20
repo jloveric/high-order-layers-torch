@@ -336,6 +336,27 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "lightning-bolts"
+version = "0.5.0"
+description = "PyTorch Lightning Bolts is a community contribution for ML researchers."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+packaging = "*"
+pytorch-lightning = ">=1.4.0"
+torch = ">=1.7.1"
+torchmetrics = ">=0.4.1"
+
+[package.extras]
+dev = ["torchvision (>=0.8.2)", "scikit-learn (>=0.23)", "pillow", "opencv-python-headless", "gym[atari] (>=0.17.2,<0.20.0)", "atari-py (>=0.2.0,<0.3.0)", "box2d-py (>=2.3.0,<2.4.0)", "matplotlib", "wandb", "scipy", "codecov (>=2.1)", "pytest (>=6.0)", "pytest-cov (>2.10)", "flake8", "check-manifest", "twine (>=3.2)", "isort (>=5.6.4)", "pre-commit (>=1.0)", "mypy (>=0.790)", "atari-py (==0.2.6)", "sparseml", "ale-py (>=0.7)", "jsonargparse"]
+extra = ["torchvision (>=0.8.2)", "scikit-learn (>=0.23)", "pillow", "opencv-python-headless", "gym[atari] (>=0.17.2,<0.20.0)", "atari-py (>=0.2.0,<0.3.0)", "box2d-py (>=2.3.0,<2.4.0)", "matplotlib", "wandb", "scipy"]
+loggers = ["matplotlib", "wandb", "scipy"]
+models = ["torchvision (>=0.8.2)", "scikit-learn (>=0.23)", "pillow", "opencv-python-headless", "gym[atari] (>=0.17.2,<0.20.0)", "atari-py (>=0.2.0,<0.3.0)", "box2d-py (>=2.3.0,<2.4.0)"]
+test = ["codecov (>=2.1)", "pytest (>=6.0)", "pytest-cov (>2.10)", "flake8", "check-manifest", "twine (>=3.2)", "isort (>=5.6.4)", "pre-commit (>=1.0)", "mypy (>=0.790)", "atari-py (==0.2.6)", "scikit-learn (>=0.23)", "sparseml", "ale-py (>=0.7)", "jsonargparse"]
+
+[[package]]
 name = "markdown"
 version = "3.3.7"
 description = "Python implementation of Markdown."
@@ -867,7 +888,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9"
-content-hash = "93ee52333471de421b1e928ae66b15e4f070d7d1864e75d9b4a1d7b5f1ac2165"
+content-hash = "c7d69fe10f1ff0b86d53d8efccf148c64233ed4de8a5bd6b7994b2b0461703d9"
 
 [metadata.files]
 absl-py = [
@@ -1231,6 +1252,10 @@ kiwisolver = [
     {file = "kiwisolver-1.4.2-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0e8afdf533b613122e4bbaf3c1e42c2a5e9e2d1dd3a0a017749a7658757cb377"},
     {file = "kiwisolver-1.4.2-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:42f6ef9b640deb6f7d438e0a371aedd8bef6ddfde30683491b2e6f568b4e884e"},
     {file = "kiwisolver-1.4.2.tar.gz", hash = "sha256:7f606d91b8a8816be476513a77fd30abe66227039bd6f8b406c348cb0247dcc9"},
+]
+lightning-bolts = [
+    {file = "lightning-bolts-0.5.0.tar.gz", hash = "sha256:4d64a033a7b5b69c88852741ec37d60620c920bed7c11cd9515be3102410994f"},
+    {file = "lightning_bolts-0.5.0-py3-none-any.whl", hash = "sha256:a9a4051e86d0aab8a59185df5cb310b25c06766c6082b970d17fa611b37cae2e"},
 ]
 markdown = [
     {file = "Markdown-3.3.7-py3-none-any.whl", hash = "sha256:f5da449a6e1c989a4cea2631aa8ee67caa5a2ef855d551c88f9e309f4634c621"},

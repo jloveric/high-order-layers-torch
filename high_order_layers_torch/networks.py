@@ -136,6 +136,9 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
 
+        if isinstance(layer_type, str) :
+            layer_type = [layer_type]*len(channels)
+
         if (
             len(channels)
             == len(segments)
@@ -198,6 +201,9 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
             raise ValueError(
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
+
+        if isinstance(layer_type, str) :
+            layer_type = [layer_type]*len(channels)
 
         if (
             len(channels)

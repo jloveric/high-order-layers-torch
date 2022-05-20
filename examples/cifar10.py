@@ -1,4 +1,3 @@
-# copied straight from the PyTorch examples.
 import torch
 import torchvision
 import torchvision.transforms as transforms

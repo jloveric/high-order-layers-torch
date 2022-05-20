@@ -23,6 +23,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
 from torchmetrics import Metric
+from high_order_layers_torch.networks import VanillaVAE, HighOrderFullyConvolutionalNetwork, HighOrderFullyDeconvolutionalNetwork
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -36,93 +37,25 @@ class Net(LightningModule):
             self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
         except:
             self._data_dir = "../data"
-        self._lr = cfg.lr
-        n = cfg.n
-        self.n = cfg.n
-        self._batch_size = cfg.batch_size
-        self._layer_type = cfg.layer_type
-        self._train_fraction = cfg.train_fraction
-        segments = cfg.segments
-        self._topk_metric = Accuracy(top_k=5)
-        self._nonlinearity = cfg.nonlinearity
-        if self._layer_type == "standard":
-            out_channels1 = 6 * ((n - 1) * segments + 1)
-            self.conv1 = torch.nn.Conv2d(
-                in_channels=3, out_channels=out_channels1, kernel_size=5
-            )
-            self.norm1 = nn.BatchNorm2d(out_channels1)
-            out_channels2 = 6 * ((n - 1) * segments + 1)
-            self.conv2 = torch.nn.Conv2d(
-                in_channels=out_channels2, out_channels=16, kernel_size=5
-            )
-            self.norm2 = nn.BatchNorm2d(out_channels2)
-        if self._layer_type == "standard0":
-            self.conv1 = torch.nn.Conv2d(
-                in_channels=3, out_channels=6 * n, kernel_size=5
-            )
-            self.conv2 = torch.nn.Conv2d(
-                in_channels=6 * n, out_channels=16, kernel_size=5
-            )
 
-        else:
-            self.conv1 = high_order_convolution_layers(
-                layer_type=self._layer_type,
-                n=n,
-                in_channels=3,
-                out_channels=6,
-                kernel_size=5,
-                segments=cfg.segments,
-                rescale_output=cfg.rescale_output,
-                periodicity=cfg.periodicity,
-            )
-            self.norm1 = nn.BatchNorm2d(6)
-            self.conv2 = high_order_convolution_layers(
-                layer_type=self._layer_type,
-                n=n,
-                in_channels=6,
-                out_channels=16,
-                kernel_size=5,
-                segments=cfg.segments,
-                rescale_output=cfg.rescale_output,
-                periodicity=cfg.periodicity,
-            )
-            self.norm2 = nn.BatchNorm2d(16)
-
-        self.pool = nn.MaxPool2d(2, 2)
-        self.avg_pool = nn.AdaptiveAvgPool2d(5)
-        self.flatten = nn.Flatten()
-        if cfg.linear_output:
-            self.fc1 = nn.Linear(16 * 5 * 5, 100)
-        else:
-            self.fc1 = high_order_fc_layers(
-                layer_type=self._layer_type,
-                n=n,
-                in_features=16 * 5 * 5,
-                out_features=100,
-                segments=cfg.segments,
-            )
-        self.norm3 = nn.LayerNorm(100)
-
+        self.encoder = HighOrderFullyConvolutionalNetwork(
+          layer_type = cfg.layer_type, 
+          n=cfg.encoder.n,
+          channels=cfg.encoder.channels,
+          segments=cfg.encoder.segments,
+          kernel_size=cfg.encoder.kernel_size
+        )
+        self.decoder = HighOrderFullyDeconvolutionalNetwork(
+          layer_type = cfg.layer_type,
+          n = cfg.decoder.n,
+          channels = cfg.decoder.channels,
+          segments = cfg.decoder.segments,
+          kernel_size = cfg.decoder.kernel_size,
+        )
+        self.model = VanillaVAE(in_channels = 3, latent_dim=10, hidden_dims = [], encoder=self.encoder, decoder=self.decoder)
+        
     def forward(self, x):
-        if self._nonlinearity is True:
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.norm1(x)
-            x = self.pool(F.relu(self.conv2(x)))
-            x = self.norm2(x)
-            x = self.avg_pool(x)
-            x = self.flatten(x)
-            x = self.fc1(x)
-            x = self.norm3(x)
-        else:
-            x = self.pool(self.conv1(x))
-            x = self.norm1(x)
-            x = self.pool(self.conv2(x))
-            x = self.norm2(x)
-            x = self.avg_pool(x)
-            x = self.flatten(x)
-            x = self.fc1(x)
-            x = self.norm3(x)
-        return x
+        pass
 
     def setup(self, stage):
         num_train = int(self._train_fraction * 40000)
@@ -206,7 +139,7 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=self._lr)
 
 
-def cifar100(cfg: DictConfig):
+def vae(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
     try :
@@ -223,9 +156,9 @@ def cifar100(cfg: DictConfig):
     return result
 
 
-@hydra.main(config_path="../config", config_name="cifar100_config")
+@hydra.main(config_path="../config", config_name="variational_autoencoder")
 def run(cfg: DictConfig):
-    cifar100(cfg=cfg)
+    vae(cfg=cfg)
 
 
 if __name__ == "__main__":
