@@ -200,6 +200,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
 
     def forward(self, x: Tensor) -> Tensor:
+        print('x.shape', x[0].shape)
         temp = self.model(x)
         print('temp.shape', temp.shape)
         return temp
@@ -361,6 +362,7 @@ class VanillaVAE(nn.Module):
         return eps * std + mu
 
     def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
+        print('input.shape', input[0].shape)
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
         return [self.decode(z), input, mu, log_var]
@@ -373,6 +375,8 @@ class VanillaVAE(nn.Module):
             kwargs:
         Returns:
         """
+        print('num args', len(args))
+
         recons = args[0]
         input = args[1]
         mu = args[2]

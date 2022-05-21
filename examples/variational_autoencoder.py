@@ -77,8 +77,8 @@ class Net(LightningModule):
         )
 
     def training_step(self, batch, batch_idx):
-        
-        loss = self.eval_step(batch, batch_idx, 'train')
+        x, y = batch
+        loss = self.eval_step(x, batch_idx, 'train')
         return loss
 
     def train_dataloader(self):
@@ -104,12 +104,14 @@ class Net(LightningModule):
         )
         return testloader
 
-    def validation_step(self, batch, batch_idx):
-        return self.eval_step(batch, batch_idx, "val")
-
     def eval_step(self, batch, batch_idx, name):
-        x = self(batch)
-        loss = self.model.loss_function(x)
+        #print('eval_step batch', batch, len(batch))
+        x, y = batch
+        out = self(x)
+        
+        # Default value for M_N taken from the below test...
+        # https://github.com/AntixK/PyTorch-VAE/blob/master/tests/test_vae.py
+        loss = self.model.loss_function(*out, M_N = 0.005)
         
         # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f"{name}_loss", loss['loss'], prog_bar=True)
@@ -117,6 +119,9 @@ class Net(LightningModule):
         self.log(f"{name}_KLD", loss['KLD'], prog_bar=True)
         
         return loss
+
+    def validation_step(self, batch, batch_idx):
+        return self.eval_step(batch, batch_idx, "val")
 
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
