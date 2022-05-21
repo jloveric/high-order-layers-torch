@@ -124,6 +124,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         rescale_output: bool = False,
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
+        pooling : str = "2d"
     ) -> None:
         """
         Fully convolutional network is convolutions all the way down with global average pooling
@@ -137,6 +138,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
             rescale_output : whether to average the inputs to the next neuron
             periodicity : whether it should be periodic or not
             normalization : If not None, type of batch normalization to use.
+            pooling : 1d, 2d or 3d
         """
         super().__init__()
 
@@ -188,7 +190,12 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
             layer_list.append(layer)
 
         # Add an average pooling layer
-        avg_pool = nn.AdaptiveAvgPool2d((channels[-1],1))
+        if pooling == "1d" :
+            avg_pool = nn.AdaptiveAvgPool1d(1)
+        elif pooling == "2d" :
+            avg_pool = nn.AdaptiveAvgPool2d((1,1))
+        elif pooling =="3d" :
+            avg_pool = nn.AdaptiveAvgPool3d((1,1,1))
 
         self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
 

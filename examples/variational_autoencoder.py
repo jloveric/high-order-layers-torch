@@ -77,20 +77,8 @@ class Net(LightningModule):
         )
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self(x)
-
-        loss = F.cross_entropy(y_hat, y)
-        preds = torch.argmax(y_hat, dim=1)
-
-        acc = accuracy(preds, y)
-        val = self._topk_metric(y_hat, y)
-        val = self._topk_metric.compute()
-
-        self.log(f"train_loss", loss, prog_bar=True)
-        self.log(f"train_acc", acc, prog_bar=True)
-        self.log(f"train_acc5", val, prog_bar=True)
-
+        
+        loss = self.eval_step(batch, batch_idx, 'train')
         return loss
 
     def train_dataloader(self):
@@ -120,19 +108,14 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "val")
 
     def eval_step(self, batch, batch_idx, name):
-        x, y = batch
-        logits = self(x)
-        loss = F.cross_entropy(logits, y)
-        preds = torch.argmax(logits, dim=1)
-        acc = accuracy(preds, y)
-
-        val = self._topk_metric(logits, y)
-        val = self._topk_metric.compute()
-
+        x = self(batch)
+        loss = self.model.loss_function(x)
+        
         # Calling self.log will surface up scalars for you in TensorBoard
-        self.log(f"{name}_loss", loss, prog_bar=True)
-        self.log(f"{name}_acc", acc, prog_bar=True)
-        self.log(f"{name}_acc5", val, prog_bar=True)
+        self.log(f"{name}_loss", loss['loss'], prog_bar=True)
+        self.log(f"{name}_Reconstruction_Loss", loss['Reconstruction_Loss'], prog_bar=True)
+        self.log(f"{name}_KLD", loss['KLD'], prog_bar=True)
+        
         return loss
 
     def test_step(self, batch, batch_idx):
