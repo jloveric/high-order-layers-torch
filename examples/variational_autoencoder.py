@@ -38,6 +38,10 @@ class Net(LightningModule):
         except:
             self._data_dir = "../data"
 
+        self._train_fraction = cfg.train_fraction
+        self._lr = cfg.lr
+        self._batch_size = cfg.batch_size
+
         self.encoder = HighOrderFullyConvolutionalNetwork(
           layer_type = cfg.layer_type, 
           n=cfg.encoder.n,
@@ -55,7 +59,7 @@ class Net(LightningModule):
         self.model = VanillaVAE(in_channels = 3, latent_dim=10, hidden_dims = [], encoder=self.encoder, decoder=self.decoder)
         
     def forward(self, x):
-        pass
+        return self.model(x)
 
     def setup(self, stage):
         num_train = int(self._train_fraction * 40000)

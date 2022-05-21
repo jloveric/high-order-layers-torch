@@ -188,16 +188,18 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
             layer_list.append(layer)
 
         # Add an average pooling layer
-        avg_pool = nn.AdaptiveAvgPool2d((1,1))
+        avg_pool = nn.AdaptiveAvgPool2d((channels[-1],1))
 
         self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
 
     def forward(self, x: Tensor) -> Tensor:
-        return self.model(x)
+        temp = self.model(x)
+        print('temp.shape', temp.shape)
+        return temp
 
     @property
     def output_size(self) :
-        return self.kernel_size[-1]
+        return self.channels[-1] # avg pooling and flatten should give channels size
 
 
 class HighOrderFullyDeconvolutionalNetwork(nn.Module):
@@ -218,6 +220,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         """
         super().__init__()
 
+        self._layer_type = layer_type
         self._n = n
         self._channels = channels
         self._segments = segments
@@ -257,12 +260,12 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
                 layer_list.append(normalization)
 
             layer = high_order_convolution_transpose_layers(
-                layer_type=layer_type[i],
-                n=n[i],
-                in_channels=channels[i],
-                out_channels=channels[i + 1],
-                kernel_size=kernel_size[i],
-                segments=segments[i],
+                layer_type=self._layer_type[i],
+                n=self._n[i],
+                in_channels=self._channels[i],
+                out_channels=self._channels[i + 1],
+                kernel_size=self._kernel_size[i],
+                segments=self._segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
             )
@@ -284,7 +287,6 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
 class VanillaVAE(nn.Module):
     def __init__(
         self,
-        in_channels: int,
         latent_dim: int,
         encoder: nn.Module,
         decoder: nn.Module,
@@ -293,7 +295,6 @@ class VanillaVAE(nn.Module):
         super(VanillaVAE, self).__init__()
 
         self.latent_dim = latent_dim
-        self.in_features = in_features
 
         self.encoder = encoder
         print('self.encoder.modules',self.encoder.modules)
@@ -301,10 +302,11 @@ class VanillaVAE(nn.Module):
         print("encoder_out_features", encoder_out_features)
         self.fc_mu = nn.Linear(encoder_out_features, latent_dim)
         self.fc_var = nn.Linear(encoder_out_features, latent_dim)
-
-        self._in_features = 512*4 # Ok, this should be specified, right!
-        self.decoder_input = nn.Linear(latent_dim, self._in_features)
+        
         self.decoder = decoder
+        self._in_features = self.decoder.in_channels # It's flat so channels is features
+        self.decoder_input = nn.Linear(latent_dim, self._in_features)
+        
 
     def encode(self, input: Tensor) -> List[Tensor]:
         """
@@ -337,7 +339,6 @@ class VanillaVAE(nn.Module):
         result = self.decoder_input(z)
         result = result.view(-1, self.decoder.in_channels, 2, 2)
         result = self.decoder(result)
-        result = self.final_layer(result)
         return result
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
