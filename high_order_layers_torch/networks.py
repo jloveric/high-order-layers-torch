@@ -8,7 +8,7 @@ from high_order_layers_torch.layers import (
 from typing import Any, Callable, List, Union
 from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_layer
 import torch
-
+import torch.nn.functional as F
 
 class HighOrderMLP(nn.Module):
     def __init__(
@@ -126,29 +126,43 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         normalization: Callable[[Any], Tensor] = None,
     ) -> None:
         """
+        Fully convolutional network is convolutions all the way down with global average pooling
+        and flatten at the end.
         Args :
-
+            layer_type : layer type [continuous2d, discontinous2d, ...]
+            n : polynomial or fourier "order" [n1, n2, ...]
+            channels : Number of channels for each layer (should be size layers+1) 
+            segments : Number of segments in the polynomial if used at all as a list per layer.
+            kernel_size : The kernel size for each layer
+            rescale_output : whether to average the inputs to the next neuron
+            periodicity : whether it should be periodic or not
+            normalization : If not None, type of batch normalization to use.
         """
         super().__init__()
 
+        self.layer_type = layer_type
+        self.n = n
+        self.channels = channels
+        self.segments = segments
+        self.kernel_size = kernel_size
+        
         if len(channels) < 2:
             raise ValueError(
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
 
         if isinstance(layer_type, str) :
-            layer_type = [layer_type]*len(channels)
+            layer_type = [layer_type]*len(kernel_size)
 
         if (
-            len(channels)
-            == len(segments)
+            len(segments)
             == len(kernel_size)
             == len(layer_type)
             == len(n)
             is False
         ):
             raise ValueError(
-                f"Lists for channels {len(channels)}, segments {len(segments)}, kernel_size {len(kernel_size)}, layer_type {len(layer_type)} and n {len(n)} must be the same size."
+                f"Lists for segments {len(segments)}, kernel_size {len(kernel_size)}, layer_type {len(layer_type)} and n {len(n)} must be the same size."
             )
 
         if len(channels) == len(n) + 1 is False:
@@ -173,10 +187,17 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
             )
             layer_list.append(layer)
 
-        self.model = nn.Sequential(*layer_list)
+        # Add an average pooling layer
+        avg_pool = nn.AdaptiveAvgPool2d((1,1))
+
+        self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
 
     def forward(self, x: Tensor) -> Tensor:
         return self.model(x)
+
+    @property
+    def output_size(self) :
+        return self.kernel_size[-1]
 
 
 class HighOrderFullyDeconvolutionalNetwork(nn.Module):
@@ -197,33 +218,41 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         """
         super().__init__()
 
+        self._n = n
+        self._channels = channels
+        self._segments = segments
+        self._kernel_size = kernel_size
+        
         if len(channels) < 2:
             raise ValueError(
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
 
-        if isinstance(layer_type, str) :
-            layer_type = [layer_type]*len(channels)
+        if isinstance(self._layer_type, str) :
+            self._layer_type = [self._layer_type]*len(self._channels)
 
         if (
-            len(channels)
-            == len(segments)
-            == len(kernel_size)
-            == len(layer_type)
-            == len(n)
+           len(self._segments)
+            == len(self._kernel_size)
+            == len(self._layer_type)
+            == len(self._n)
             is False
         ):
             raise ValueError(
-                f"Lists for channels {len(channels)}, segments {len(segments)}, kernel_size {len(kernel_size)}, layer_type {len(layer_type)} and n {len(n)} must be the same size."
+                f"Lists for segments {len(self._segments)}, kernel_size {len(self._kernel_size)}, layer_type {len(self._layer_type)} and n {len(self._n)} must be the same size."
             )
 
-        if len(channels) == len(n) + 1 is False:
+        if len(self._channels) == len(self._n) + 1 is False:
             raise ValueError(
-                f"Length of channels list {channels} should be one more than number of layers."
+                f"Length of channels list {self._channels} should be one more than number of layers."
             )
 
         layer_list = []
-        for i in range(len(channels) - 1):
+
+        # Input is a flat vector
+        self._in_channels = self._channels[0]
+
+        for i in range(len(self._channels) - 1):
             if normalization is not None:
                 layer_list.append(normalization)
 
@@ -241,6 +270,10 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
 
         self.model = nn.Sequential(*layer_list)
 
+    @property
+    def in_channels(self) :
+        return self._in_channels
+
     def forward(self, x: Tensor) -> Tensor:
         return self.model(x)
 
@@ -253,7 +286,6 @@ class VanillaVAE(nn.Module):
         self,
         in_channels: int,
         latent_dim: int,
-        hidden_dims: List[int],
         encoder: nn.Module,
         decoder: nn.Module,
         **kwargs,
@@ -261,12 +293,17 @@ class VanillaVAE(nn.Module):
         super(VanillaVAE, self).__init__()
 
         self.latent_dim = latent_dim
+        self.in_features = in_features
 
         self.encoder = encoder
-        self.fc_mu = nn.Linear(hidden_dims[-1] * 4, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1] * 4, latent_dim)
+        print('self.encoder.modules',self.encoder.modules)
+        encoder_out_features = self.encoder.output_size
+        print("encoder_out_features", encoder_out_features)
+        self.fc_mu = nn.Linear(encoder_out_features, latent_dim)
+        self.fc_var = nn.Linear(encoder_out_features, latent_dim)
 
-        self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1] * 4)
+        self._in_features = 512*4 # Ok, this should be specified, right!
+        self.decoder_input = nn.Linear(latent_dim, self._in_features)
         self.decoder = decoder
 
     def encode(self, input: Tensor) -> List[Tensor]:
@@ -298,7 +335,7 @@ class VanillaVAE(nn.Module):
         returns (Tensor) [B x C x H x W]
         """
         result = self.decoder_input(z)
-        result = result.view(-1, 512, 2, 2)
+        result = result.view(-1, self.decoder.in_channels, 2, 2)
         result = self.decoder(result)
         result = self.final_layer(result)
         return result
