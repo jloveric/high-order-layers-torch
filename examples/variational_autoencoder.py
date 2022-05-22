@@ -52,7 +52,8 @@ class Net(LightningModule):
           n=cfg.encoder.n,
           channels=cfg.encoder.channels,
           segments=cfg.encoder.segments,
-          kernel_size=cfg.encoder.kernel_size
+          kernel_size=cfg.encoder.kernel_size,
+          normalization=torch.nn.BatchNorm2d
         )
         self.decoder = HighOrderFullyDeconvolutionalNetwork(
           layer_type = cfg.layer_type,
@@ -60,6 +61,7 @@ class Net(LightningModule):
           channels = cfg.decoder.channels,
           segments = cfg.decoder.segments,
           kernel_size = cfg.decoder.kernel_size,
+          normalization = torch.nn.BatchNorm2d
         )
         self.model = VanillaVAE(in_channels = 3, latent_dim=cfg.latent_dim, hidden_dims = [], encoder=self.encoder, decoder=self.decoder, device=self.device)
         
@@ -151,7 +153,18 @@ class ImageSampler(Callback):
         # UNDO DATA NORMALIZATION
         normalize = cifar10_normalization() # Ok, cifar10 not 100!
         mean, std = np.array(normalize.mean), np.array(normalize.std)
+        print(f'samples max {torch.max(samples)}, min {torch.min(samples)}')
+        print('mean', mean, 'std', std)
+        
+        '''
+        Here is the transformation from cifar100
+        '''
+        mean=[n/255. for n in [129.3, 124.1, 112.4]] 
+        std=[n/255. for n in [68.2,  65.4,  70.4]]
+        
+
         img = make_grid(samples).permute(1, 2, 0).cpu().numpy() * std + mean
+        print(f'img max {np.max(img)} and min {np.min(img)}')
 
         # PLOT IMAGES
         trainer.logger.experiment.add_image(
@@ -170,6 +183,7 @@ def vae(cfg: DictConfig):
     sampler = ImageSampler()
     logger = TensorBoardLogger("tb_logs", name="vae")
 
+    # , overfit_batches=2
     trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler])
     model = Net(cfg)
     trainer.fit(model)
