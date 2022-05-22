@@ -77,8 +77,8 @@ class Net(LightningModule):
         )
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        loss = self.eval_step(x, batch_idx, 'train')
+        #x, y = batch
+        loss = self.eval_step(batch, batch_idx, 'train')
         return loss
 
     def train_dataloader(self):

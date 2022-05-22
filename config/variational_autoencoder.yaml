@@ -21,6 +21,6 @@ decoder:
   n: [2]
   channels: [5, 3]
   segments: [2]
-  kernel_size: [5]
+  kernel_size: [32]
   periodicity: 2.0
   normalization: null # batch normalization

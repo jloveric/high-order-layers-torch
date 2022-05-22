@@ -200,9 +200,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
 
     def forward(self, x: Tensor) -> Tensor:
-        print('x.shape', x[0].shape)
         temp = self.model(x)
-        print('temp.shape', temp.shape)
         return temp
 
     @property
@@ -234,7 +232,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self._segments = segments
         self._kernel_size = kernel_size
         
-        if len(channels) < 2:
+        if len(self._channels) < 2:
             raise ValueError(
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
@@ -345,7 +343,7 @@ class VanillaVAE(nn.Module):
         returns (Tensor) [B x C x H x W]
         """
         result = self.decoder_input(z)
-        result = result.view(-1, self.decoder.in_channels, 2, 2)
+        result = result.view(-1, self.decoder.in_channels, 1, 1)
         result = self.decoder(result)
         return result
 
@@ -362,7 +360,6 @@ class VanillaVAE(nn.Module):
         return eps * std + mu
 
     def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
-        print('input.shape', input[0].shape)
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
         return [self.decode(z), input, mu, log_var]
@@ -375,7 +372,6 @@ class VanillaVAE(nn.Module):
             kwargs:
         Returns:
         """
-        print('num args', len(args))
 
         recons = args[0]
         input = args[1]
