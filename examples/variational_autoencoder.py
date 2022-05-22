@@ -6,7 +6,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from pytorch_lightning import LightningModule, Trainer
+from pytorch_lightning import LightningModule, Trainer, Callback
 from high_order_layers_torch.FunctionalConvolution import (
     PolynomialConvolution2d as PolyConv2d,
 )
@@ -24,6 +24,11 @@ from omegaconf import DictConfig, OmegaConf
 import os
 from torchmetrics import Metric
 from high_order_layers_torch.networks import VanillaVAE, HighOrderFullyConvolutionalNetwork, HighOrderFullyDeconvolutionalNetwork
+from pytorch_lightning.loggers import TensorBoardLogger
+from matplotlib.pyplot import imshow, figure
+from torchvision.utils import make_grid
+from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
+
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -56,7 +61,7 @@ class Net(LightningModule):
           segments = cfg.decoder.segments,
           kernel_size = cfg.decoder.kernel_size,
         )
-        self.model = VanillaVAE(in_channels = 3, latent_dim=10, hidden_dims = [], encoder=self.encoder, decoder=self.decoder)
+        self.model = VanillaVAE(in_channels = 3, latent_dim=cfg.latent_dim, hidden_dims = [], encoder=self.encoder, decoder=self.decoder, device=self.device)
         
     def forward(self, x):
         return self.model(x)
@@ -77,7 +82,6 @@ class Net(LightningModule):
         )
 
     def training_step(self, batch, batch_idx):
-        #x, y = batch
         loss = self.eval_step(batch, batch_idx, 'train')
         return loss
 
@@ -121,6 +125,7 @@ class Net(LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
+        
         return self.eval_step(batch, batch_idx, "val")
 
     def test_step(self, batch, batch_idx):
@@ -131,6 +136,29 @@ class Net(LightningModule):
         return optim.Adam(self.parameters(), lr=self._lr)
 
 
+class ImageSampler(Callback):
+    def __init__(self):
+        super().__init__()
+        self.img_size = None
+        self.num_preds = 16
+
+    def on_train_epoch_end(self, trainer, pl_module, outputs=None):
+        figure(figsize=(8, 3), dpi=300)
+
+        with torch.no_grad() :
+            samples = pl_module.model.sample(num_samples=2)
+
+        # UNDO DATA NORMALIZATION
+        normalize = cifar10_normalization() # Ok, cifar10 not 100!
+        mean, std = np.array(normalize.mean), np.array(normalize.std)
+        img = make_grid(samples).permute(1, 2, 0).cpu().numpy() * std + mean
+
+        # PLOT IMAGES
+        trainer.logger.experiment.add_image(
+            "img", torch.tensor(img).permute(2, 0, 1), global_step=trainer.global_step
+        )
+
+
 def vae(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
@@ -138,13 +166,19 @@ def vae(cfg: DictConfig):
         print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
     except :
         pass
+    
+    sampler = ImageSampler()
+    logger = TensorBoardLogger("tb_logs", name="vae")
 
-    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)
+    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler])
     model = Net(cfg)
     trainer.fit(model)
+    
     print("testing")
     result = trainer.test(model)
+    
     print("finished testing")
+    
     return result
 
 

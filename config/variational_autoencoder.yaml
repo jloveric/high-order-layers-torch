@@ -10,6 +10,7 @@ linear_output: True
 periodicity: 2.0
 lr: 0.001
 nonlinearity: False
+latent_dim: 10
 encoder:
   n: [2] # polynomial order
   channels: [3, 5]

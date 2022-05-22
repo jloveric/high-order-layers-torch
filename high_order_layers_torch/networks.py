@@ -9,6 +9,7 @@ from typing import Any, Callable, List, Union
 from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_layer
 import torch
 import torch.nn.functional as F
+from pytorch_lightning import LightningModule
 
 class HighOrderMLP(nn.Module):
     def __init__(
@@ -290,7 +291,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
 # Copied from https://github.com/AntixK/PyTorch-VAE/blob/master/models/vanilla_vae.py
 # and modified to work with arbitrary encoder / decoder so it that it works with
 # high order networks.
-class VanillaVAE(nn.Module):
+class VanillaVAE(LightningModule):
     def __init__(
         self,
         latent_dim: int,
@@ -303,8 +304,10 @@ class VanillaVAE(nn.Module):
         self.latent_dim = latent_dim
 
         self.encoder = encoder
+        
         print('self.encoder.modules',self.encoder.modules)
         encoder_out_features = self.encoder.output_size
+
         print("encoder_out_features", encoder_out_features)
         self.fc_mu = nn.Linear(encoder_out_features, latent_dim)
         self.fc_var = nn.Linear(encoder_out_features, latent_dim)
@@ -312,7 +315,6 @@ class VanillaVAE(nn.Module):
         self.decoder = decoder
         self._in_features = self.decoder.in_channels # It's flat so channels is features
         self.decoder_input = nn.Linear(latent_dim, self._in_features)
-        
 
     def encode(self, input: Tensor) -> List[Tensor]:
         """
@@ -392,7 +394,7 @@ class VanillaVAE(nn.Module):
             "KLD": -kld_loss.detach(),
         }
 
-    def sample(self, num_samples: int, current_device: int, **kwargs) -> Tensor:
+    def sample(self, num_samples: int, **kwargs) -> Tensor:
         """
         Samples from the latent space and return the corresponding
         image space map.
@@ -401,9 +403,8 @@ class VanillaVAE(nn.Module):
             current_device: (Int) Device to run the model
         Returns (Tensor)
         """
-        z = torch.randn(num_samples, self.latent_dim)
-
-        z = z.to(current_device)
+        print('latent_dim', self.latent_dim, self.device)
+        z = torch.randn(num_samples, self.latent_dim, device=self.device)
 
         samples = self.decode(z)
         return samples
