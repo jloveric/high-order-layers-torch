@@ -155,11 +155,6 @@ class ImageSampler(Callback):
             samples = pl_module.model.sample(num_samples=5)
 
         # UNDO DATA NORMALIZATION
-        normalize = cifar10_normalization() # Ok, cifar10 not 100!
-        mean, std = np.array(normalize.mean), np.array(normalize.std)
-        print(f'samples max {torch.max(samples)}, min {torch.min(samples)}')
-        print('mean', mean, 'std', std)
-        
         '''
         Here is the transformation from cifar100
         '''
@@ -168,7 +163,6 @@ class ImageSampler(Callback):
         
 
         img = make_grid(samples).permute(1, 2, 0).cpu().numpy() * std + mean
-        print(f'img max {np.max(img)} and min {np.min(img)}')
 
         # PLOT IMAGES
         trainer.logger.experiment.add_image(
@@ -196,13 +190,16 @@ def vae(cfg: DictConfig):
     result = trainer.test(model)
     
     print("finished testing")
-    
+    print('result', result)
     return result
 
 
 @hydra.main(config_path="../config", config_name="variational_autoencoder")
 def run(cfg: DictConfig):
-    vae(cfg=cfg)
+    ans = vae(cfg=cfg)
+    
+    # needed for nevergrad
+    return ans[0]['test_loss']
 
 
 if __name__ == "__main__":
