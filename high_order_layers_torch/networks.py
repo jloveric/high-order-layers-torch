@@ -10,6 +10,20 @@ from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_laye
 import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
+from pl_bolts.models.autoencoders.components import Interpolate
+
+class Interpolate(nn.Module):
+    """
+    nn.Module wrapper for F.interpolate.
+    copied from pl_bolts.models.autoencoders.components.Interpolate
+    """
+
+    def __init__(self, size=None, scale_factor=None):
+        super().__init__()
+        self.size, self.scale_factor = size, scale_factor
+
+    def forward(self, x):
+        return F.interpolate(x, size=self.size, scale_factor=self.scale_factor)
 
 class HighOrderMLP(nn.Module):
     def __init__(
@@ -125,7 +139,8 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         rescale_output: bool = False,
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
-        pooling : str = "2d"
+        pooling : str = "2d",
+        stride : List[int] = None,
     ) -> None:
         """
         Fully convolutional network is convolutions all the way down with global average pooling
@@ -139,7 +154,8 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
             rescale_output : whether to average the inputs to the next neuron
             periodicity : whether it should be periodic or not
             normalization : If not None, type of batch normalization to use.
-            pooling : 1d, 2d or 3d
+            pooling : 1d, 2d or 3d (for the final average pool)
+            stride : Stride for each layer
         """
         super().__init__()
 
@@ -148,6 +164,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         self.channels = channels
         self.segments = segments
         self.kernel_size = kernel_size
+        self.stride = stride
         
         if len(channels) < 2:
             raise ValueError(
@@ -187,6 +204,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 segments=segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
+                stride = 1 if self.stride is None else self.stride[i]
             )
             layer_list.append(layer)
 
@@ -220,6 +238,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         rescale_output: bool = False,
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
+        stride : List[int] = None,
     ) -> None:
         """
         Args :
@@ -232,6 +251,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self._channels = channels
         self._segments = segments
         self._kernel_size = kernel_size
+        self._stride = stride
         
         if len(self._channels) < 2:
             raise ValueError(
@@ -276,6 +296,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
                 segments=self._segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
+                stride=1 if self._stride is None else self._stride[i]
             )
             layer_list.append(layer)
 

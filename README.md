@@ -127,10 +127,9 @@ python examples/cifar100.py -m max_epochs=20 train_fraction=1.0 layer_type=polyn
 ```
 
 ## Variational Autoencoder
-Not yet working!
-
-python examples/variational_autoencoder.py -m max_epochs=20 train_fraction=1.0
-
+```
+python examples/variational_autoencoder.py -m max_epochs=300 train_fraction=1.0
+```
 ## invariant mnist (fully connected)
 Without polynomial refinement
 ```python

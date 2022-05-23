@@ -53,7 +53,8 @@ class Net(LightningModule):
           channels=cfg.encoder.channels,
           segments=cfg.encoder.segments,
           kernel_size=cfg.encoder.kernel_size,
-          normalization=torch.nn.BatchNorm2d
+          normalization=torch.nn.BatchNorm2d,
+          stride=cfg.encoder.stride
         )
         self.decoder = HighOrderFullyDeconvolutionalNetwork(
           layer_type = cfg.layer_type,
@@ -61,7 +62,8 @@ class Net(LightningModule):
           channels = cfg.decoder.channels,
           segments = cfg.decoder.segments,
           kernel_size = cfg.decoder.kernel_size,
-          normalization = torch.nn.BatchNorm2d
+          normalization = torch.nn.BatchNorm2d,
+          stride = cfg.decoder.stride
         )
         self.model = VanillaVAE(in_channels = 3, latent_dim=cfg.latent_dim, hidden_dims = [], encoder=self.encoder, decoder=self.decoder, device=self.device)
         
@@ -148,7 +150,7 @@ class ImageSampler(Callback):
         figure(figsize=(8, 3), dpi=300)
 
         with torch.no_grad() :
-            samples = pl_module.model.sample(num_samples=2)
+            samples = pl_module.model.sample(num_samples=5)
 
         # UNDO DATA NORMALIZATION
         normalize = cifar10_normalization() # Ok, cifar10 not 100!

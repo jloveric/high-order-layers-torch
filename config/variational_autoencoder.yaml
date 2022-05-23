@@ -1,6 +1,6 @@
 max_epochs: 1
 gpus: 1
-n: 5
+n: 3
 batch_size: 128
 segments: 2
 layer_type: continuous2d
@@ -8,20 +8,22 @@ train_fraction: 1.0
 rescale_output: False
 linear_output: True
 periodicity: 2.0
-lr: 1.0e-4
+lr: 1.0e-5
 nonlinearity: False
-latent_dim: 64
+latent_dim: 128
 encoder:
   n: [2, 2, 2] # polynomial order
-  channels: [3, 5, 20, 40]
+  channels: [3, 10, 40, 80]
   segments: [10, 10, 10]
-  kernel_size: [5, 10, 10]
+  kernel_size: [3, 3, 3]
+  stride: [2, 2, 2]
   periodicity: 2.0
   normalization: null # batch normalization option
 decoder:
-  n: [2, 2, 2]
-  channels: [20, 5, 5, 3]
-  segments: [10, 10, 10]
-  kernel_size: [12, 12, 10]
+  n: [2, 2, 2, 2]
+  channels: [80, 40, 10, 3, 3]
+  segments: [10, 10, 10, 10]
+  kernel_size: [3, 3, 3, 4]
+  stride: [2, 2, 2, 2]
   periodicity: 2.0
   normalization: null # batch normalization
