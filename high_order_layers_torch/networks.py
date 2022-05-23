@@ -133,7 +133,7 @@ def scalar_to_list(val : Union[List, str, int, float], size : int) :
         return val
 
     if not isinstance(val, list) :
-        return [val]*len(size)
+        return [val]*size
     return val
 
 
@@ -197,7 +197,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 f"Lists for segments {len(self.segments)}, kernel_size {len(self.kernel_size)}, layer_type {len(self.layer_type)} and n {len(self.n)} must be the same size."
             )
 
-        if len(self.channels) == len(n) + 1 is False:
+        if len(self.channels) == len(self.n) + 1 is False:
             raise ValueError(
                 f"Length of channels list {self.channels} should be one more than number of layers."
             )
