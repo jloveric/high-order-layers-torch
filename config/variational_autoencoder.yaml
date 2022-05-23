@@ -1,4 +1,4 @@
-max_epochs: 1
+max_epochs: 20
 gpus: 1
 batch_size: 128
 layer_type: continuous2d
@@ -27,3 +27,46 @@ decoder:
   stride: 2
   periodicity: ${periodicity}
   normalization: null # batch normalization
+
+# This stuff is for optimization
+defaults:
+  - override hydra/sweeper: nevergrad
+
+hydra:
+  sweeper:
+    optim:
+      # name of the nevergrad optimizer to use
+      # OnePlusOne is good at low budget, but may converge early
+      optimizer: OnePlusOne
+      # total number of function evaluations to perform
+      budget: 100
+      # number of parallel workers for performing function evaluations
+      num_workers: 10
+      # maximize: true  # comment out for maximization
+    # default parametrization of the search space
+    parametrization:
+      n:
+        init: 2
+        lower: 2
+        upper: 4
+        integer: true
+      segments:
+        init: 1
+        lower: 1
+        upper: 200
+        integer: true
+      periodicity:
+        init: 2
+        lower: 2
+        upper: 8
+        integer: true
+      latent_dim:
+        init: 128
+        lower: 32
+        upper: 512
+        integer: true
+      lr:
+        init: 1e-5
+        lower: 1e-7
+        upper: 1e-3
+        log: true

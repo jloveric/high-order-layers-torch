@@ -131,6 +131,10 @@ Still a WIP.  Does work, but needs improvement.
 ```
 python examples/variational_autoencoder.py -m max_epochs=300 train_fraction=1.0
 ```
+run with nevergrad for parameter tuning
+```
+python examples/variational_autoencoder.py -m
+```
 ## invariant mnist (fully connected)
 Without polynomial refinement
 ```python
