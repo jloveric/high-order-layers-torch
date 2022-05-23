@@ -54,7 +54,8 @@ class Net(LightningModule):
           segments=cfg.encoder.segments,
           kernel_size=cfg.encoder.kernel_size,
           normalization=torch.nn.BatchNorm2d,
-          stride=cfg.encoder.stride
+          stride=cfg.encoder.stride,
+          periodicity=cfg.encoder.periodicity
         )
         self.decoder = HighOrderFullyDeconvolutionalNetwork(
           layer_type = cfg.layer_type,
@@ -63,7 +64,8 @@ class Net(LightningModule):
           segments = cfg.decoder.segments,
           kernel_size = cfg.decoder.kernel_size,
           normalization = torch.nn.BatchNorm2d,
-          stride = cfg.decoder.stride
+          stride = cfg.decoder.stride,
+          periodicity=cfg.decoder.periodicity
         )
         self.model = VanillaVAE(in_channels = 3, latent_dim=cfg.latent_dim, hidden_dims = [], encoder=self.encoder, decoder=self.decoder, device=self.device)
         
@@ -186,7 +188,7 @@ def vae(cfg: DictConfig):
     logger = TensorBoardLogger("tb_logs", name="vae")
 
     # , overfit_batches=2
-    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler], gradient_clip_val=1)
+    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler], gradient_clip_val=cfg.gradient_clip_val)
     model = Net(cfg)
     trainer.fit(model)
     
