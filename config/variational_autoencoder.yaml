@@ -9,18 +9,20 @@ lr: 1.0e-5
 nonlinearity: False
 latent_dim: 128
 gradient_clip_val: 0.0
+segments: 40
+n: 2
 encoder:
-  n: 2 # polynomial order
+  n: ${n} # polynomial order
   channels: [3, 10, 40, 80]
-  segments: 40
+  segments: ${segments}
   kernel_size: [3, 3, 3]
   stride: 2
   periodicity: ${periodicity}
   normalization: null # batch normalization option
 decoder:
-  n: 2
+  n: ${n}
   channels: [80, 40, 10, 3, 3]
-  segments: 40
+  segments: ${segments}
   kernel_size: [3, 3, 3, 4]
   stride: 2
   periodicity: ${periodicity}
