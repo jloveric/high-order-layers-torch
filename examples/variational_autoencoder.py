@@ -139,7 +139,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return optim.AdamW(self.parameters(), lr=self._lr)
+        return optim.Adam(self.parameters(), lr=self._lr)
 
 
 class ImageSampler(Callback):
@@ -188,7 +188,7 @@ def vae(cfg: DictConfig):
     logger = TensorBoardLogger("tb_logs", name="vae")
 
     # , overfit_batches=2
-    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler], gradient_clip_val=cfg.gradient_clip_val)
+    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler] )
     model = Net(cfg)
     trainer.fit(model)
     

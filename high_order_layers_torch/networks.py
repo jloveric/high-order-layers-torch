@@ -128,13 +128,22 @@ class HighOrderMLP(nn.Module):
         return self.model(x)
 
 
+def scalar_to_list(val : Union[List, str, int, float], size : int) :
+    if val is None :
+        return val
+
+    if not isinstance(val, list) :
+        return [val]*len(size)
+    return val
+
+
 class HighOrderFullyConvolutionalNetwork(nn.Module):
     def __init__(
         self,
         layer_type: Union[List[str], str],
-        n: List[int],
+        n: Union[List[int],int],
         channels: List[int],
-        segments: List[int],
+        segments: Union[List[int], int],
         kernel_size: List[int],
         rescale_output: bool = False,
         periodicity: float = None,
@@ -171,37 +180,40 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
 
-        if isinstance(layer_type, str) :
-            layer_type = [layer_type]*len(kernel_size)
+        size = len(kernel_size)
+        self.layer_type = scalar_to_list(self.layer_type, size)
+        self.n = scalar_to_list(self.n, size)
+        self.stride = scalar_to_list(self.stride, size)
+        self.segments = scalar_to_list(self.segments, size)
 
         if (
-            len(segments)
-            == len(kernel_size)
-            == len(layer_type)
-            == len(n)
+            len(self.segments)
+            == len(self.kernel_size)
+            == len(self.layer_type)
+            == len(self.n)
             is False
         ):
             raise ValueError(
-                f"Lists for segments {len(segments)}, kernel_size {len(kernel_size)}, layer_type {len(layer_type)} and n {len(n)} must be the same size."
+                f"Lists for segments {len(self.segments)}, kernel_size {len(self.kernel_size)}, layer_type {len(self.layer_type)} and n {len(self.n)} must be the same size."
             )
 
-        if len(channels) == len(n) + 1 is False:
+        if len(self.channels) == len(n) + 1 is False:
             raise ValueError(
-                f"Length of channels list {channels} should be one more than number of layers."
+                f"Length of channels list {self.channels} should be one more than number of layers."
             )
 
         layer_list = []
-        for i in range(len(channels) - 1):
+        for i in range(len(self.channels) - 1):
             if normalization is not None:
-                layer_list.append(normalization(channels[i]))
+                layer_list.append(normalization(self.channels[i]))
 
             layer = high_order_convolution_layers(
-                layer_type=layer_type[i],
-                n=n[i],
-                in_channels=channels[i],
-                out_channels=channels[i + 1],
-                kernel_size=kernel_size[i],
-                segments=segments[i],
+                layer_type=self.layer_type[i],
+                n=self.n[i],
+                in_channels=self.channels[i],
+                out_channels=self.channels[i + 1],
+                kernel_size=self.kernel_size[i],
+                segments=self.segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
                 stride = 1 if self.stride is None else self.stride[i]
@@ -258,8 +270,11 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
             )
 
-        if isinstance(self._layer_type, str) :
-            self._layer_type = [self._layer_type]*len(self._channels)
+        size = len(self._channels)
+        self._layer_type = scalar_to_list(self._layer_type, size)
+        self._n = scalar_to_list(self._n, size)
+        self._stride = scalar_to_list(self._stride, size)
+        self._segments = scalar_to_list(self._segments, size)
 
         if (
            len(self._segments)
