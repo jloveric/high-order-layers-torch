@@ -37,6 +37,7 @@ transform = transforms.Compose(
 class Net(LightningModule):
     def __init__(self, cfg: DictConfig):
         super().__init__()
+        self.save_hyperparameters()
         self._cfg = cfg
         try:
             self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
