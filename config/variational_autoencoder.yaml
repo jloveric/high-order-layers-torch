@@ -1,16 +1,21 @@
 max_epochs: 20
 gpus: 1
-batch_size: 128
+batch_size: 64
 layer_type: continuous2d
 train_fraction: 1.0
 rescale_output: False
 periodicity: 2.0
-lr: 1.0e-3
+lr: 5.0e-3
 nonlinearity: False
 latent_dim: 128
 gradient_clip_val: 0.0
 segments: 2
 n: 2
+M_N: 0.00128 #0.00256 #128/50000 (batch_size/data_size)
+optimizer:
+  patience: 10
+  factor: 0.1
+  gamma: 0.9
 encoder:
   n: ${n} # polynomial order
   channels: [3, 64, 128, 256]

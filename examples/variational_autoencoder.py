@@ -47,6 +47,10 @@ class Net(LightningModule):
         self._train_fraction = cfg.train_fraction
         self._lr = cfg.lr
         self._batch_size = cfg.batch_size
+        self._patience = cfg.optimizer.patience
+        self._factor = cfg.optimizer.factor
+        self._gamma = cfg.optimizer.gamma
+        self._M_N = cfg.M_N
 
         self.encoder = HighOrderFullyConvolutionalNetwork(
           layer_type = cfg.layer_type, 
@@ -130,7 +134,7 @@ class Net(LightningModule):
         
         # Default value for M_N taken from the below test...
         # https://github.com/AntixK/PyTorch-VAE/blob/master/tests/test_vae.py
-        loss = self.model.loss_function(*out, M_N = 0.00256) # M_N is batch_size / data_size
+        loss = self.model.loss_function(*out, M_N = self._M_N) # M_N is batch_size / data_size
         
         # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f"{name}_loss", loss['loss'], prog_bar=True)
@@ -148,7 +152,26 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=self._lr)
+        #return optim.Adam(self.parameters(), lr=self._lr)
+        optimizer = optim.Adam(
+            params=self.parameters(),
+            lr=self._lr,
+            # weight_decay=self.l2_norm
+        )
+
+        reduce_on_plateau = False
+        if self._gamma is None :
+            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=self._patience, factor=self._factor, verbose=True)
+            reduce_on_plateau = True
+        else :
+            lr_scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = self._gamma)
+
+        scheduler = {
+            'scheduler': lr_scheduler,
+            'reduce_on_plateau': reduce_on_plateau,
+            'monitor': 'val_loss'
+        }
+        return [optimizer], [scheduler]
 
 
 class ImageSampler(Callback):
