@@ -5,11 +5,11 @@ layer_type: continuous2d
 train_fraction: 1.0
 rescale_output: False
 periodicity: 2.0
-lr: 1.0e-5
+lr: 1.0e-3
 nonlinearity: False
 latent_dim: 128
 gradient_clip_val: 0.0
-segments: 40
+segments: 2
 n: 2
 encoder:
   n: ${n} # polynomial order
@@ -22,13 +22,13 @@ encoder:
   padding: 1
 decoder:
   n: ${n}
-  channels: [256, 128, 64, 3]
+  channels: [256, 128, 64, 32, 3]
   segments: ${segments}
-  kernel_size: [3, 3, 3]
+  kernel_size: [3, 3, 3, 4]
   stride: 2
   periodicity: ${periodicity}
   normalization: null # batch normalization
-  padding: 1
+  padding: 0
 # This stuff is for optimization
 # defaults:
 #  - override hydra/sweeper: nevergrad

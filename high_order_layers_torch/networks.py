@@ -388,6 +388,10 @@ class VanillaVAE(LightningModule):
         returns (Tensor) [B x C x H x W]
         """
         result = self.decoder_input(z)
+
+        # Recall output_size=stride*(height-1) + kernel_size - 2*padding
+        # So if the padding=1 then and kernel_size=3, this thing never
+        # increases in size.
         result = result.view(-1, self.decoder.in_channels, 1, 1)
         result = self.decoder(result)
         return result
@@ -424,7 +428,6 @@ class VanillaVAE(LightningModule):
         log_var = args[3]
 
         kld_weight = kwargs["M_N"]  # Account for the minibatch samples from the dataset
-        print('recons.shape', recons.shape, 'input.shape', input.shape)
         recons_loss = F.mse_loss(recons, input)
 
         kld_loss = torch.mean(
