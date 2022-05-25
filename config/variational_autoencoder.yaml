@@ -13,60 +13,60 @@ segments: 40
 n: 2
 encoder:
   n: ${n} # polynomial order
-  channels: [3, 10, 40, 80]
+  channels: [3, 64, 128, 256]
   segments: ${segments}
   kernel_size: [3, 3, 3]
   stride: 2
   periodicity: ${periodicity}
   normalization: null # batch normalization option
+  padding: 1
 decoder:
   n: ${n}
-  channels: [80, 40, 10, 3, 3]
+  channels: [256, 128, 64, 3]
   segments: ${segments}
-  kernel_size: [3, 3, 3, 4]
+  kernel_size: [3, 3, 3]
   stride: 2
   periodicity: ${periodicity}
   normalization: null # batch normalization
-
+  padding: 1
 # This stuff is for optimization
-defaults:
-  - override hydra/sweeper: nevergrad
-
-hydra:
-  sweeper:
-    optim:
-      # name of the nevergrad optimizer to use
-      # OnePlusOne is good at low budget, but may converge early
-      optimizer: OnePlusOne
-      # total number of function evaluations to perform
-      budget: 100
-      # number of parallel workers for performing function evaluations
-      num_workers: 10
-      # maximize: true  # comment out for maximization
-    # default parametrization of the search space
-    parametrization:
-      n:
-        init: 2
-        lower: 2
-        upper: 4
-        integer: true
-      segments:
-        init: 1
-        lower: 1
-        upper: 200
-        integer: true
-      periodicity:
-        init: 2
-        lower: 2
-        upper: 8
-        integer: true
-      latent_dim:
-        init: 128
-        lower: 32
-        upper: 512
-        integer: true
-      lr:
-        init: 1e-5
-        lower: 1e-7
-        upper: 1e-3
-        log: true
+# defaults:
+#  - override hydra/sweeper: nevergrad
+# hydra:
+#   sweeper:
+#     optim:
+#       # name of the nevergrad optimizer to use
+#       # OnePlusOne is good at low budget, but may converge early
+#       optimizer: OnePlusOne
+#       # total number of function evaluations to perform
+#       budget: 100
+#       # number of parallel workers for performing function evaluations
+#       num_workers: 10
+#       # maximize: true  # comment out for maximization
+#     # default parametrization of the search space
+#     parametrization:
+#       n:
+#         init: 2
+#         lower: 2
+#         upper: 4
+#         integer: true
+#       segments:
+#         init: 2
+#         lower: 2
+#         upper: 200
+#         integer: true
+#       periodicity:
+#         init: 2
+#         lower: 2
+#         upper: 8
+#         integer: true
+#       latent_dim:
+#         init: 128
+#         lower: 32
+#         upper: 512
+#         integer: true
+#       lr:
+#         init: 1e-5
+#         lower: 1e-7
+#         upper: 1e-3
+#         log: true

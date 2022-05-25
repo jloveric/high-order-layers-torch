@@ -150,6 +150,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         normalization: Callable[[Any], Tensor] = None,
         pooling : str = "2d",
         stride : List[int] = None,
+        padding : int = 0
     ) -> None:
         """
         Fully convolutional network is convolutions all the way down with global average pooling
@@ -174,6 +175,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         self.segments = segments
         self.kernel_size = kernel_size
         self.stride = stride
+        self._padding = padding
         
         if len(channels) < 2:
             raise ValueError(
@@ -216,7 +218,8 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 segments=self.segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
-                stride = 1 if self.stride is None else self.stride[i]
+                stride = 1 if self.stride is None else self.stride[i],
+                padding=self._padding
             )
             layer_list.append(layer)
 
@@ -251,6 +254,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
         stride : List[int] = None,
+        padding : int = 0,
     ) -> None:
         """
         Args :
@@ -264,6 +268,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self._segments = segments
         self._kernel_size = kernel_size
         self._stride = stride
+        self._padding = padding
         
         if len(self._channels) < 2:
             raise ValueError(
@@ -311,7 +316,8 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
                 segments=self._segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
-                stride=1 if self._stride is None else self._stride[i]
+                stride=1 if self._stride is None else self._stride[i],
+                padding=self._padding
             )
             layer_list.append(layer)
 
@@ -418,6 +424,7 @@ class VanillaVAE(LightningModule):
         log_var = args[3]
 
         kld_weight = kwargs["M_N"]  # Account for the minibatch samples from the dataset
+        print('recons.shape', recons.shape, 'input.shape', input.shape)
         recons_loss = F.mse_loss(recons, input)
 
         kld_loss = torch.mean(

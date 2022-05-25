@@ -56,7 +56,8 @@ class Net(LightningModule):
           kernel_size=cfg.encoder.kernel_size,
           normalization=torch.nn.BatchNorm2d,
           stride=cfg.encoder.stride,
-          periodicity=cfg.encoder.periodicity
+          periodicity=cfg.encoder.periodicity,
+          padding=cfg.encoder.padding
         )
         self.decoder = HighOrderFullyDeconvolutionalNetwork(
           layer_type = cfg.layer_type,
@@ -66,9 +67,16 @@ class Net(LightningModule):
           kernel_size = cfg.decoder.kernel_size,
           normalization = torch.nn.BatchNorm2d,
           stride = cfg.decoder.stride,
-          periodicity=cfg.decoder.periodicity
+          periodicity=cfg.decoder.periodicity,
+          padding=cfg.decoder.padding
         )
-        self.model = VanillaVAE(in_channels = 3, latent_dim=cfg.latent_dim, hidden_dims = [], encoder=self.encoder, decoder=self.decoder, device=self.device)
+        self.model = VanillaVAE(
+            in_channels = 3,
+            latent_dim=cfg.latent_dim,
+            encoder=self.encoder,
+            decoder=self.decoder,
+            device=self.device
+        )
         
     def forward(self, x):
         return self.model(x)
@@ -122,7 +130,7 @@ class Net(LightningModule):
         
         # Default value for M_N taken from the below test...
         # https://github.com/AntixK/PyTorch-VAE/blob/master/tests/test_vae.py
-        loss = self.model.loss_function(*out, M_N = 0.005)
+        loss = self.model.loss_function(*out, M_N = 0.00256) # M_N is batch_size / data_size
         
         # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f"{name}_loss", loss['loss'], prog_bar=True)

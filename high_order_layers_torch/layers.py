@@ -61,7 +61,7 @@ def high_order_convolution_layers(layer_type: str, **kwargs):
 
 def high_order_convolution_transpose_layers(layer_type: str, **kwargs):
 
-    if layer_type in convolutional_layers.keys():
+    if layer_type in convolutional_transpose_layers.keys():
         return convolutional_transpose_layers[layer_type](**kwargs)
 
     raise ValueError(
