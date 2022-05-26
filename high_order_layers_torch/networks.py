@@ -304,7 +304,6 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
 
         for i in range(len(self._channels) - 1):
             if normalization is not None:
-                #norm = nn.BatchNorm2d(self._channels[i])
                 layer_list.append(normalization(self._channels[i]))
 
             layer = high_order_convolution_transpose_layers(

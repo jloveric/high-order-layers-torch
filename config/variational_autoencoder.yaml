@@ -1,24 +1,25 @@
 max_epochs: 20
 gpus: 1
-batch_size: 64
+batch_size: 128
 layer_type: continuous2d
 train_fraction: 1.0
 rescale_output: False
 periodicity: 2.0
-lr: 5.0e-3
 nonlinearity: False
 latent_dim: 128
 gradient_clip_val: 0.0
 segments: 2
-n: 2
-M_N: 0.00128 #0.00256 #128/50000 (batch_size/data_size)
+n: 3
+M_N: 0.00256 #0.00256 #128/50000 (batch_size/data_size)
 optimizer:
+  name: adahessian #adam
   patience: 10
   factor: 0.1
   gamma: 0.9
+  lr: 5.0e-3
 encoder:
   n: ${n} # polynomial order
-  channels: [3, 64, 128, 256]
+  channels: [3, 32, 64, 128]
   segments: ${segments}
   kernel_size: [3, 3, 3]
   stride: 2
@@ -27,7 +28,7 @@ encoder:
   padding: 1
 decoder:
   n: ${n}
-  channels: [256, 128, 64, 32, 3]
+  channels: [128, 64, 32, 16, 3]
   segments: ${segments}
   kernel_size: [3, 3, 3, 4]
   stride: 2
@@ -36,7 +37,7 @@ decoder:
   padding: 0
 # This stuff is for optimization
 # defaults:
-#  - override hydra/sweeper: nevergrad
+#   - override hydra/sweeper: nevergrad
 # hydra:
 #   sweeper:
 #     optim:
@@ -58,20 +59,20 @@ decoder:
 #       segments:
 #         init: 2
 #         lower: 2
-#         upper: 200
+#         upper: 10
 #         integer: true
-#       periodicity:
-#         init: 2
-#         lower: 2
-#         upper: 8
-#         integer: true
+#       # periodicity:
+#       #   init: 2
+#       #   lower: 2
+#       #   upper: 8
+#       #   integer: true
 #       latent_dim:
 #         init: 128
 #         lower: 32
 #         upper: 512
 #         integer: true
-#       lr:
-#         init: 1e-5
-#         lower: 1e-7
-#         upper: 1e-3
-#         log: true
+#       # lr:
+#       #   init: 1e-5
+#       #   lower: 1e-7
+#       #   upper: 1e-3
+#       #   log: true

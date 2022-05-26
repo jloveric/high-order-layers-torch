@@ -28,7 +28,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from matplotlib.pyplot import imshow, figure
 from torchvision.utils import make_grid
 from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
-
+import torch_optimizer as alt_optim
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -44,8 +44,11 @@ class Net(LightningModule):
         except:
             self._data_dir = "../data"
 
+        # Needed for adahessian
+        self.automatic_optimization = False
+
         self._train_fraction = cfg.train_fraction
-        self._lr = cfg.lr
+        self._lr = cfg.optimizer.lr
         self._batch_size = cfg.batch_size
         self._patience = cfg.optimizer.patience
         self._factor = cfg.optimizer.factor
@@ -101,7 +104,16 @@ class Net(LightningModule):
         )
 
     def training_step(self, batch, batch_idx):
+        opt = self.optimizers()
         loss = self.eval_step(batch, batch_idx, 'train')
+
+        opt.zero_grad()
+        if self._cfg.optimizer.name in ["adahessian"]:
+            self.manual_backward(loss['loss'], create_graph=True)
+        else:
+            self.manual_backward(loss['loss'], create_graph=False)
+        opt.step()
+        
         return loss
 
     def train_dataloader(self):
@@ -152,7 +164,42 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        #return optim.Adam(self.parameters(), lr=self._lr)
+        if self._cfg.optimizer.name == "adahessian":
+            return alt_optim.Adahessian(
+                self.parameters(),
+                lr=1.0,
+                betas=(0.9, 0.999),
+                eps=1e-4,
+                weight_decay=0.0,
+                hessian_power=1.0,
+            )
+        elif self._cfg.optimizer.name == "adam":
+            
+            optimizer = optim.Adam(
+                params=self.parameters(),
+                lr=self._lr,
+                # weight_decay=self.l2_norm
+            )
+
+            reduce_on_plateau = False
+            if self._gamma is None :
+                lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=self._patience, factor=self._factor, verbose=True)
+                reduce_on_plateau = True
+            else :
+                lr_scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = self._gamma)
+
+            scheduler = {
+                'scheduler': lr_scheduler,
+                'reduce_on_plateau': reduce_on_plateau,
+                'monitor': 'val_loss'
+            }
+            return [optimizer], [scheduler]
+        elif self._cfg.optimizer.name == "lbfgs":
+            return optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
+        else:
+            raise ValueError(f"Optimizer {self._cfg.optimizer} not recognized")
+
+    def configure_optimizers(self):
         optimizer = optim.Adam(
             params=self.parameters(),
             lr=self._lr,
