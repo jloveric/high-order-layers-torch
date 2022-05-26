@@ -93,7 +93,7 @@ class Net(LightningModule):
         num_val = 10000
         num_extra = 40000 - num_train
 
-        train = torchvision.datasets.CIFAR100(
+        train = torchvision.datasets.CIFAR10(
             root=self._data_dir, train=True, download=True, transform=transform
         )
 
@@ -131,7 +131,7 @@ class Net(LightningModule):
         )
 
     def test_dataloader(self):
-        testset = torchvision.datasets.CIFAR100(
+        testset = torchvision.datasets.CIFAR10(
             root=self._data_dir, train=False, download=True, transform=transform
         )
         testloader = torch.utils.data.DataLoader(

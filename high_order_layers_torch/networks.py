@@ -449,7 +449,6 @@ class VanillaVAE(LightningModule):
             current_device: (Int) Device to run the model
         Returns (Tensor)
         """
-        print('latent_dim', self.latent_dim, self.device)
         z = torch.randn(num_samples, self.latent_dim, device=self.device)
 
         samples = self.decode(z)
