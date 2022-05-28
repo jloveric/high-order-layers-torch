@@ -147,7 +147,10 @@ python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=co
 
 ## Implicit Representation
 
-An example of implicit representation can be found [here](https://github.com/jloveric/high-order-implicit-representation)
+An example of implicit representation for image compression, language generation can be found [here](https://github.com/jloveric/high-order-implicit-representation).  I intend to explore generative models in natural language further [here](https://github.com/jloveric/language-interpolation)
+
+## PDEs in fluid dynamics
+An example using implicit representation to solve hyperbolic (nonlinear) wave equations can be found [here](https://github.com/jloveric/neural-network-pdes)
 
 ## Test and Coverage
 After installing and running
