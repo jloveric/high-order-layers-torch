@@ -31,14 +31,11 @@ def test_interpolate_mlp(
         in_segments=segments,
         out_segments=segments,
         hidden_segments=segments,
-        normalization=normalization()
+        normalization=normalization(),
     )
-
 
     batch_size = 4
     x = torch.rand(batch_size, in_width)
     y0 = network(x)
     assert y0.shape[0] == batch_size
     assert y0.shape[1] == out_width
-
-    

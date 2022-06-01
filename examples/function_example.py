@@ -57,7 +57,9 @@ class PolynomialFunctionApproximation(LightningModule):
     and no hidden layers.
     """
 
-    def __init__(self, n, segments=2, function=True, periodicity=None, opt:str="adam"):
+    def __init__(
+        self, n, segments=2, function=True, periodicity=None, opt: str = "adam"
+    ):
         super().__init__()
         self.automatic_optimization = False
         self.optimizer = opt
@@ -187,7 +189,14 @@ symbol = ["+", "x", "o", "v", "."]
 
 
 def plot_approximation(
-    function, model_set, segments, epochs, gpus=0, periodicity=None, plot_result=True, opt="adam"
+    function,
+    model_set,
+    segments,
+    epochs,
+    gpus=0,
+    periodicity=None,
+    plot_result=True,
+    opt="adam",
 ):
     for i in range(0, len(model_set)):
 
@@ -198,7 +207,7 @@ def plot_approximation(
             segments=segments,
             function=function,
             periodicity=periodicity,
-            opt=opt
+            opt=opt,
         )
 
         trainer.fit(model)
@@ -239,22 +248,36 @@ def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
         {
             "title": "Piecewise Discontinuous Function Approximation",
             "layer": "discontinuous",
-            "model_set" : modelSetD,
+            "model_set": modelSetD,
         },
-        {"title": "Piecewise Continuous Function Approximation", "layer": "continuous", "model_set" : modelSetC},
-        {"title": "Polynomial function approximation", "layer": "polynomial", "model_set" : modelSetP},
-        {"title": "Fourier function approximation", "layer": "fourier","model_set":modelSetF},
+        {
+            "title": "Piecewise Continuous Function Approximation",
+            "layer": "continuous",
+            "model_set": modelSetC,
+        },
+        {
+            "title": "Polynomial function approximation",
+            "layer": "polynomial",
+            "model_set": modelSetP,
+        },
+        {
+            "title": "Fourier function approximation",
+            "layer": "fourier",
+            "model_set": modelSetF,
+        },
     ]
 
-    for index, element in enumerate(data) :
+    for index, element in enumerate(data):
         if plot is True:
             plt.figure(index)
-        plot_approximation(element["layer"], element["model_set"], 5, epochs, gpus=0, periodicity=2)
+        plot_approximation(
+            element["layer"], element["model_set"], 5, epochs, gpus=0, periodicity=2
+        )
 
         if plot is True:
             plt.title("Piecewise Discontinuous Function Approximation")
-    
-    if plot is True :
+
+    if plot is True:
         plt.show()
 
 

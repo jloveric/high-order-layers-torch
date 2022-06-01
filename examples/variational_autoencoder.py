@@ -23,7 +23,11 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
 from torchmetrics import Metric
-from high_order_layers_torch.networks import VanillaVAE, HighOrderFullyConvolutionalNetwork, HighOrderFullyDeconvolutionalNetwork
+from high_order_layers_torch.networks import (
+    VanillaVAE,
+    HighOrderFullyConvolutionalNetwork,
+    HighOrderFullyDeconvolutionalNetwork,
+)
 from pytorch_lightning.loggers import TensorBoardLogger
 from matplotlib.pyplot import imshow, figure
 from torchvision.utils import make_grid
@@ -33,6 +37,7 @@ import torch_optimizer as alt_optim
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
+
 
 class Net(LightningModule):
     def __init__(self, cfg: DictConfig):
@@ -56,35 +61,35 @@ class Net(LightningModule):
         self._M_N = cfg.M_N
 
         self.encoder = HighOrderFullyConvolutionalNetwork(
-          layer_type = cfg.layer_type, 
-          n=cfg.encoder.n,
-          channels=cfg.encoder.channels,
-          segments=cfg.encoder.segments,
-          kernel_size=cfg.encoder.kernel_size,
-          normalization=torch.nn.BatchNorm2d,
-          stride=cfg.encoder.stride,
-          periodicity=cfg.encoder.periodicity,
-          padding=cfg.encoder.padding
+            layer_type=cfg.layer_type,
+            n=cfg.encoder.n,
+            channels=cfg.encoder.channels,
+            segments=cfg.encoder.segments,
+            kernel_size=cfg.encoder.kernel_size,
+            normalization=torch.nn.BatchNorm2d,
+            stride=cfg.encoder.stride,
+            periodicity=cfg.encoder.periodicity,
+            padding=cfg.encoder.padding,
         )
         self.decoder = HighOrderFullyDeconvolutionalNetwork(
-          layer_type = cfg.layer_type,
-          n = cfg.decoder.n,
-          channels = cfg.decoder.channels,
-          segments = cfg.decoder.segments,
-          kernel_size = cfg.decoder.kernel_size,
-          normalization = torch.nn.BatchNorm2d,
-          stride = cfg.decoder.stride,
-          periodicity=cfg.decoder.periodicity,
-          padding=cfg.decoder.padding
+            layer_type=cfg.layer_type,
+            n=cfg.decoder.n,
+            channels=cfg.decoder.channels,
+            segments=cfg.decoder.segments,
+            kernel_size=cfg.decoder.kernel_size,
+            normalization=torch.nn.BatchNorm2d,
+            stride=cfg.decoder.stride,
+            periodicity=cfg.decoder.periodicity,
+            padding=cfg.decoder.padding,
         )
         self.model = VanillaVAE(
-            in_channels = 3,
+            in_channels=3,
             latent_dim=cfg.latent_dim,
             encoder=self.encoder,
             decoder=self.decoder,
-            device=self.device
+            device=self.device,
         )
-        
+
     def forward(self, x):
         return self.model(x)
 
@@ -105,15 +110,15 @@ class Net(LightningModule):
 
     def training_step(self, batch, batch_idx):
         opt = self.optimizers()
-        loss = self.eval_step(batch, batch_idx, 'train')
+        loss = self.eval_step(batch, batch_idx, "train")
 
         opt.zero_grad()
         if self._cfg.optimizer.name in ["adahessian"]:
-            self.manual_backward(loss['loss'], create_graph=True)
+            self.manual_backward(loss["loss"], create_graph=True)
         else:
-            self.manual_backward(loss['loss'], create_graph=False)
+            self.manual_backward(loss["loss"], create_graph=False)
         opt.step()
-        
+
         return loss
 
     def train_dataloader(self):
@@ -140,23 +145,27 @@ class Net(LightningModule):
         return testloader
 
     def eval_step(self, batch, batch_idx, name):
-        #print('eval_step batch', batch, len(batch))
+        # print('eval_step batch', batch, len(batch))
         x, y = batch
         out = self(x)
-        
+
         # Default value for M_N taken from the below test...
         # https://github.com/AntixK/PyTorch-VAE/blob/master/tests/test_vae.py
-        loss = self.model.loss_function(*out, M_N = self._M_N) # M_N is batch_size / data_size
-        
+        loss = self.model.loss_function(
+            *out, M_N=self._M_N
+        )  # M_N is batch_size / data_size
+
         # Calling self.log will surface up scalars for you in TensorBoard
-        self.log(f"{name}_loss", loss['loss'], prog_bar=True)
-        self.log(f"{name}_Reconstruction_Loss", loss['Reconstruction_Loss'], prog_bar=True)
-        self.log(f"{name}_KLD", loss['KLD'], prog_bar=True)
-        
+        self.log(f"{name}_loss", loss["loss"], prog_bar=True)
+        self.log(
+            f"{name}_Reconstruction_Loss", loss["Reconstruction_Loss"], prog_bar=True
+        )
+        self.log(f"{name}_KLD", loss["KLD"], prog_bar=True)
+
         return loss
 
     def validation_step(self, batch, batch_idx):
-        
+
         return self.eval_step(batch, batch_idx, "val")
 
     def test_step(self, batch, batch_idx):
@@ -174,7 +183,7 @@ class Net(LightningModule):
                 hessian_power=1.0,
             )
         elif self._cfg.optimizer.name == "adam":
-            
+
             optimizer = optim.Adam(
                 params=self.parameters(),
                 lr=self._lr,
@@ -182,16 +191,23 @@ class Net(LightningModule):
             )
 
             reduce_on_plateau = False
-            if self._gamma is None :
-                lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=self._patience, factor=self._factor, verbose=True)
+            if self._gamma is None:
+                lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                    optimizer,
+                    patience=self._patience,
+                    factor=self._factor,
+                    verbose=True,
+                )
                 reduce_on_plateau = True
-            else :
-                lr_scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = self._gamma)
+            else:
+                lr_scheduler = optim.lr_scheduler.ExponentialLR(
+                    optimizer, gamma=self._gamma
+                )
 
             scheduler = {
-                'scheduler': lr_scheduler,
-                'reduce_on_plateau': reduce_on_plateau,
-                'monitor': 'val_loss'
+                "scheduler": lr_scheduler,
+                "reduce_on_plateau": reduce_on_plateau,
+                "monitor": "val_loss",
             }
             return [optimizer], [scheduler]
         elif self._cfg.optimizer.name == "lbfgs":
@@ -207,16 +223,20 @@ class Net(LightningModule):
         )
 
         reduce_on_plateau = False
-        if self._gamma is None :
-            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=self._patience, factor=self._factor, verbose=True)
+        if self._gamma is None:
+            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer, patience=self._patience, factor=self._factor, verbose=True
+            )
             reduce_on_plateau = True
-        else :
-            lr_scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = self._gamma)
+        else:
+            lr_scheduler = optim.lr_scheduler.ExponentialLR(
+                optimizer, gamma=self._gamma
+            )
 
         scheduler = {
-            'scheduler': lr_scheduler,
-            'reduce_on_plateau': reduce_on_plateau,
-            'monitor': 'val_loss'
+            "scheduler": lr_scheduler,
+            "reduce_on_plateau": reduce_on_plateau,
+            "monitor": "val_loss",
         }
         return [optimizer], [scheduler]
 
@@ -230,16 +250,15 @@ class ImageSampler(Callback):
     def on_train_epoch_end(self, trainer, pl_module, outputs=None):
         figure(figsize=(8, 3), dpi=300)
 
-        with torch.no_grad() :
+        with torch.no_grad():
             samples = pl_module.model.sample(num_samples=5)
 
         # UNDO DATA NORMALIZATION
-        '''
+        """
         Here is the transformation from cifar100
-        '''
-        mean=[n/255. for n in [129.3, 124.1, 112.4]] 
-        std=[n/255. for n in [68.2,  65.4,  70.4]]
-        
+        """
+        mean = [n / 255.0 for n in [129.3, 124.1, 112.4]]
+        std = [n / 255.0 for n in [68.2, 65.4, 70.4]]
 
         img = make_grid(samples).permute(1, 2, 0).cpu().numpy() * std + mean
 
@@ -252,33 +271,35 @@ class ImageSampler(Callback):
 def vae(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
-    try :
+    try:
         print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
-    except :
+    except:
         pass
-    
+
     sampler = ImageSampler()
     logger = TensorBoardLogger("tb_logs", name="vae")
 
     # , overfit_batches=2
-    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler] )
+    trainer = Trainer(
+        max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler]
+    )
     model = Net(cfg)
     trainer.fit(model)
-    
+
     print("testing")
     result = trainer.test(model)
-    
+
     print("finished testing")
-    print('result', result)
+    print("result", result)
     return result
 
 
 @hydra.main(config_path="../config", config_name="variational_autoencoder")
 def run(cfg: DictConfig):
     ans = vae(cfg=cfg)
-    
+
     # needed for nevergrad
-    return ans[0]['test_loss']
+    return ans[0]["test_loss"]
 
 
 if __name__ == "__main__":

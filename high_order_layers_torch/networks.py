@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from pl_bolts.models.autoencoders.components import Interpolate
 
+
 class Interpolate(nn.Module):
     """
     nn.Module wrapper for F.interpolate.
@@ -24,6 +25,7 @@ class Interpolate(nn.Module):
 
     def forward(self, x):
         return F.interpolate(x, size=self.size, scale_factor=self.scale_factor)
+
 
 class HighOrderMLP(nn.Module):
     def __init__(
@@ -128,12 +130,12 @@ class HighOrderMLP(nn.Module):
         return self.model(x)
 
 
-def scalar_to_list(val : Union[List, str, int, float], size : int) :
-    if val is None :
+def scalar_to_list(val: Union[List, str, int, float], size: int):
+    if val is None:
         return val
 
-    if not isinstance(val, list) :
-        return [val]*size
+    if not isinstance(val, list):
+        return [val] * size
     return val
 
 
@@ -141,16 +143,16 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
     def __init__(
         self,
         layer_type: Union[List[str], str],
-        n: Union[List[int],int],
+        n: Union[List[int], int],
         channels: List[int],
         segments: Union[List[int], int],
         kernel_size: List[int],
         rescale_output: bool = False,
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
-        pooling : str = "2d",
-        stride : List[int] = None,
-        padding : int = 0
+        pooling: str = "2d",
+        stride: List[int] = None,
+        padding: int = 0,
     ) -> None:
         """
         Fully convolutional network is convolutions all the way down with global average pooling
@@ -158,7 +160,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         Args :
             layer_type : layer type [continuous2d, discontinous2d, ...]
             n : polynomial or fourier "order" [n1, n2, ...]
-            channels : Number of channels for each layer (should be size layers+1) 
+            channels : Number of channels for each layer (should be size layers+1)
             segments : Number of segments in the polynomial if used at all as a list per layer.
             kernel_size : The kernel size for each layer
             rescale_output : whether to average the inputs to the next neuron
@@ -176,7 +178,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         self._padding = padding
-        
+
         if len(channels) < 2:
             raise ValueError(
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
@@ -218,18 +220,18 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 segments=self.segments[i],
                 rescale_output=rescale_output,
                 periodicity=periodicity,
-                stride = 1 if self.stride is None else self.stride[i],
-                padding=self._padding
+                stride=1 if self.stride is None else self.stride[i],
+                padding=self._padding,
             )
             layer_list.append(layer)
 
         # Add an average pooling layer
-        if pooling == "1d" :
+        if pooling == "1d":
             avg_pool = nn.AdaptiveAvgPool1d(1)
-        elif pooling == "2d" :
-            avg_pool = nn.AdaptiveAvgPool2d((1,1))
-        elif pooling =="3d" :
-            avg_pool = nn.AdaptiveAvgPool3d((1,1,1))
+        elif pooling == "2d":
+            avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        elif pooling == "3d":
+            avg_pool = nn.AdaptiveAvgPool3d((1, 1, 1))
 
         self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
 
@@ -238,8 +240,8 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         return temp
 
     @property
-    def output_size(self) :
-        return self.channels[-1] # avg pooling and flatten should give channels size
+    def output_size(self):
+        return self.channels[-1]  # avg pooling and flatten should give channels size
 
 
 class HighOrderFullyDeconvolutionalNetwork(nn.Module):
@@ -253,8 +255,8 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         rescale_output: bool = False,
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
-        stride : List[int] = None,
-        padding : int = 0,
+        stride: List[int] = None,
+        padding: int = 0,
     ) -> None:
         """
         Args :
@@ -269,7 +271,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self._kernel_size = kernel_size
         self._stride = stride
         self._padding = padding
-        
+
         if len(self._channels) < 2:
             raise ValueError(
                 f"Channels list must have at least 2 values [input_channels, output_channels]"
@@ -282,7 +284,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self._segments = scalar_to_list(self._segments, size)
 
         if (
-           len(self._segments)
+            len(self._segments)
             == len(self._kernel_size)
             == len(self._layer_type)
             == len(self._n)
@@ -316,14 +318,14 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
                 rescale_output=rescale_output,
                 periodicity=periodicity,
                 stride=1 if self._stride is None else self._stride[i],
-                padding=self._padding
+                padding=self._padding,
             )
             layer_list.append(layer)
 
         self.model = nn.Sequential(*layer_list)
 
     @property
-    def in_channels(self) :
+    def in_channels(self):
         return self._in_channels
 
     def forward(self, x: Tensor) -> Tensor:
@@ -346,16 +348,18 @@ class VanillaVAE(LightningModule):
         self.latent_dim = latent_dim
 
         self.encoder = encoder
-        
-        print('self.encoder.modules',self.encoder.modules)
+
+        print("self.encoder.modules", self.encoder.modules)
         encoder_out_features = self.encoder.output_size
 
         print("encoder_out_features", encoder_out_features)
         self.fc_mu = nn.Linear(encoder_out_features, latent_dim)
         self.fc_var = nn.Linear(encoder_out_features, latent_dim)
-        
+
         self.decoder = decoder
-        self._in_features = self.decoder.in_channels # It's flat so channels is features
+        self._in_features = (
+            self.decoder.in_channels
+        )  # It's flat so channels is features
         self.decoder_input = nn.Linear(latent_dim, self._in_features)
 
     def encode(self, input: Tensor) -> List[Tensor]:
@@ -430,7 +434,7 @@ class VanillaVAE(LightningModule):
         recons_loss = F.mse_loss(recons, input)
 
         kld_loss = torch.mean(
-            -0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0
+            -0.5 * torch.sum(1 + log_var - mu**2 - log_var.exp(), dim=1), dim=0
         )
 
         loss = recons_loss + kld_weight * kld_loss

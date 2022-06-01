@@ -104,10 +104,12 @@ model_set_d = [
 ]
 
 
-def plot_approximation(model_set, segments, epochs, fig_start=0, linear_part=0.0, plot=True):
-    pred_set=[]
+def plot_approximation(
+    model_set, segments, epochs, fig_start=0, linear_part=0.0, plot=True
+):
+    pred_set = []
     for i in range(0, len(model_set)):
-        
+
         trainer = Trainer(max_epochs=epochs)
         model = NDFunctionApproximation(
             n=model_set[i]["order"],
@@ -118,7 +120,7 @@ def plot_approximation(model_set, segments, epochs, fig_start=0, linear_part=0.0
         trainer.fit(model)
         predictions = model(xTest.view(xTest.size(0), -1))
         pred_set.append(predictions)
-        if plot is True :
+        if plot is True:
             plt.subplot(2, 2, i + 1)
             plt.scatter(
                 xTest.data.numpy()[:, 0],

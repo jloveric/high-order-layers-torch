@@ -28,6 +28,7 @@ transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
 
+
 class Net(LightningModule):
     def __init__(self, cfg: DictConfig):
         super().__init__()
@@ -209,9 +210,9 @@ class Net(LightningModule):
 def cifar100(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
-    try :
+    try:
         print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
-    except :
+    except:
         pass
 
     trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)

@@ -72,9 +72,11 @@ class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
     def __init__(self, n: int, segments: int, length: float = 2.0):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
 
+
 class PiecewiseDiscontinuousPolynomialExpand1d(PiecewiseDiscontinuousExpand1d):
     def __init__(self, n: int, segments: int, length: float = 2.0):
         super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
+
 
 class FourierExpand(BasisExpand):
     def __init__(self, n: int, length: float):

@@ -10,12 +10,20 @@ from .utils import *
 
 class Product(Module):
 
-    __constants__ = ['in_features', 'out_features']
+    __constants__ = ["in_features", "out_features"]
     in_features: int
     out_features: int
     weight: Tensor
 
-    def __init__(self, in_features: int, out_features: int, bias: bool = True, alpha=1.0, periodicity: float = None, **kwargs) -> None:
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        bias: bool = True,
+        alpha=1.0,
+        periodicity: float = None,
+        **kwargs
+    ) -> None:
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -25,7 +33,7 @@ class Product(Module):
         if bias:
             self.bias = Parameter(torch.Tensor(out_features))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         self.reset_parameters()
 
@@ -46,8 +54,8 @@ class Product(Module):
 
         assemble = torch.einsum("ij,kj->ijk", x, self.weight)
         this_sum = torch.sum(assemble, dim=1)
-        assemble = assemble+1.0
-        assemble = torch.prod(assemble, dim=1)-(1-self.alpha)*this_sum
-        assemble = assemble-1 + self.bias
+        assemble = assemble + 1.0
+        assemble = torch.prod(assemble, dim=1) - (1 - self.alpha) * this_sum
+        assemble = assemble - 1 + self.bias
 
         return assemble

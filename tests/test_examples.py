@@ -82,7 +82,8 @@ def test_xor():
 def test_function_approximation():
     result = plot_results(epochs=1, segments=5, plot=False)
 
-'''
+
+"""
 def test_cifar10():
     run_cifar10(max_epochs=1, gpus=0, n=2, segments=2, layer_type="continuous")
-'''
+"""
