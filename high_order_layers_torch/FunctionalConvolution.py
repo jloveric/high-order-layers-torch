@@ -171,7 +171,7 @@ class FourierConvolution(nn.Module):
         if rescale_output is True:
             self._rescale = 1.0 / self._total_in
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         x = self.poly(x)
         out = self.conv(x)
         return out * self._rescale
@@ -184,7 +184,7 @@ class FourierConvolution2d(FourierConvolution):
         in_channels: int,
         kernel_size: int,
         length: float = 2.0,
-        rescale_output=False,
+        rescale_output: bool = False,
         *args,
         **kwargs,
     ):
@@ -208,7 +208,7 @@ class FourierConvolution1d(FourierConvolution):
         in_channels: int,
         kernel_size: int,
         length: float = 2.0,
-        rescale_output=False,
+        rescale_output: bool = False,
         *args,
         **kwargs,
     ):
@@ -265,7 +265,7 @@ class PolynomialConvolution(nn.Module):
         if rescale_output is True:
             self._rescale = 1.0 / self._total_in
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         periodicity = self.periodicity
         if periodicity is not None:
             x = make_periodic(x, periodicity)
@@ -375,7 +375,7 @@ class PiecewisePolynomialConvolution(nn.Module):
         if rescale_output is True:
             self._rescale = 1.0 / self._total_in
 
-    def forward(self, x: Tensor):
+    def forward(self, x: Tensor) -> Tensor:
         periodicity = self.periodicity
         if periodicity is not None:
             x = make_periodic(x, periodicity)
@@ -485,7 +485,7 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
         if rescale_output is True:
             self._rescale = 1.0 / self._total_in
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         periodicity = self.periodicity
         if periodicity is not None:
             x = make_periodic(x, periodicity)
