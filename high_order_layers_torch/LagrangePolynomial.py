@@ -1,6 +1,7 @@
 import math
 import torch
 from .Basis import *
+from torch import Tensor
 
 
 def chebyshevLobatto(n: int):
@@ -25,18 +26,29 @@ def chebyshevLobatto(n: int):
 
 class FourierBasis:
     def __init__(self, length: float):
+        """
+        Fourier basis functions [sin, cos]
+        Args :
+            length : the length of the basis function. A value
+            of 1 means there is periodicity 1
+        """
         self.length = length
 
-    def __call__(self, x, j: int):
-
+    def __call__(self, x: Tensor, j: int):
+        """
+        Compute the value at x for the given component
+        of the fourier basis function.
+        Args :
+            x : the point of interest (can be of any shape)
+        """
         if j == 0:
             return 0.5 + 0.0 * x
 
         i = (j + 1) // 2
         if j % 2 == 0:
-            ans = torch.cos(math.pi * i * x / self.length)
+            ans = torch.cos(2.0 * math.pi * i * x / self.length)
         else:
-            ans = torch.sin(math.pi * i * x / self.length)
+            ans = torch.sin(2.0 * math.pi * i * x / self.length)
         return ans
 
 

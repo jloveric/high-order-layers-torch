@@ -64,7 +64,7 @@ def conv_wrapper(
 
 # TODO: Pretty sure this doesn't need to be an nn.Module
 class Expansion2d(nn.Module):
-    def __init__(self, basis=None):
+    def __init__(self, basis: Callable[[Tensor, int], float] = None):
         """
         Expand an input by a function defined by basis.
 
@@ -79,7 +79,7 @@ class Expansion2d(nn.Module):
     def build(self, input_shape):
         pass
 
-    def __call__(self, inputs):
+    def __call__(self, inputs: Tensor) -> Tensor:
         """
         Expand input
         Args :
@@ -99,7 +99,7 @@ class Expansion2d(nn.Module):
 
 
 class Expansion1d(nn.Module):
-    def __init__(self, basis=None):
+    def __init__(self, basis: Callable[[Tensor, int], float] = None):
         """
         Expand an input by a function defined by basis.
 
@@ -114,7 +114,7 @@ class Expansion1d(nn.Module):
     def build(self, input_shape):
         pass
 
-    def __call__(self, inputs):
+    def __call__(self, inputs: Tensor) -> Tensor:
         """
         Expand input
         Args :
@@ -375,7 +375,7 @@ class PiecewisePolynomialConvolution(nn.Module):
         if rescale_output is True:
             self._rescale = 1.0 / self._total_in
 
-    def forward(self, x):
+    def forward(self, x: Tensor):
         periodicity = self.periodicity
         if periodicity is not None:
             x = make_periodic(x, periodicity)

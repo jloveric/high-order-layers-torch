@@ -1,14 +1,22 @@
 import numpy as np
 import math
 import torch
+from typing import Callable
+from torch import Tensor
 
 
 class BasisExpand:
-    def __init__(self, basis, n):
+    def __init__(self, basis: Callable[[Tensor, int], float], n: int):
+        """
+        Compute the values of the basis functions given a value x
+        Args :
+            basis : The basis function (1,x,x*x,...)
+            n : Number of elements in the basis set
+        """
         self.n = n
         self.basis = basis
 
-    def __call__(self, x):
+    def __call__(self, x: Tensor) -> Tensor:
         """
         Args:
             - x: size[batch, input]
@@ -17,6 +25,7 @@ class BasisExpand:
         """
 
         # TODO: Try and do this as a vector operation.
+        # should be able to do this with vmap
         mat = []
         for j in range(self.n):
             basis_j = self.basis(x, j)
@@ -26,7 +35,19 @@ class BasisExpand:
 
 
 class PiecewiseExpand:
-    def __init__(self, basis, n: int, segments: int, length: float = 2.0, sparse=False):
+    def __init__(
+        self,
+        basis: Callable[[Tensor, int], float],
+        n: int,
+        segments: int,
+        length: float = 2.0,
+        sparse=False,
+    ):
+        """
+        Expand a piecewise polynomial into basis values.  Only
+        one of the pieces will need to be expanded for each of
+        the inputs as only one will contain the value of interest.
+        """
         super().__init__()
         self._basis = basis
         self._n = n
@@ -36,7 +57,7 @@ class PiecewiseExpand:
         self._length = length
         self._half = 0.5 * length
 
-    def __call__(self, x):
+    def __call__(self, x: Tensor) -> Tensor:
         """
         Apply basis function to each input.
         Args :
@@ -98,7 +119,7 @@ class PiecewiseExpand:
 
         return mat
 
-    def _eta(self, index):
+    def _eta(self, index: Tensor) -> Tensor:
         """
         Arg:
             - index is the segment index
@@ -108,7 +129,14 @@ class PiecewiseExpand:
 
 
 class PiecewiseExpand1d:
-    def __init__(self, basis, n: int, segments: int, length: float = 2.0, sparse=False):
+    def __init__(
+        self,
+        basis: Callable[[Tensor, int], float],
+        n: int,
+        segments: int,
+        length: float = 2.0,
+        sparse: bool = False,
+    ):
         super().__init__()
         self._basis = basis
         self._n = n
@@ -163,7 +191,6 @@ class PiecewiseExpand1d:
         # This needs to be
         windex = torch.div(torch.arange(wrange.numel()), self._n, rounding_mode="floor")
 
-        print("out.shape", out.shape)
         out = out.permute(1, 2, 3, 0)
 
         mat_trans = mat.reshape(-1, self._variables)
@@ -174,7 +201,7 @@ class PiecewiseExpand1d:
 
         return mat
 
-    def _eta(self, index):
+    def _eta(self, index: Tensor) -> Tensor:
         """
         Arg:
             - index is the segment index
@@ -185,7 +212,13 @@ class PiecewiseExpand1d:
 
 class PiecewiseDiscontinuousExpand:
     # TODO: This and the PiecewiseExpand should share more data.
-    def __init__(self, basis, n, segments, length: int = 2.0):
+    def __init__(
+        self,
+        basis: Callable[[Tensor, int], float],
+        n: int,
+        segments: int,
+        length: int = 2.0,
+    ):
         super().__init__()
         self._basis = basis
         self._n = n
@@ -257,7 +290,7 @@ class PiecewiseDiscontinuousExpand:
 
         return mat
 
-    def _eta(self, index):
+    def _eta(self, index: Tensor) -> Tensor:
         """
         Arg:
             - index is the segment index
@@ -268,7 +301,13 @@ class PiecewiseDiscontinuousExpand:
 
 class PiecewiseDiscontinuousExpand1d:
     # TODO: This and the PiecewiseExpand should share more data.
-    def __init__(self, basis, n, segments, length: int = 2.0):
+    def __init__(
+        self,
+        basis: Callable[[Tensor, int], float],
+        n: int,
+        segments: int,
+        length: int = 2.0,
+    ):
         super().__init__()
         self._basis = basis
         self._n = n
@@ -278,7 +317,7 @@ class PiecewiseDiscontinuousExpand1d:
         self._length = length
         self._half = 0.5 * length
 
-    def __call__(self, x):
+    def __call__(self, x: Tensor) -> Tensor:
         """
         Apply basis function to each input.
         Args :
@@ -333,7 +372,7 @@ class PiecewiseDiscontinuousExpand1d:
 
         return mat
 
-    def _eta(self, index):
+    def _eta(self, index: int):
         """
         Arg:
             - index is the segment index
@@ -347,11 +386,11 @@ class BasisFlat:
     Single segment.
     """
 
-    def __init__(self, n, basis):
+    def __init__(self, n: int, basis: Callable[[Tensor, int], float]):
         self.n = n
         self.basis = basis
 
-    def interpolate(self, x, w):
+    def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
         """
         Args:
             - x: size[batch, input]
@@ -378,12 +417,14 @@ class BasisFlatProd:
     Single segment.
     """
 
-    def __init__(self, n, basis, alpha=1.0):
+    def __init__(
+        self, n: int, basis: Callable[[Tensor, int], float], alpha: float = 1.0
+    ):
         self.n = n
         self.basis = basis
         self.alpha = alpha
 
-    def interpolate(self, x, w):
+    def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
         """
         Args:
             - x: size[batch, input]
@@ -410,11 +451,11 @@ class BasisFlatProd:
 
 class Basis:
     # TODO: Is this the same as above? No! It is not!
-    def __init__(self, n, basis):
+    def __init__(self, n: int, basis: Callable[[Tensor, int], float]):
         self.n = n
         self.basis = basis
 
-    def interpolate(self, x, w):
+    def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
         """
         Interpolate based on batched weights which is necessary for piecewise
         networks.
@@ -442,12 +483,14 @@ class Basis:
 
 class BasisProd:
     # TODO: Is this the same as above?
-    def __init__(self, n, basis, alpha=1.0):
+    def __init__(
+        self, n: int, basis: Callable[[Tensor, int], float], alpha: float = 1.0
+    ):
         self.n = n
         self.basis = basis
         self.alpha = alpha
 
-    def interpolate(self, x, w):
+    def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
         """
         Args:
             - x: size[batch, input]
