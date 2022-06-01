@@ -23,7 +23,7 @@ class Interpolate(nn.Module):
         super().__init__()
         self.size, self.scale_factor = size, scale_factor
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         return F.interpolate(x, size=self.size, scale_factor=self.scale_factor)
 
 
@@ -123,7 +123,6 @@ class HighOrderMLP(nn.Module):
             periodicity=periodicity,
         )
         layer_list.append(output_layer)
-        print("layer_list", layer_list)
         self.model = nn.Sequential(*layer_list)
 
     def forward(self, x: Tensor) -> Tensor:
@@ -325,7 +324,7 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self.model = nn.Sequential(*layer_list)
 
     @property
-    def in_channels(self):
+    def in_channels(self) -> int:
         return self._in_channels
 
     def forward(self, x: Tensor) -> Tensor:

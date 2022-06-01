@@ -115,7 +115,7 @@ class PiecewisePolynomialConvolutionTranspose(nn.Module):
         if rescale_output is True:
             self._rescale = 1.0 / self._total_in
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         periodicity = self.periodicity
         if periodicity is not None:
             x = make_periodic(x, periodicity)
