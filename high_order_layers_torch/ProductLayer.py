@@ -9,12 +9,6 @@ from .utils import *
 
 
 class Product(Module):
-
-    __constants__ = ["in_features", "out_features"]
-    in_features: int
-    out_features: int
-    weight: Tensor
-
     def __init__(
         self,
         in_features: int,
