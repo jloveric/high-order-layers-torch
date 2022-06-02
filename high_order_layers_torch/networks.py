@@ -10,6 +10,9 @@ from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_laye
 import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class HighOrderMLP(nn.Module):
@@ -333,10 +336,10 @@ class VanillaVAE(LightningModule):
 
         self.encoder = encoder
 
-        print("self.encoder.modules", self.encoder.modules)
+        logger.info("self.encoder.modules", self.encoder.modules)
         encoder_out_features = self.encoder.output_size
 
-        print("encoder_out_features", encoder_out_features)
+        logger.info("encoder_out_features", encoder_out_features)
         self.fc_mu = nn.Linear(encoder_out_features, latent_dim)
         self.fc_var = nn.Linear(encoder_out_features, latent_dim)
 

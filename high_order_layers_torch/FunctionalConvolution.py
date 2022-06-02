@@ -7,6 +7,9 @@ import torch.nn as nn
 import torch
 from .utils import *
 from abc import ABC
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def conv_wrapper(
@@ -45,8 +48,8 @@ def conv_wrapper(
     in_features = in_channels * kernel_size * kernel_size
 
     if verbose is True:
-        print(f"in_channels {in_channels} out_channels {out_channels}")
-        print(f"conv.weight.shape {conv.weight.shape}")
+        logger.info(f"in_channels {in_channels} out_channels {out_channels}")
+        logger.info(f"conv.weight.shape {conv.weight.shape}")
 
     # We don't want to use the standard conv initialization
     # since this is a bit different.
@@ -57,7 +60,7 @@ def conv_wrapper(
     elif rescale_output is True:
         conv.weight.data.uniform_(-weight_magnitude, weight_magnitude)
     else:
-        print("Using kaiming for weight initialization")
+        logger.info("Using kaiming for weight initialization")
 
     return conv
 
