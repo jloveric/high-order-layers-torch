@@ -10,21 +10,6 @@ from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_laye
 import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
-from pl_bolts.models.autoencoders.components import Interpolate
-
-
-class Interpolate(nn.Module):
-    """
-    nn.Module wrapper for F.interpolate.
-    copied from pl_bolts.models.autoencoders.components.Interpolate
-    """
-
-    def __init__(self, size=None, scale_factor=None):
-        super().__init__()
-        self.size, self.scale_factor = size, scale_factor
-
-    def forward(self, x: Tensor) -> Tensor:
-        return F.interpolate(x, size=self.size, scale_factor=self.scale_factor)
 
 
 class HighOrderMLP(nn.Module):

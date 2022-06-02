@@ -262,7 +262,6 @@ def vae(cfg: DictConfig):
     sampler = ImageSampler()
     logger = TensorBoardLogger("tb_logs", name="vae")
 
-    # , overfit_batches=2
     trainer = Trainer(
         max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler]
     )
