@@ -9,7 +9,6 @@ import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
 from pytorch_lightning import LightningModule, Trainer
-from torch.utils.data import random_split
 from high_order_layers_torch.layers import *
 import torch_optimizer as alt_optim
 

@@ -1,8 +1,6 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
-import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -18,11 +16,6 @@ from high_order_layers_torch.FunctionalConvolution import (
 )
 
 from torchmetrics import Accuracy
-from high_order_layers_torch.PolynomialLayers import (
-    PiecewiseDiscontinuousPolynomial,
-    PiecewisePolynomial,
-    Polynomial,
-)
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]

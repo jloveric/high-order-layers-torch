@@ -1,37 +1,20 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
-import numpy as np
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer, Callback
-from high_order_layers_torch.FunctionalConvolution import (
-    PolynomialConvolution2d as PolyConv2d,
-)
-from high_order_layers_torch.FunctionalConvolution import (
-    PiecewisePolynomialConvolution2d as PiecewisePolyConv2d,
-)
-from high_order_layers_torch.FunctionalConvolution import (
-    PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d,
-)
 from high_order_layers_torch.layers import *
-from torchmetrics import Accuracy
-from torchmetrics.functional import accuracy
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
-from torchmetrics import Metric
 from high_order_layers_torch.networks import (
     VanillaVAE,
     HighOrderFullyConvolutionalNetwork,
     HighOrderFullyDeconvolutionalNetwork,
 )
 from pytorch_lightning.loggers import TensorBoardLogger
-from matplotlib.pyplot import imshow, figure
+from matplotlib.pyplot import figure
 from torchvision.utils import make_grid
-from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
 import torch_optimizer as alt_optim
 
 transform = transforms.Compose(
