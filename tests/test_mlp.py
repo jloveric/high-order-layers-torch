@@ -14,12 +14,24 @@ from torch.nn import LazyBatchNorm1d, LazyInstanceNorm1d
 @pytest.mark.parametrize("hidden_width", [1, 5])
 @pytest.mark.parametrize("n0", [2, 3])
 @pytest.mark.parametrize("normalization", [LazyBatchNorm1d])
-def test_interpolate_mlp(
-    segments, in_width, out_width, hidden_layers, hidden_width, n0, normalization
+@pytest.mark.parametrize("layer_type", ["continuous", "baseline"])
+@pytest.mark.parametrize("nonlinearity", [None, torch.nn.ReLU])
+def test_high_order_mlp(
+    segments,
+    in_width,
+    out_width,
+    hidden_layers,
+    hidden_width,
+    n0,
+    normalization,
+    layer_type,
+    nonlinearity,
 ):
+    # You don't need to add a nonlinearity unless you are using "baseline" which is the standard
+    # torch.nn.Linear or if you only have a single segment
 
     network = HighOrderMLP(
-        layer_type="continuous",
+        layer_type=layer_type,
         n=n0,
         in_width=in_width,
         out_width=out_width,
@@ -31,7 +43,8 @@ def test_interpolate_mlp(
         in_segments=segments,
         out_segments=segments,
         hidden_segments=segments,
-        normalization=normalization(),
+        non_linearity=None if nonlinearity is None else nonlinearity(),
+        normalization=None if normalization is None else normalization(),
     )
 
     batch_size = 4

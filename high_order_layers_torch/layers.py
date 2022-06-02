@@ -6,9 +6,15 @@ from .PolynomialLayers import *
 from .ProductLayer import *
 from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
+from torch.nn import Linear
+
+
+def LinearAdapter(*args, in_features: int, out_features: int, **kwargs):
+    return Linear(in_features=in_features, out_features=out_features, bias=True)
 
 
 fc_layers = {
+    "baseline": LinearAdapter,  # This is added so I can easily compare
     "continuous": PiecewisePolynomial,
     "continuous_prod": PiecewisePolynomialProd,
     "discontinuous": PiecewiseDiscontinuousPolynomial,

@@ -11,6 +11,7 @@ import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 import logging
+from torch.nn import Linear
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class HighOrderMLP(nn.Module):
         n_hidden: int = None,
         rescale_output: bool = False,
         periodicity: float = None,
-        non_linearity=None,
+        non_linearity: Callable[[Tensor], Tensor] = None,
         in_segments: int = None,
         out_segments: int = None,
         hidden_segments: int = None,
@@ -82,7 +83,7 @@ class HighOrderMLP(nn.Module):
             if normalization is not None:
                 layer_list.append(normalization)
             if non_linearity is not None:
-                layer_list.append(non_linearity())
+                layer_list.append(non_linearity)
 
             hidden_layer = high_order_fc_layers(
                 layer_type=layer_type,
@@ -96,10 +97,11 @@ class HighOrderMLP(nn.Module):
             )
             layer_list.append(hidden_layer)
 
+        if normalization is not None:
+            layer_list.append(normalization)
         if non_linearity is not None:
-            layer_list.append(non_linearity())
-        if non_linearity is not None:
-            layer_list.append(non_linearity())
+            layer_list.append(non_linearity)
+
         output_layer = high_order_fc_layers(
             layer_type=layer_type,
             n=n_out,
