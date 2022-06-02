@@ -126,13 +126,13 @@ With piecewise continuous it doesn't work quite as well.
 Polynomial doesn't work well at all (expected).
 ![polynomial](plots/xor_polynomial.png)
 
-## mnist (convolutional)
+## MNIST (convolutional)
 
 ```python
 python examples/mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous n=4 segments=2
 ```
 
-## cifar100 (convolutional)
+## CIFAR100 (convolutional)
 
 ```
 python examples/cifar100.py -m max_epochs=20 train_fraction=1.0 layer_type=polynomial segments=2 n=7 nonlinearity=False rescale_output=False periodicity=2.0 lr=0.001 linear_output=False
@@ -147,7 +147,7 @@ run with nevergrad for parameter tuning
 ```
 python examples/variational_autoencoder.py -m
 ```
-## invariant mnist (fully connected)
+## Invariant mnist (fully connected)
 Without polynomial refinement
 ```python
 python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=polynomial n=5 p_refine=False
@@ -162,6 +162,7 @@ python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=co
 An example of implicit representation for image compression, language generation can be found [here](https://github.com/jloveric/high-order-implicit-representation).  I intend to explore generative models in natural language further [here](https://github.com/jloveric/language-interpolation)
 
 ## PDEs in fluid dynamics
+
 An example using implicit representation to solve hyperbolic (nonlinear) wave equations can be found [here](https://github.com/jloveric/neural-network-pdes)
 
 ## Test and Coverage
