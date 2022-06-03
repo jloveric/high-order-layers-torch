@@ -16,6 +16,57 @@ from torch.nn import Linear
 logger = logging.getLogger(__name__)
 
 
+class LowOrderMLP(nn.Module):
+    def __init__(
+        self,
+        in_width: int,
+        out_width: int,
+        hidden_layers: int,
+        hidden_width: int,
+        non_linearity: Callable[[Tensor], Tensor] = None,
+        normalization: Callable[[Any], Tensor] = None,
+    ) -> None:
+        """
+        This is not a high order network, I've put it in here so that it's easy to compare.
+        Args :
+            in_width: Input width.
+            out_width: Output width
+            hidden_layers: Number of hidden layers.
+            hidden_width: Number of hidden units
+            non_linearity: Whether to apply a nonlinearity after each layer (except output)
+            normalization: Normalization to apply after each layer (before any additional nonlinearity).
+        """
+        super().__init__()
+        layer_list = []
+
+        input_layer = Linear(in_features=in_width, out_features=hidden_width, bias=True)
+        layer_list.append(input_layer)
+        for i in range(hidden_layers):
+            if normalization is not None:
+                layer_list.append(normalization)
+            if non_linearity is not None:
+                layer_list.append(non_linearity)
+
+            hidden_layer = Linear(
+                in_features=hidden_width, out_features=hidden_width, bias=True
+            )
+            layer_list.append(hidden_layer)
+
+        if normalization is not None:
+            layer_list.append(normalization)
+        if non_linearity is not None:
+            layer_list.append(non_linearity)
+
+        output_layer = Linear(
+            in_features=hidden_width, out_features=out_width, bias=True
+        )
+        layer_list.append(output_layer)
+        self.model = nn.Sequential(*layer_list)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.model(x)
+
+
 class HighOrderMLP(nn.Module):
     def __init__(
         self,

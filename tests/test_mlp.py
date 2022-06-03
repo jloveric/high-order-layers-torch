@@ -52,3 +52,34 @@ def test_high_order_mlp(
     y0 = network(x)
     assert y0.shape[0] == batch_size
     assert y0.shape[1] == out_width
+
+
+@pytest.mark.parametrize("in_width", [5])
+@pytest.mark.parametrize("out_width", [1, 4])
+@pytest.mark.parametrize("hidden_layers", [1, 3])
+@pytest.mark.parametrize("hidden_width", [1, 5])
+@pytest.mark.parametrize("normalization", [LazyBatchNorm1d])
+@pytest.mark.parametrize("nonlinearity", [None, torch.nn.ReLU])
+def test_low_order_mlp(
+    in_width,
+    out_width,
+    hidden_layers,
+    hidden_width,
+    normalization,
+    nonlinearity,
+):
+
+    network = LowOrderMLP(
+        in_width=in_width,
+        out_width=out_width,
+        hidden_layers=hidden_layers,
+        hidden_width=hidden_width,
+        non_linearity=None if nonlinearity is None else nonlinearity(),
+        normalization=None if normalization is None else normalization(),
+    )
+
+    batch_size = 4
+    x = torch.rand(batch_size, in_width)
+    y0 = network(x)
+    assert y0.shape[0] == batch_size
+    assert y0.shape[1] == out_width
