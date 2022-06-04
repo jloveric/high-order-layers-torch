@@ -515,7 +515,9 @@ class HighOrderMLPMixerBlock(nn.Module):
     pass
 
 
-def interpolate_high_order_mlp(network_in: HighOrderMLP, network_out: HighOrderMLP):
+def interpolate_high_order_mlp(
+    network_in: HighOrderMLP, network_out: HighOrderMLP
+) -> None:
     """
     Create a new network with weights interpolated from network_in.  If network_out has higher
     polynomial order than network_in then the output network will produce identical results to
