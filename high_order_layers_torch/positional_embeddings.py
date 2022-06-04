@@ -11,9 +11,14 @@ from high_order_layers_torch.PolynomialLayers import (
 class ClassicSinusoidalEmbedding(nn.Module):
     def __init__(self, dim):
         """
-        Traditional positional embedding
+        Traditional positional embedding.
+        Args :
+            dim : The dimension of the embedding.  This value needs to be even as
+            it will be split half and half into sin and cos components.
         """
         super().__init__()
+        if dim % 2 != 0:
+            raise ValueError(f"Embedding dimension needs to be even, got {dim}.")
         self.dim = dim
 
     def forward(self, x):
@@ -50,7 +55,7 @@ def PiecewisePolynomialEmbedding(
     length=2.0,
     weight_magnitude=1.0,
     periodicity: float = None,
-    **kwargs
+    **kwargs,
 ):
     """
     High order embedding using piecewise polynomial layer
@@ -74,7 +79,7 @@ def PiecewiseDiscontinuousPolynomialEmbedding(
     length=2.0,
     weight_magnitude=1.0,
     periodicity: float = None,
-    **kwargs
+    **kwargs,
 ):
     """
     High order embedding using sparse discontinuous piecewise polynomial

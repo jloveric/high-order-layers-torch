@@ -19,3 +19,8 @@ def test_classic_embedding():
     x = torch.rand([5])
     ans = embedding(x)
     assert ans.shape == torch.Size([5, 10])
+
+
+def test_classic_embedding_throws():
+    with pytest.raises(ValueError):
+        embedding = ClassicSinusoidalEmbedding(3)
