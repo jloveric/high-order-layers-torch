@@ -44,7 +44,7 @@ def test_high_order_mlp(
         out_segments=segments,
         hidden_segments=segments,
         non_linearity=None if nonlinearity is None else nonlinearity(),
-        normalization=None if normalization is None else normalization(),
+        normalization=normalization,
     )
 
     batch_size = 4
@@ -75,7 +75,7 @@ def test_low_order_mlp(
         hidden_layers=hidden_layers,
         hidden_width=hidden_width,
         non_linearity=None if nonlinearity is None else nonlinearity(),
-        normalization=None if normalization is None else normalization(),
+        normalization=normalization,
     )
 
     batch_size = 4

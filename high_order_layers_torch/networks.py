@@ -24,7 +24,7 @@ class LowOrderMLP(nn.Module):
         hidden_layers: int,
         hidden_width: int,
         non_linearity: Callable[[Tensor], Tensor] = None,
-        normalization: Callable[[Any], Tensor] = None,
+        normalization: Callable[[Any], Any] = None,
     ) -> None:
         """
         This is not a high order network, I've put it in here so that it's easy to compare.
@@ -43,7 +43,7 @@ class LowOrderMLP(nn.Module):
         layer_list.append(input_layer)
         for i in range(hidden_layers):
             if normalization is not None:
-                layer_list.append(normalization)
+                layer_list.append(normalization())
             if non_linearity is not None:
                 layer_list.append(non_linearity)
 
@@ -53,7 +53,7 @@ class LowOrderMLP(nn.Module):
             layer_list.append(hidden_layer)
 
         if normalization is not None:
-            layer_list.append(normalization)
+            layer_list.append(normalization())
         if non_linearity is not None:
             layer_list.append(non_linearity)
 
@@ -86,7 +86,7 @@ class HighOrderMLP(nn.Module):
         in_segments: int = None,
         out_segments: int = None,
         hidden_segments: int = None,
-        normalization: Callable[[Any], Tensor] = None,
+        normalization: Callable[[Any], Any] = None,
     ) -> None:
         """
         Args :
@@ -132,7 +132,7 @@ class HighOrderMLP(nn.Module):
         layer_list.append(input_layer)
         for i in range(hidden_layers):
             if normalization is not None:
-                layer_list.append(normalization)
+                layer_list.append(normalization())
             if non_linearity is not None:
                 layer_list.append(non_linearity)
 
@@ -149,7 +149,7 @@ class HighOrderMLP(nn.Module):
             layer_list.append(hidden_layer)
 
         if normalization is not None:
-            layer_list.append(normalization)
+            layer_list.append(normalization())
         if non_linearity is not None:
             layer_list.append(non_linearity)
 
