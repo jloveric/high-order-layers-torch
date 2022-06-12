@@ -169,6 +169,11 @@ An example of implicit representation for image compression, language generation
 
 An example using implicit representation to solve hyperbolic (nonlinear) wave equations can be found [here](https://github.com/jloveric/neural-network-pdes)
 
+## Natural Language Generation
+
+Examples using these networks for natural language generation can be found
+[here](https://github.com/jloveric/language-interpolation)
+
 ## Test and Coverage
 After installing and running
 ```
