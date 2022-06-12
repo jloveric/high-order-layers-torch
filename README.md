@@ -151,7 +151,7 @@ run with nevergrad for parameter tuning
 ```
 python examples/variational_autoencoder.py -m
 ```
-## Invariant mnist (fully connected)
+## Invariant MNIST (fully connected)
 Without polynomial refinement
 ```python
 python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=polynomial n=5 p_refine=False
@@ -165,7 +165,7 @@ python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=co
 
 An example of implicit representation for image compression, language generation can be found [here](https://github.com/jloveric/high-order-implicit-representation).  I intend to explore generative models in natural language further [here](https://github.com/jloveric/language-interpolation)
 
-## PDEs in fluid dynamics
+## PDEs in Fluid Dynamics
 
 An example using implicit representation to solve hyperbolic (nonlinear) wave equations can be found [here](https://github.com/jloveric/neural-network-pdes)
 
