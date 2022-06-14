@@ -198,31 +198,6 @@ class Net(LightningModule):
         else:
             raise ValueError(f"Optimizer {self._cfg.optimizer} not recognized")
 
-    def configure_optimizers(self):
-        optimizer = optim.Adam(
-            params=self.parameters(),
-            lr=self._lr,
-            # weight_decay=self.l2_norm
-        )
-
-        reduce_on_plateau = False
-        if self._gamma is None:
-            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-                optimizer, patience=self._patience, factor=self._factor, verbose=True
-            )
-            reduce_on_plateau = True
-        else:
-            lr_scheduler = optim.lr_scheduler.ExponentialLR(
-                optimizer, gamma=self._gamma
-            )
-
-        scheduler = {
-            "scheduler": lr_scheduler,
-            "reduce_on_plateau": reduce_on_plateau,
-            "monitor": "val_loss",
-        }
-        return [optimizer], [scheduler]
-
 
 class ImageSampler(Callback):
     def __init__(self):
