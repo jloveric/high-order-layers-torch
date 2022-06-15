@@ -13,8 +13,18 @@ def LinearAdapter(*args, in_features: int, out_features: int, **kwargs):
     return Linear(in_features=in_features, out_features=out_features, bias=True)
 
 
+class LinearReluAdapter(nn.Module):
+    def __init__(self, *args, in_features: int, out_features: int, **kwargs):
+        super().__init__()
+        self.f = Linear(in_features=in_features, out_features=out_features, bias=True)
+
+    def forward(self, x):
+        return torch.nn.functional.relu(self.f.forward(x))
+
+
 fc_layers = {
-    "baseline": LinearAdapter,  # This is added so I can easily compare
+    "baseline_relu": LinearReluAdapter,  # Linear layer folowed by relu
+    "baseline": LinearAdapter,  # Standard linear layer
     "continuous": PiecewisePolynomial,
     "continuous_prod": PiecewisePolynomialProd,
     "discontinuous": PiecewiseDiscontinuousPolynomial,

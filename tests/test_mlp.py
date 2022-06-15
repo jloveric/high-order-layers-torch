@@ -14,7 +14,7 @@ from torch.nn import LazyBatchNorm1d, LazyInstanceNorm1d
 @pytest.mark.parametrize("hidden_width", [1, 5])
 @pytest.mark.parametrize("n0", [2, 3])
 @pytest.mark.parametrize("normalization", [LazyBatchNorm1d])
-@pytest.mark.parametrize("layer_type", ["continuous", "baseline"])
+@pytest.mark.parametrize("layer_type", ["continuous", "baseline", "baseline_relu"])
 @pytest.mark.parametrize("nonlinearity", [None, torch.nn.ReLU])
 def test_high_order_mlp(
     segments,
