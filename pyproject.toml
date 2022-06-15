@@ -12,6 +12,7 @@ torch = "*"
 pytorch-lightning = "*"
 torchmetrics = "^0.6.1"
 lightning-bolts = "^0.5.0"
+functorch = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 pbr = "*"

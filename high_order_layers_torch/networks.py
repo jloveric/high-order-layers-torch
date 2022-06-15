@@ -67,6 +67,81 @@ class LowOrderMLP(nn.Module):
         return self.model(x)
 
 
+class HighOrderMLPList(nn.Module):
+    def __init__(
+        self,
+        layer_type: List[str],
+        n: List[str],
+        width: List[int],
+        segments: List[int],
+        scale: float = 2.0,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        non_linearity: List[Callable[[Tensor], Tensor]] = None,
+        normalization: List[Callable[[Any], Any]] = None,
+    ) -> None:
+        """
+        Args :
+            layer_type: Type of layer
+                "continuous", "discontinuous",
+                "polynomial", "fourier",
+                "product", "continuous_prod",
+                "discontinuous_prod"
+            n:  Number of nodes in each layer
+            segments : Number of segments in each layer
+            width: width of each layer.
+            scale: Scale of the segments.  A value of 2 would be length 2 (or period 2)
+            rescale_output: Whether to average the outputs
+            periodicity: Whether to make polynomials periodic after given length.
+            non_linearity: Whether to apply a nonlinearity after each layer (except output)
+            normalization: Normalization to apply after each layer (before any additional nonlinearity).
+        """
+        super().__init__()
+        layer_list = []
+        self._n = n
+        self._width = width
+        self._segments = segments
+
+        if len(width) != len(layer_type) + 1:
+            raise ValueError(
+                f"width must be of size 1 more than layer_type, got width {len(width)} and layer_type {len(layer_type)}"
+            )
+
+        input_layer = high_order_fc_layers(
+            layer_type=layer_type[0],
+            n=n[0],
+            in_features=width[0],
+            out_features=width[1],
+            segments=segments[0],
+            rescale_output=rescale_output,
+            scale=scale,
+            periodicity=periodicity,
+        )
+        layer_list.append(input_layer)
+        for i in range(1, len(layer_list)):
+            if normalization is not None and normalization[i] is not None:
+                layer_list.append(normalization[i]())
+            if non_linearity is not None and non_linearity[i] is not None:
+                layer_list.append(non_linearity[i])
+
+            this_layer = high_order_fc_layers(
+                layer_type=layer_type[i],
+                n=n[i],
+                in_features=width[i],
+                out_features=width[i + 1],
+                segments=segments[i],
+                rescale_output=rescale_output,
+                scale=scale,
+                periodicity=periodicity,
+            )
+            layer_list.append(this_layer)
+
+        self.model = nn.Sequential(*layer_list)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.model(x)
+
+
 class HighOrderMLP(nn.Module):
     def __init__(
         self,
