@@ -33,11 +33,8 @@ def positions_from_mesh(
         A list of meshes and the rotated axis
     """
     max_dim = max(width, height)
-    ratio = max_dim / (max_dim + 1)
     scale = max_dim / (max_dim - 1)
 
-    # Create and center the coordinates
-    # TODO: These don't have the ranges I thought so they will need to be fixed.
     xv, yv = torch.meshgrid([torch.arange(width), torch.arange(height)])
     xv = xv.to(device=device)
     yv = yv.to(device=device)
