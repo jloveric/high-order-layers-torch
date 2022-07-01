@@ -107,7 +107,6 @@ or
 ```
 poetry add high-order-layers-torch
 ```
-
 # Examples
 
 ## Simple function approximation
