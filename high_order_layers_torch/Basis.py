@@ -98,7 +98,7 @@ class PiecewiseExpand:
             device=device,
         )
 
-        wid_min_flat = wid_min.view(-1)
+        wid_min_flat = wid_min.reshape(-1)
 
         wrange = wid_min_flat.unsqueeze(-1) + torch.arange(self._n, device=device).view(
             -1
@@ -269,7 +269,7 @@ class PiecewiseDiscontinuousExpand:
             device=device,
         )
 
-        wid_min_flat = wid_min.view(-1)
+        wid_min_flat = wid_min.reshape(-1)
 
         wrange = wid_min_flat.unsqueeze(-1) + torch.arange(self._n, device=device).view(
             -1
