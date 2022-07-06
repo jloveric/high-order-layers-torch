@@ -341,6 +341,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
             layer_list.append(layer)
 
         # Add an average pooling layer
+        avg_pool = None
         if pooling == "1d":
             avg_pool = nn.AdaptiveAvgPool1d(1)
         elif pooling == "2d":
@@ -348,7 +349,10 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         elif pooling == "3d":
             avg_pool = nn.AdaptiveAvgPool3d((1, 1, 1))
 
-        self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
+        if avg_pool is not None:
+            self.model = nn.Sequential(*layer_list, avg_pool, nn.Flatten())
+        else:
+            self.model = nn.Sequential(*layer_list, nn.Flatten())
 
     def forward(self, x: Tensor) -> Tensor:
         temp = self.model(x)
