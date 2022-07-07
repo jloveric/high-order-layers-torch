@@ -249,7 +249,7 @@ def scalar_to_list(val: Union[List, str, int, float], size: int):
     if val is None:
         return val
 
-    if not isinstance(val, list):
+    if isinstance(val, (int, float, str, bool)):
         return [val] * size
     return val
 
@@ -266,7 +266,7 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         periodicity: float = None,
         normalization: Callable[[Any], Tensor] = None,
         pooling: str = "2d",
-        stride: List[int] = None,
+        stride: Union[List[int], int] = None,
         padding: int = 0,
     ) -> None:
         """
@@ -304,6 +304,8 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
         self.n = scalar_to_list(self.n, size)
         self.stride = scalar_to_list(self.stride, size)
         self.segments = scalar_to_list(self.segments, size)
+
+        print("self.stride", self.stride)
 
         if (
             len(self.segments)

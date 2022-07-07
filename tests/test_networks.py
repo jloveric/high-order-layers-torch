@@ -86,3 +86,32 @@ def test_convolutional_network_no_pool2d(
 
     assert out.shape[0] == x.shape[0]
     assert out.shape[1] == 26508
+
+
+@pytest.mark.parametrize("segments", [1, 2])
+@pytest.mark.parametrize("n", [3, 5])
+@pytest.mark.parametrize("kernel_size", [1, 3])
+@pytest.mark.parametrize("ctype", ["polynomial1d", "continuous1d", "discontinuous1d"])
+@pytest.mark.parametrize("channels", [1, 3])
+@pytest.mark.parametrize("layers", [1, 3])
+def test_convolutional_network_with_stride_list(
+    segments, n, kernel_size, ctype, channels, layers
+):
+    width = 100
+
+    model = HighOrderFullyConvolutionalNetwork(
+        layer_type=[ctype] * layers,
+        n=[n] * layers,
+        channels=[channels] * (layers + 1),
+        segments=[segments] * layers,
+        kernel_size=[kernel_size] * layers,
+        pooling="1d",
+        stride=[2] * layers,
+    )
+
+    x = torch.rand(2, channels, width)
+    out = model(x)
+    print("out", out.shape)
+
+    assert out.shape[0] == x.shape[0]
+    assert out.shape[1] == channels
