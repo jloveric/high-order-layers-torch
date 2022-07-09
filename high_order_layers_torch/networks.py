@@ -425,9 +425,6 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         self._in_channels = self._channels[0]
 
         for i in range(len(self._channels) - 1):
-            if normalization is not None:
-                layer_list.append(normalization(self._channels[i]))
-
             layer = high_order_convolution_transpose_layers(
                 layer_type=self._layer_type[i],
                 n=self._n[i],
@@ -441,6 +438,8 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
                 padding=self._padding,
             )
             layer_list.append(layer)
+            if normalization is not None:
+                layer_list.append(normalization(self._channels[i + 1]))
 
         self.model = nn.Sequential(*layer_list)
 
