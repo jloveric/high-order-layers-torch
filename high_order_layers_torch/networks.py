@@ -325,9 +325,6 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
 
         layer_list = []
         for i in range(len(self.channels) - 1):
-            if normalization is not None:
-                layer_list.append(normalization(self.channels[i]))
-
             layer = high_order_convolution_layers(
                 layer_type=self.layer_type[i],
                 n=self.n[i],
@@ -341,6 +338,8 @@ class HighOrderFullyConvolutionalNetwork(nn.Module):
                 padding=self._padding,
             )
             layer_list.append(layer)
+            if normalization is not None:
+                layer_list.append(normalization(self.channels[i + 1]))
 
         # Add an average pooling layer
         avg_pool = None
