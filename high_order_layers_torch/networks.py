@@ -451,6 +451,117 @@ class HighOrderFullyDeconvolutionalNetwork(nn.Module):
         return self.model(x)
 
 
+class HighOrderTailFocusNetwork(nn.Module):
+    def __init__(
+        self,
+        layer_type: Union[List[str], str],
+        n: Union[List[int], int],
+        channels: List[int],
+        segments: Union[List[int], int],
+        kernel_size: List[int],
+        rescale_output: bool = False,
+        periodicity: float = None,
+        normalization: Callable[[Any], Tensor] = None,
+        stride: Union[List[int], int] = None,
+        padding: int = 0,
+        focus: Union[List[int], int] = None,
+    ) -> None:
+        """
+        Convolutional network for time series where the last (tail) N outputs
+        of each layer are extracted and then concatenated into the final output.
+        This means the output will consist of the tail from each of the layers
+        concatenated.  The output focuses on the last few raw inputs and then
+        deeper representations of the object as you get further away which
+        provides the context.  This only works for 1d convolutions.
+        Args :
+            layer_type : layer type [continuous1d, discontinous1d, ...]
+            n : polynomial or fourier "order" [n1, n2, ...]
+            channels : Number of channels for each layer (should be size layers+1)
+            segments : Number of segments in the polynomial if used at all as a list per layer.
+            kernel_size : The kernel size for each layer
+            rescale_output : whether to average the inputs to the next neuron
+            periodicity : whether it should be periodic or not
+            normalization : If not None, type of batch normalization to use.
+            stride : Stride for each layer
+        """
+        super().__init__()
+
+        self.layer_type = layer_type
+        self.n = n
+        self.channels = channels
+        self.segments = segments
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self._padding = padding
+        self.focus = focus
+
+        if len(channels) < 2:
+            raise ValueError(
+                f"Channels list must have at least 2 values [input_channels, output_channels]"
+            )
+
+        size = len(kernel_size)
+        self.layer_type = scalar_to_list(self.layer_type, size)
+        self.n = scalar_to_list(self.n, size)
+        self.stride = scalar_to_list(self.stride, size)
+        self.segments = scalar_to_list(self.segments, size)
+        self.focus = scalar_to_list(self.focus, size)
+
+        if (
+            len(self.segments)
+            == len(self.kernel_size)
+            == len(self.layer_type)
+            == len(self.n)
+            is False
+        ):
+            raise ValueError(
+                f"Lists for segments {len(self.segments)}, kernel_size {len(self.kernel_size)}, layer_type {len(self.layer_type)} and n {len(self.n)} must be the same size."
+            )
+
+        if len(self.channels) == len(self.n) + 1 is False:
+            raise ValueError(
+                f"Length of channels list {self.channels} should be one more than number of layers."
+            )
+
+        self.layer_list = []
+        self.layer_dict = {}
+        for i in range(len(self.channels) - 1):
+            layer = high_order_convolution_layers(
+                layer_type=self.layer_type[i],
+                n=self.n[i],
+                in_channels=self.channels[i],
+                out_channels=self.channels[i + 1],
+                kernel_size=self.kernel_size[i],
+                segments=self.segments[i],
+                rescale_output=rescale_output,
+                periodicity=periodicity,
+                stride=1 if self.stride is None else self.stride[i],
+                padding=self._padding,
+            )
+            self.layer_dict[f"conv_{i}"] = layer
+            self.layer_list.append(f"conv_{i}")
+            if normalization is not None:
+                self.layer_dict[f"normal_{i}"] = normalization(self.channels[i + 1])
+                self.layer_list.append(f"normal_{i}")
+
+    def forward(self, x: Tensor) -> Tensor:
+
+        early = [x[:, :, -self.focus[0] :].flatten(1)]
+        count = 1
+        for name in self.layer_list:
+            x = self.layer_dict[name](x)
+            if "normal" in name:
+                tail = x[:, :, -self.focus[count] :].flatten(1)
+                early.append(tail)
+                count += 1
+
+        # We actually want the entire final x
+        tail[-1] = x
+
+        result = torch.stack(tail, dim=1)
+        return result
+
+
 # Copied from https://github.com/AntixK/PyTorch-VAE/blob/master/models/vanilla_vae.py
 # and modified to work with arbitrary encoder / decoder so it that it works with
 # high order networks.
