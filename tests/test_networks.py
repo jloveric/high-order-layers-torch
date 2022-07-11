@@ -1,6 +1,9 @@
 import os
 import pytest
-from high_order_layers_torch.networks import HighOrderFullyConvolutionalNetwork
+from high_order_layers_torch.networks import (
+    HighOrderFullyConvolutionalNetwork,
+    HighOrderTailFocusNetwork,
+)
 import torch
 
 
@@ -115,3 +118,30 @@ def test_convolutional_network_with_stride_list(
 
     assert out.shape[0] == x.shape[0]
     assert out.shape[1] == channels
+
+
+@pytest.mark.parametrize("segments", [2])
+@pytest.mark.parametrize("n", [3])
+@pytest.mark.parametrize("kernel_size", [3, 5])
+@pytest.mark.parametrize("ctype", ["continuous1d"])
+@pytest.mark.parametrize("channels", [1, 3])
+@pytest.mark.parametrize("layers", [1, 2, 3])
+def test_tail_focus(segments, n, kernel_size, ctype, channels, layers):
+    width = 100
+
+    model = HighOrderTailFocusNetwork(
+        layer_type=[ctype] * layers,
+        n=[n] * layers,
+        channels=[channels] * (layers + 1),
+        segments=[segments] * layers,
+        kernel_size=[kernel_size] * layers,
+        stride=[2] * layers,
+        focus=[2] * layers,
+        normalization=torch.nn.LazyBatchNorm1d,
+    )
+    width_list, output_size = model.compute_sizes(width)
+    x = torch.rand(2, channels, width)
+    out = model(x)
+
+    assert out.shape[0] == x.shape[0]
+    assert out.shape[1] == sum(output_size)

@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 import logging
 from torch.nn import Linear
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -465,6 +466,7 @@ class HighOrderTailFocusNetwork(nn.Module):
         stride: Union[List[int], int] = None,
         padding: int = 0,
         focus: Union[List[int], int] = None,
+        device: str = "cpu",
     ) -> None:
         """
         Convolutional network for time series where the last (tail) N outputs
@@ -538,27 +540,47 @@ class HighOrderTailFocusNetwork(nn.Module):
                 stride=1 if self.stride is None else self.stride[i],
                 padding=self._padding,
             )
-            self.layer_dict[f"conv_{i}"] = layer
+            self.layer_dict[f"conv_{i}"] = layer.to(device)
             self.layer_list.append(f"conv_{i}")
             if normalization is not None:
-                self.layer_dict[f"normal_{i}"] = normalization(self.channels[i + 1])
+                self.layer_dict[f"normal_{i}"] = normalization(self.channels[i + 1]).to(
+                    device
+                )
                 self.layer_list.append(f"normal_{i}")
+
+    def compute_sizes(self, input_size: int):
+
+        widths = [input_size]
+        for i, val in enumerate(self.kernel_size):
+            nw = math.ceil((widths[i] - self.kernel_size[i] + 1) / self.stride[i])
+            widths.append(nw)
+
+        output_sizes = [
+            self.channels[i] * focus
+            for i, focus in enumerate(self.focus + [widths[-1]])
+        ]
+
+        return widths, output_sizes
 
     def forward(self, x: Tensor) -> Tensor:
 
         early = [x[:, :, -self.focus[0] :].flatten(1)]
         count = 1
         for name in self.layer_list:
-            x = self.layer_dict[name](x)
-            if "normal" in name:
+            x = self.layer_dict[name].to(x.device)(
+                x
+            )  # Assuming it only does this move once!
+            if "normal" in name and count < len(self.focus):
                 tail = x[:, :, -self.focus[count] :].flatten(1)
                 early.append(tail)
                 count += 1
 
-        # We actually want the entire final x
-        tail[-1] = x
+        # We actually want the entire final x.  This means
+        # an arbitrary amount of information is sent in the
+        # last level of context.
+        early.append(x.flatten(1))
 
-        result = torch.stack(tail, dim=1)
+        result = torch.cat(early, dim=1)
         return result
 
 
