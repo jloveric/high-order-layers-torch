@@ -540,13 +540,19 @@ class HighOrderTailFocusNetwork(nn.Module):
                 stride=1 if self.stride is None else self.stride[i],
                 padding=self._padding,
             )
-            self.layer_dict[f"conv_{i}"] = layer.to(device)
-            self.layer_list.append(f"conv_{i}")
+
+            layer_name = f"conv_{i}"
+            setattr(self, layer_name, layer)
+            self.layer_dict[layer_name] = layer
+            self.layer_list.append(layer_name)
+
             if normalization is not None:
-                self.layer_dict[f"normal_{i}"] = normalization(self.channels[i + 1]).to(
-                    device
-                )
-                self.layer_list.append(f"normal_{i}")
+                layer = normalization(self.channels[i + 1])
+                layer_name = f"normal_{i}"
+
+                setattr(self, layer_name, layer)
+                self.layer_dict[layer_name] = layer
+                self.layer_list.append(layer_name)
 
     def compute_sizes(self, input_size: int):
 
@@ -567,9 +573,7 @@ class HighOrderTailFocusNetwork(nn.Module):
         early = [x[:, :, -self.focus[0] :].flatten(1)]
         count = 1
         for name in self.layer_list:
-            x = self.layer_dict[name].to(x.device)(
-                x
-            )  # Assuming it only does this move once!
+            x = self.layer_dict[name](x)  # Assuming it only does this move once!
             if "normal" in name and count < len(self.focus):
                 tail = x[:, :, -self.focus[count] :].flatten(1)
                 early.append(tail)
