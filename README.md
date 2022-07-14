@@ -177,6 +177,12 @@ An example using implicit representation to solve hyperbolic (nonlinear) wave eq
 Examples using these networks for natural language generation can be found
 [here](https://github.com/jloveric/language-interpolation)
 
+## Generative music
+
+Work in progress
+[here](https://github.com/jloveric/high-order-generative-music)
+
+
 ## Test and Coverage
 After installing and running
 ```
