@@ -1,0 +1,30 @@
+# Small network that runs pretty fast.  See at
+# most 50% accuracy.
+
+layer_type: "discontinuous"
+normalize: true
+
+# Number of characters as input
+features: 16
+
+# Polynomial interpolation points.  Polynomial order
+# is (n-1).  In the case of Fourier series, n is the
+# number of Fourier components.
+model_type: high_order
+n: 2
+n_in: 2
+n_out: null
+n_hidden: null
+periodicity: 2.0
+rescale_output: False
+# scale: 2.0
+input:
+  segments: 128
+  width: ${net.features}
+output:
+  segments: 8
+  width: 128
+hidden:
+  segments: 8
+  layers: 2
+  width: 10
