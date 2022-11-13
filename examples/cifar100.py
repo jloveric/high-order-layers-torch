@@ -76,10 +76,16 @@ class Cifar100DataModule(LightningDataModule):
 def cifar100(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     print("Working directory : {}".format(os.getcwd()))
-    print(f"Orig working directory    : {hydra.utils.get_original_cwd()}")
+
+    try:
+        data_dir = f"{hydra.utils.get_original_cwd()}/data"
+    except:
+        data_dir = "./data"
+
+    print(f"Orig working directory    : {data_dir}")
 
     datamodule = Cifar100DataModule(
-        data_dir=f"{hydra.utils.get_original_cwd()}/data",
+        data_dir=data_dir,
         batch_size=cfg.data.batch_size,
     )
 
