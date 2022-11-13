@@ -1,21 +1,21 @@
 import torch
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
 from pytorch_lightning import LightningModule, Trainer
+from torchmetrics import Accuracy
+
 from high_order_layers_torch.FunctionalConvolution import (
-    PolynomialConvolution2d as PolyConv2d,
+    PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d,
 )
 from high_order_layers_torch.FunctionalConvolution import (
     PiecewisePolynomialConvolution2d as PiecewisePolyConv2d,
 )
 from high_order_layers_torch.FunctionalConvolution import (
-    PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d,
+    PolynomialConvolution2d as PolyConv2d,
 )
-
-from torchmetrics import Accuracy
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]

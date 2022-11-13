@@ -2,11 +2,12 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from .PolynomialLayers import *
-from .ProductLayer import *
+from torch.nn import Linear
+
 from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
-from torch.nn import Linear
+from .PolynomialLayers import *
+from .ProductLayer import *
 
 
 def LinearAdapter(*args, in_features: int, out_features: int, **kwargs):

@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from high_order_layers_torch.utils import make_periodic, positions_from_mesh
 import torch
+
+from high_order_layers_torch.utils import make_periodic, positions_from_mesh
 
 
 def test_positions_from_mesh():

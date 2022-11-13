@@ -1,8 +1,6 @@
 max_epochs: 1
 gpus: 1
-n: 5
-batch_size: 128
-segments: 2
+
 layer_type: continuous2d
 train_fraction: 1.0
 rescale_output: False
@@ -10,3 +8,11 @@ linear_output: True
 periodicity: 2.0
 lr: 0.001
 nonlinearity: False
+
+data:
+  num_workers: 10
+  batch_size: 128
+
+defaults:
+  - optimizer: adam
+  - net: high_order_conv

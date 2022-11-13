@@ -1,18 +1,20 @@
+import logging
+import math
+from typing import Any, Callable, List, Union
+
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from pytorch_lightning import LightningModule
 from torch import Tensor
+from torch.nn import Linear
+
 from high_order_layers_torch.layers import (
     high_order_convolution_layers,
     high_order_convolution_transpose_layers,
     high_order_fc_layers,
 )
-from typing import Any, Callable, List, Union
 from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_layer
-import torch
-import torch.nn.functional as F
-from pytorch_lightning import LightningModule
-import logging
-from torch.nn import Linear
-import math
 
 logger = logging.getLogger(__name__)
 

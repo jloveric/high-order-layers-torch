@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from high_order_layers_torch.LagrangePolynomial import *
+
 from high_order_layers_torch.FunctionalConvolution import *
+from high_order_layers_torch.LagrangePolynomial import *
 
 
 def test_poly_convolution_2d_produces_correct_sizes():

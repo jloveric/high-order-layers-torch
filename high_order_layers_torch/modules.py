@@ -1,14 +1,15 @@
-from omegaconf import DictConfig
-from high_order_layers_torch.layers import *
-from pytorch_lightning import LightningModule
+import logging
+
+import torch
 import torch.optim as optim
 import torch_optimizer as alt_optim
-import torch
-from high_order_layers_torch.networks import *
-from torchmetrics import Accuracy
+from omegaconf import DictConfig
+from pytorch_lightning import LightningModule
 from torch import Tensor
+from torchmetrics import Accuracy
 
-import logging
+from high_order_layers_torch.layers import *
+from high_order_layers_torch.networks import *
 
 logger = logging.getLogger(__name__)
 

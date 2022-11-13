@@ -1,13 +1,15 @@
-from .LagrangePolynomial import LagrangeExpand
-from pytorch_lightning import LightningModule, Trainer
-from typing import Optional, Union, Any
-from high_order_layers_torch.PolynomialLayers import *
-from torch.nn import Conv1d, Conv2d, Conv3d
-import torch.nn as nn
-import torch
-from .utils import *
-from abc import ABC
 import logging
+from abc import ABC
+from typing import Any, Optional, Union
+
+import torch
+import torch.nn as nn
+from torch.nn import Conv1d, Conv2d, Conv3d
+
+from high_order_layers_torch.PolynomialLayers import *
+
+from .LagrangePolynomial import LagrangeExpand
+from .utils import *
 
 logger = logging.getLogger(__name__)
 

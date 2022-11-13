@@ -1,10 +1,12 @@
 import os
+
 import pytest
-from high_order_layers_torch.LagrangePolynomial import *
-from high_order_layers_torch.FunctionalConvolution import *
-from high_order_layers_torch.PolynomialLayers import *
-from high_order_layers_torch.networks import *
 from torch.nn import LazyBatchNorm1d, LazyInstanceNorm1d
+
+from high_order_layers_torch.FunctionalConvolution import *
+from high_order_layers_torch.LagrangePolynomial import *
+from high_order_layers_torch.networks import *
+from high_order_layers_torch.PolynomialLayers import *
 
 
 @pytest.mark.parametrize("segments", [1, 2])
