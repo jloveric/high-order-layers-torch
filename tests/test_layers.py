@@ -1,9 +1,11 @@
 import os
+
 import pytest
-from high_order_layers_torch.LagrangePolynomial import *
+
 from high_order_layers_torch.FunctionalConvolution import *
-from high_order_layers_torch.PolynomialLayers import *
+from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.networks import *
+from high_order_layers_torch.PolynomialLayers import *
 
 
 def test_nodes():

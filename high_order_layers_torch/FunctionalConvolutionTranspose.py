@@ -1,14 +1,16 @@
-from .FunctionalConvolution import LagrangeExpand, Expansion1d, Expansion2d
-from .LagrangePolynomial import LagrangeExpand
-from pytorch_lightning import LightningModule, Trainer
-from typing import Optional, Union, Any
-from high_order_layers_torch.PolynomialLayers import *
-from torch.nn import ConvTranspose1d, ConvTranspose2d, ConvTranspose3d
-import torch.nn as nn
-import torch
-from .utils import *
-from abc import ABC
 import logging
+from abc import ABC
+from typing import Any, Optional, Union
+
+import torch
+import torch.nn as nn
+from torch.nn import ConvTranspose1d, ConvTranspose2d, ConvTranspose3d
+
+from high_order_layers_torch.PolynomialLayers import *
+
+from .FunctionalConvolution import Expansion1d, Expansion2d, LagrangeExpand
+from .LagrangePolynomial import LagrangeExpand
+from .utils import *
 
 logger = logging.getLogger(__name__)
 

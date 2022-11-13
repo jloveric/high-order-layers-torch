@@ -1,12 +1,14 @@
 import os
+
 import pytest
+import torch
+
 from high_order_layers_torch.positional_embeddings import (
     ClassicSinusoidalEmbedding,
     FourierSeriesEmbedding,
     PiecewiseDiscontinuousPolynomialEmbedding,
     PiecewisePolynomialEmbedding,
 )
-import torch
 
 
 def test_classic_embedding():

@@ -1,10 +1,12 @@
-import torch
 import math
+
+import torch
 from torch import nn
+
 from high_order_layers_torch.PolynomialLayers import (
-    PiecewisePolynomial,
-    PiecewiseDiscontinuousPolynomial,
     FourierSeries,
+    PiecewiseDiscontinuousPolynomial,
+    PiecewisePolynomial,
 )
 
 

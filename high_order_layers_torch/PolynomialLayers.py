@@ -1,6 +1,7 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 from torch.autograd import Variable
+
 from .LagrangePolynomial import *
 from .utils import *
 

@@ -1,7 +1,9 @@
 import math
+
 import torch
-from .Basis import *
 from torch import Tensor
+
+from .Basis import *
 
 
 def chebyshevLobatto(n: int):

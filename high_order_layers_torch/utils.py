@@ -1,7 +1,8 @@
-import torch
 import math
-from torch import Tensor
 from typing import List
+
+import torch
+from torch import Tensor
 
 
 def make_periodic(x, periodicity: float):

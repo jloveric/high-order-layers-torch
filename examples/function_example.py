@@ -6,11 +6,12 @@ synaptic weights
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch_optimizer as alt_optim
+from pytorch_lightning import LightningModule, Trainer
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
-from pytorch_lightning import LightningModule, Trainer
+
 from high_order_layers_torch.layers import *
-import torch_optimizer as alt_optim
 
 
 class simple_func:

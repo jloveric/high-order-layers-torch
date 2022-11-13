@@ -1,10 +1,12 @@
 import os
+
 import pytest
+import torch
+
 from high_order_layers_torch.networks import (
     HighOrderFullyConvolutionalNetwork,
     HighOrderTailFocusNetwork,
 )
-import torch
 
 
 @pytest.mark.parametrize("segments", [1, 2])

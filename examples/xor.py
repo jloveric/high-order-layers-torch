@@ -3,20 +3,21 @@ This example is meant to demonstrate how you can map complex
 functions using a single input and single output with polynomial
 synaptic weights
 """
+import math
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torch.nn import functional as F
-from torch.utils.data import DataLoader, Dataset
-import high_order_layers_torch.PolynomialLayers as poly
-from torchvision.datasets import MNIST
 from pytorch_lightning import LightningModule, Trainer
+from torch.nn import functional as F
+from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
-from torch.utils.data import random_split
-from high_order_layers_torch.PolynomialLayers import *
-import math
-import os
+from torchvision.datasets import MNIST
+
+import high_order_layers_torch.PolynomialLayers as poly
 from high_order_layers_torch.layers import *
+from high_order_layers_torch.PolynomialLayers import *
 
 elements = 100
 a = torch.linspace(-1, 1, elements)

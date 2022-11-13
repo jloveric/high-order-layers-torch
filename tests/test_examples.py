@@ -1,11 +1,12 @@
-from examples.invariant_mnist import invariant_mnist
-from examples.cifar100 import cifar100
-from examples.xor import plot_approximation, model_set_d
-from examples.mnist import mnist
-from examples.function_example import plot_results
-from examples.cifar10 import run_cifar10
-from omegaconf import DictConfig, OmegaConf
 import pytest
+from omegaconf import DictConfig, OmegaConf
+
+from examples.cifar10 import run_cifar10
+from examples.cifar100 import cifar100
+from examples.function_example import plot_results
+from examples.invariant_mnist import invariant_mnist
+from examples.mnist import mnist
+from examples.xor import model_set_d, plot_approximation
 
 
 @pytest.mark.parametrize("p_refine", [True, False])

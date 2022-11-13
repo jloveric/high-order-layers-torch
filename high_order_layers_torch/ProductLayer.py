@@ -2,9 +2,9 @@ import math
 
 import torch
 from torch import Tensor
+from torch.nn import Module, init
 from torch.nn.parameter import Parameter
-from torch.nn import Module
-from torch.nn import init
+
 from .utils import *
 
 

@@ -1,13 +1,14 @@
+import os
+
+import hydra
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from pytorch_lightning import Trainer
-from high_order_layers_torch.layers import *
-import hydra
 from omegaconf import DictConfig, OmegaConf
-import os
+from pytorch_lightning import LightningDataModule, Trainer
+
+from high_order_layers_torch.layers import *
 from high_order_layers_torch.modules import ClassificationNet
-from pytorch_lightning import LightningDataModule
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]

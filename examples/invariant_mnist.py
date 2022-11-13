@@ -1,18 +1,20 @@
+import os
+
+import hydra
 import torch
-import torchvision
-import torchvision.transforms as transforms
-from pytorch_lightning import LightningModule, Trainer
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torch_optimizer as alt_optim
+import torchvision
+import torchvision.transforms as transforms
+from omegaconf import DictConfig, OmegaConf
+from pytorch_lightning import LightningModule, Trainer
 from torchmetrics.functional import accuracy
-from high_order_layers_torch.PolynomialLayers import *
+
 from high_order_layers_torch.layers import *
 from high_order_layers_torch.networks import *
-from omegaconf import DictConfig, OmegaConf
-import hydra
-import os
-import torch_optimizer as alt_optim
+from high_order_layers_torch.PolynomialLayers import *
 
 
 class Net(LightningModule):

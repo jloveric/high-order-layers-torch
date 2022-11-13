@@ -1,21 +1,23 @@
+import os
+
+import hydra
 import torch
+import torch.optim as optim
+import torch_optimizer as alt_optim
 import torchvision
 import torchvision.transforms as transforms
-import torch.optim as optim
-from pytorch_lightning import LightningModule, Trainer, Callback
-from high_order_layers_torch.layers import *
-import hydra
+from matplotlib.pyplot import figure
 from omegaconf import DictConfig, OmegaConf
-import os
+from pytorch_lightning import Callback, LightningModule, Trainer
+from pytorch_lightning.loggers import TensorBoardLogger
+from torchvision.utils import make_grid
+
+from high_order_layers_torch.layers import *
 from high_order_layers_torch.networks import (
-    VanillaVAE,
     HighOrderFullyConvolutionalNetwork,
     HighOrderFullyDeconvolutionalNetwork,
+    VanillaVAE,
 )
-from pytorch_lightning.loggers import TensorBoardLogger
-from matplotlib.pyplot import figure
-from torchvision.utils import make_grid
-import torch_optimizer as alt_optim
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
