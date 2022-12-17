@@ -478,17 +478,18 @@ def refine_polynomial_layer(
                 for j in range(segments_out) :
                     # compute x in the global space
                     x_global = layer_out.x_global(x_out, j)
+                    print('x_global.shape', x_global, x_out)
 
                     # figure out which segments these correspond to in the input
                     index_in = layer_in.which_segment(x_global)
 
                     # compute the local x value in the input so we can interpolate
                     x_local_in = layer_in.x_local(x_global, index_in)
-                    
+                    print('x_local', x_local_in)
                     # Since the segments may not be aligned, modify the weights one by one
                     for index, i in enumerate(index_in) :
                         print('index', index, 'index_in', index_in)
-                        print('x_local', x_local_in.shape)
+                        #print('x_local', x_local_in)
                         x = torch.tensor([[x_local_in[index,0]]])
                         print('x', x.shape)
                         #exit(0)

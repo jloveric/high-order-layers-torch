@@ -78,9 +78,13 @@ def test_interpolate_mlp(
     assert torch.allclose(y0, y1, rtol=1e-4)
 """
 
+#@pytest.mark.parametrize(
+#    "segments_in,segments_out,in_features,out_features,n",
+#    [(3, 5, 3, 2, 3), (5, 5, 2, 3, 2), (7, 5, 3, 2, 2)],
+#)
 @pytest.mark.parametrize(
     "segments_in,segments_out,in_features,out_features,n",
-    [(3, 5, 3, 2, 3), (5, 5, 2, 3, 2), (7, 5, 3, 2, 2)],
+    [(3, 6, 3, 2, 3)],
 )
 def test_refine_polynomial_layer(
     segments_in: int, segments_out: int, in_features: int, out_features: int, n: int
