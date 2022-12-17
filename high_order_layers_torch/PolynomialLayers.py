@@ -81,9 +81,9 @@ class Piecewise(nn.Module):
         out_features: int,
         segments: int,
         length: int = 2.0,
-        weight_magnitude=1.0,
+        weight_magnitude:float=1.0,
         poly=None,
-        periodicity=None,
+        periodicity:float=None,
         **kwargs,
     ):
         super().__init__()
@@ -104,7 +104,50 @@ class Piecewise(nn.Module):
         self._length = length
         self._half = 0.5 * length
 
-    def forward(self, x: torch.Tensor):
+    def which_segment(self, x: torch.Tensor) -> Tensor:
+        """
+        Return the segment(s) the x are in.  This is being added for
+        use with h-refinement
+        Args :
+            - x the input values
+        Returns :
+            - tensor of segment indices
+        """
+
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
+
+        # get the segment index
+        id_min = (((x + self._half) / self._length) * self._segments).long()
+        device = id_min.device
+        id_min = torch.where(
+            id_min <= self._segments - 1,
+            id_min,
+            torch.tensor(self._segments - 1, device=device),
+        )
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
+        
+        return id_min
+
+    def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor :
+        # compute x_local from x_global
+        x_min = self._eta(index)
+        x_max = self._eta(index+1)
+
+        # rescale to -1 to +1
+        x_local = self._length * ((x_global - x_min) / (x_max - x_min)) - self._half
+        return x_local
+
+    def x_global(self, x_local: torch.Tensor, index: torch.Tensor) -> torch.Tensor :
+        # compute x_global from x_local
+        x_min = self._eta(index)
+        x_max = self._eta(index+1)
+
+        x_global = ((x_local+self._half)/self._length)*(x_max-x_min)+x_min
+        return x_global
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         periodicity = self.periodicity
         if periodicity is not None:
@@ -426,15 +469,23 @@ def refine_polynomial_layer(
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
-                for i in range(segments_in):
+                
+                #i_set = layer_in.which_segment(x_out).flatten().tolist()
+                #j_set = layer_out.which_segment(x_out).flatten().tolist()
+                #print('i_set', i_set,'j_set', j_set)
+                
+                # loop through the out segments
+                for j in range(segments_out) :
+                    # compute x in the global space
+                    x_global = layer_out.x_global(x_out, j)
+                    i = layer_in.which_segment(x_global).flatten()
+                    x_local_in = layer_in.x_local(x_global, i)
+
                     w = w_in[
                         inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
                     ].reshape(1, 1, 1, -1)
-                    w_b = poly_in.interpolate(x_out, w)
+                    w_b = poly_in.interpolate(x_local_in, w)
                     w_out[
-                        inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
+                        inputs, outputs, j * (n_out - 1) : (j + 1) * (n_out - 1) + 1
                     ] = w_b.flatten()
 
-    raise ValueError(
-        "This isn't implemented yet, just copied from interpolate_polynomial_layer"
-    )

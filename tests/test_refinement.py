@@ -7,7 +7,7 @@ from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.networks import *
 from high_order_layers_torch.PolynomialLayers import *
 
-
+"""
 @pytest.mark.parametrize(
     "n_in,n_out,in_features,out_features,segments",
     [(3, 5, 3, 2, 5), (5, 5, 2, 3, 2), (7, 5, 3, 2, 5)],
@@ -76,3 +76,28 @@ def test_interpolate_mlp(
     y0 = network_in(x)
     y1 = network_out(x)
     assert torch.allclose(y0, y1, rtol=1e-4)
+"""
+
+@pytest.mark.parametrize(
+    "segments_in,segments_out,in_features,out_features,n",
+    [(3, 5, 3, 2, 3), (5, 5, 2, 3, 2), (7, 5, 3, 2, 2)],
+)
+def test_refine_polynomial_layer(
+    segments_in: int, segments_out: int, in_features: int, out_features: int, n: int
+):
+    layer_in = PiecewisePolynomial(
+        n=n, in_features=in_features, out_features=out_features, segments=segments_in
+    )
+    layer_out = PiecewisePolynomial(
+        n=n, in_features=in_features, out_features=out_features, segments=segments_out
+    )
+    refine_polynomial_layer(layer_in=layer_in, layer_out=layer_out)
+
+    x_in = torch.rand(2, in_features)
+    x_out_start = layer_in(x_in)
+    x_out_end = layer_out(x_in)
+
+    if segments_in <= segments_out:  # There should be no loss of information
+        assert torch.allclose(x_out_start, x_out_end, rtol=1e-5)
+    else:
+        pass
