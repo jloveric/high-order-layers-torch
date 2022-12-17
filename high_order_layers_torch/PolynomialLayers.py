@@ -15,7 +15,7 @@ class Function(nn.Module):
         basis,
         weight_magnitude: float = 1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self.poly = basis
@@ -60,7 +60,7 @@ class PolynomialProd(Function):
             in_features,
             out_features,
             LagrangePolyFlatProd(n, length=length),
-            **kwargs
+            **kwargs,
         )
 
 
@@ -81,10 +81,10 @@ class Piecewise(nn.Module):
         out_features: int,
         segments: int,
         length: int = 2.0,
-        weight_magnitude=1.0,
+        weight_magnitude: float = 1.0,
         poly=None,
-        periodicity=None,
-        **kwargs
+        periodicity: float = None,
+        **kwargs,
     ):
         super().__init__()
         self._poly = poly(n)
@@ -104,7 +104,50 @@ class Piecewise(nn.Module):
         self._length = length
         self._half = 0.5 * length
 
-    def forward(self, x: torch.Tensor):
+    def which_segment(self, x: torch.Tensor) -> Tensor:
+        """
+        Return the segment(s) the x are in.  This is being added for
+        use with h-refinement
+        Args :
+            - x the input values
+        Returns :
+            - tensor of segment indices
+        """
+
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
+
+        # get the segment index
+        id_min = (((x + self._half) / self._length) * self._segments).long()
+        device = id_min.device
+        id_min = torch.where(
+            id_min <= self._segments - 1,
+            id_min,
+            torch.tensor(self._segments - 1, device=device),
+        )
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
+
+        return id_min
+
+    def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+        # compute x_local from x_global
+        x_min = self._eta(index)
+        x_max = self._eta(index + 1)
+
+        # rescale to -1 to +1
+        x_local = self._length * ((x_global - x_min) / (x_max - x_min)) - self._half
+        return x_local
+
+    def x_global(self, x_local: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+        # compute x_global from x_local
+        x_min = self._eta(index)
+        x_max = self._eta(index + 1)
+
+        x_global = ((x_local + self._half) / self._length) * (x_max - x_min) + x_min
+        return x_global
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         periodicity = self.periodicity
         if periodicity is not None:
@@ -176,7 +219,7 @@ class PiecewisePolynomial(Piecewise):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -200,7 +243,7 @@ class PiecewisePolynomialProd(Piecewise):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -225,7 +268,7 @@ class PiecewiseDiscontinuous(nn.Module):
         weight_magnitude=1.0,
         poly=None,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self._poly = poly(n)
@@ -312,7 +355,7 @@ class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -336,7 +379,7 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -353,7 +396,16 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
 def interpolate_polynomial_layer(
     layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
 ) -> None:
+    """
+    Use layer_in to compute the weights in layer_out when layer_in and layer_out
+    have the same number of segments but different polynomial orders.  This technique
+    is called "p refinement" as it allows us to refine the polynomial order
+    Args :
+        - layer_in : The layer we will interpolate data from
+        - layer_out : The layer whose new weights we compute
+    """
 
+    # TODO don't access "private" add a property instead
     poly_in = layer_in._poly
     segments_in = layer_in._segments
     w_in = layer_in.w
@@ -361,6 +413,11 @@ def interpolate_polynomial_layer(
     poly_out = layer_out._poly
     segments_out = layer_out._segments
     w_out = layer_out.w
+
+    if segments_in != segments_out:
+        raise ValueError(
+            f"Number of input and output segments must be the same, got {segments_in} and {segments_out}"
+        )
 
     x_in = poly_in.basis.X.reshape(-1, 1)
     x_out = poly_out.basis.X.reshape(-1, 1)
@@ -380,3 +437,63 @@ def interpolate_polynomial_layer(
                     w_out[
                         inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
                     ] = w_b.flatten()
+
+
+def refine_polynomial_layer(
+    layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
+) -> None:
+    """
+    TODO: If the segments in and segments out are not multiples of each other accuracy
+    can be very wrong.  I need to investigate this further whether its a bug or if that's
+    in fact how the math works out.
+
+    Given an input layer with N segments, use that to initialize another layer (output layer)
+    with M segments.  It's assumed that the polynomial order of both segments are identical.
+    This technique would be "h refinement"
+    Args :
+        layer_in : The layer to interpolate from
+        layer_out : The layer whose weights are changed
+    """
+
+    poly_in = layer_in._poly
+    segments_in = layer_in._segments
+    w_in = layer_in.w
+
+    poly_out = layer_out._poly
+    segments_out = layer_out._segments
+    w_out = layer_out.w
+
+    x_in = poly_in.basis.X.reshape(-1, 1)
+    x_out = poly_out.basis.X.reshape(-1, 1)
+
+    n_in = poly_in.basis.n
+    n_out = poly_out.basis.n
+
+    # Compute the weights on polynomial b from a
+    with torch.no_grad():  # No grad so we can assign leaf variable in place
+        for inputs in range(w_in.shape[0]):
+            for outputs in range(w_in.shape[1]):
+
+                # TODO: I could probably do this as a single matrix operation,
+                # but this was easier for me to debug.  Also, it's not performance
+                # critical.
+
+                # loop through the out segments
+                for j in range(segments_out):
+                    # compute x in the global space
+                    x_global = layer_out.x_global(x_out, j)
+
+                    # figure out which segments these correspond to in the input
+                    index_in = layer_in.which_segment(x_global)
+
+                    # compute the local x value in the input so we can interpolate
+                    x_local_in = layer_in.x_local(x_global, index_in)
+
+                    # Since the segments may not be aligned, modify the weights one by one
+                    for index, i in enumerate(index_in):
+                        x = torch.tensor([[x_local_in[index, 0]]])
+                        w = w_in[
+                            inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
+                        ].reshape(1, 1, 1, -1)
+                        w_b = poly_in.interpolate(x, w)
+                        w_out[inputs, outputs, j * (n_out - 1) + index] = w_b.flatten()

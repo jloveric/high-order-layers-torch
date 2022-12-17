@@ -14,7 +14,10 @@ from high_order_layers_torch.layers import (
     high_order_convolution_transpose_layers,
     high_order_fc_layers,
 )
-from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_layer
+from high_order_layers_torch.PolynomialLayers import (
+    interpolate_polynomial_layer,
+    refine_polynomial_layer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -763,3 +766,34 @@ def interpolate_high_order_mlp(
 
     for l_in, l_out in layer_pairs:
         interpolate_polynomial_layer(l_in, l_out)
+
+
+def hp_refine_high_order_mlp(
+    network_in: HighOrderMLP, network_out: HighOrderMLP
+) -> None:
+    """
+    Create a new network with weights interpolated from network_in.  The only difference between
+    the 2 networks should be the number of segments, although changing polynomial order may also
+    work (needs to be investigated).  For now, I only get good interpolation when the number of
+    segments are multiples of each other.
+
+    Args :
+        network_in : The starting network with some polynomial order n
+        network_out : The output network.  This network should be initialized however its weights
+        will be overwritten with interpolations from network_in
+    """
+    layers_in = [
+        module
+        for module in network_in.model.modules()
+        if not isinstance(module, nn.Sequential)
+    ]
+    layers_out = [
+        module
+        for module in network_out.model.modules()
+        if not isinstance(module, nn.Sequential)
+    ]
+
+    layer_pairs = zip(layers_in, layers_out)
+
+    for l_in, l_out in layer_pairs:
+        refine_polynomial_layer(l_in, l_out)

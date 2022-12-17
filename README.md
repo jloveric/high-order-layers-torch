@@ -163,7 +163,7 @@ with polynomial refinement (p-refinement)
 ```
 python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=continuous n=2 p_refine=False target_n=5 p_refine=True
 ```
-
+I've also added hp refinement, but it needs a lot of testing.
 ## Implicit Representation
 
 An example of implicit representation for image compression, language generation can be found [here](https://github.com/jloveric/high-order-implicit-representation).  I intend to explore generative models in natural language further [here](https://github.com/jloveric/language-interpolation)
