@@ -793,17 +793,17 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "torch"
-version = "1.13.0"
+version = "1.13.1"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 category = "main"
 optional = false
 python-versions = ">=3.7.0"
 
 [package.dependencies]
-nvidia-cublas-cu11 = "11.10.3.66"
-nvidia-cuda-nvrtc-cu11 = "11.7.99"
-nvidia-cuda-runtime-cu11 = "11.7.99"
-nvidia-cudnn-cu11 = "8.5.0.96"
+nvidia-cublas-cu11 = {version = "11.10.3.66", markers = "platform_system == \"Linux\""}
+nvidia-cuda-nvrtc-cu11 = {version = "11.7.99", markers = "platform_system == \"Linux\""}
+nvidia-cuda-runtime-cu11 = {version = "11.7.99", markers = "platform_system == \"Linux\""}
+nvidia-cudnn-cu11 = {version = "8.5.0.96", markers = "platform_system == \"Linux\""}
 typing-extensions = "*"
 
 [package.extras]
@@ -846,7 +846,7 @@ text = ["nltk (>=3.6)", "tqdm (>=4.41.0)", "regex (>=2021.9.24)"]
 
 [[package]]
 name = "torchvision"
-version = "0.14.0"
+version = "0.14.1"
 description = "image and video datasets and models for torch deep learning"
 category = "dev"
 optional = false
@@ -856,7 +856,7 @@ python-versions = ">=3.7"
 numpy = "*"
 pillow = ">=5.3.0,<8.3.0 || >=8.4.0"
 requests = "*"
-torch = "1.13.0"
+torch = "1.13.1"
 typing-extensions = "*"
 
 [package.extras]
@@ -940,7 +940,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "e517c30e62521d5a5aa9b412add2afbd9a4362ad1882a6a836c7c7d365591d69"
+content-hash = "edeeb6e558358d615caa2346c4ea8ca63f898b678e772c59c67d5754e599b8e3"
 
 [metadata.files]
 aiohttp = []
