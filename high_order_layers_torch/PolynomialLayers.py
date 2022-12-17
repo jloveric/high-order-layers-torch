@@ -443,6 +443,10 @@ def refine_polynomial_layer(
     layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
 ) -> None:
     """
+    TODO: If the segments in and segments out are not multiples of each other accuracy
+    can be very wrong.  I need to investigate this further whether its a bug or if that's
+    in fact how the math works out.
+
     Given an input layer with N segments, use that to initialize another layer (output layer)
     with M segments.  It's assumed that the polynomial order of both segments are identical.
     This technique would be "h refinement"
@@ -470,33 +474,27 @@ def refine_polynomial_layer(
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
                 
-                #i_set = layer_in.which_segment(x_out).flatten().tolist()
-                #j_set = layer_out.which_segment(x_out).flatten().tolist()
-                #print('i_set', i_set,'j_set', j_set)
-                
+                # TODO: I could probably do this as a single matrix operation,
+                # but this was easier for me to debug.  Also, it's not performance
+                # critical.
+
                 # loop through the out segments
                 for j in range(segments_out) :
                     # compute x in the global space
                     x_global = layer_out.x_global(x_out, j)
-                    print('x_global.shape', x_global, x_out)
 
                     # figure out which segments these correspond to in the input
                     index_in = layer_in.which_segment(x_global)
 
                     # compute the local x value in the input so we can interpolate
                     x_local_in = layer_in.x_local(x_global, index_in)
-                    print('x_local', x_local_in)
+
                     # Since the segments may not be aligned, modify the weights one by one
                     for index, i in enumerate(index_in) :
-                        print('index', index, 'index_in', index_in)
-                        #print('x_local', x_local_in)
                         x = torch.tensor([[x_local_in[index,0]]])
-                        print('x', x.shape)
-                        #exit(0)
                         w = w_in[
                             inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
                         ].reshape(1, 1, 1, -1)
                         w_b = poly_in.interpolate(x, w)
-                        print('wb', w_b.flatten())
                         w_out[inputs, outputs, j * (n_out - 1) +index] = w_b.flatten()
 
