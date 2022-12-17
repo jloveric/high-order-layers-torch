@@ -15,7 +15,7 @@ class Function(nn.Module):
         basis,
         weight_magnitude: float = 1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self.poly = basis
@@ -60,7 +60,7 @@ class PolynomialProd(Function):
             in_features,
             out_features,
             LagrangePolyFlatProd(n, length=length),
-            **kwargs
+            **kwargs,
         )
 
 
@@ -84,7 +84,7 @@ class Piecewise(nn.Module):
         weight_magnitude=1.0,
         poly=None,
         periodicity=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self._poly = poly(n)
@@ -176,7 +176,7 @@ class PiecewisePolynomial(Piecewise):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -200,7 +200,7 @@ class PiecewisePolynomialProd(Piecewise):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -225,7 +225,7 @@ class PiecewiseDiscontinuous(nn.Module):
         weight_magnitude=1.0,
         poly=None,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self._poly = poly(n)
@@ -312,7 +312,7 @@ class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -336,7 +336,7 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             n,
@@ -353,6 +353,60 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
 def interpolate_polynomial_layer(
     layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
 ) -> None:
+    """
+    Use layer_in to compute the weights in layer_out when layer_in and layer_out
+    have the same number of segments but different polynomial orders.  This technique
+    is called "p refinement" as it allows us to refine the polynomial order
+    Args :
+        - layer_in : The layer we will interpolate data from
+        - layer_out : The layer whose new weights we compute
+    """
+
+    # TODO don't access "private" add a property instead
+    poly_in = layer_in._poly
+    segments_in = layer_in._segments
+    w_in = layer_in.w
+
+    poly_out = layer_out._poly
+    segments_out = layer_out._segments
+    w_out = layer_out.w
+
+    if segments_in != segments_out:
+        raise ValueError(
+            f"Number of input and output segments must be the same, got {segments_in} and {segments_out}"
+        )
+
+    x_in = poly_in.basis.X.reshape(-1, 1)
+    x_out = poly_out.basis.X.reshape(-1, 1)
+
+    n_in = poly_in.basis.n
+    n_out = poly_out.basis.n
+
+    # Compute the weights on polynomial b from a
+    with torch.no_grad():  # No grad so we can assign leaf variable in place
+        for inputs in range(w_in.shape[0]):
+            for outputs in range(w_in.shape[1]):
+                for i in range(segments_in):
+                    w = w_in[
+                        inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
+                    ].reshape(1, 1, 1, -1)
+                    w_b = poly_in.interpolate(x_out, w)
+                    w_out[
+                        inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
+                    ] = w_b.flatten()
+
+
+def refine_polynomial_layer(
+    layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
+) -> None:
+    """
+    Given an input layer with N segments, use that to initialize another layer (output layer)
+    with M segments.  It's assumed that the polynomial order of both segments are identical.
+    This technique would be "h refinement"
+    Args :
+        layer_in : The layer to interpolate from
+        layer_out : The layer whose weights are changed
+    """
 
     poly_in = layer_in._poly
     segments_in = layer_in._segments
@@ -380,3 +434,7 @@ def interpolate_polynomial_layer(
                     w_out[
                         inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
                     ] = w_b.flatten()
+
+    raise ValueError(
+        "This isn't implemented yet, just copied from interpolate_polynomial_layer"
+    )
