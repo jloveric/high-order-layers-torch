@@ -80,7 +80,7 @@ def test_interpolate_mlp(
 
 @pytest.mark.parametrize(
     "segments_in,segments_out,in_features,out_features,n",
-    [(3, 9, 3, 2, 3), (5, 5, 2, 3, 2), (7, 5, 3, 2, 2),(2, 12, 3, 2, 6)],
+    [(3, 9, 3, 2, 3), (5, 5, 2, 3, 2), (7, 5, 3, 2, 2), (2, 12, 3, 2, 6)],
 )
 def test_refine_polynomial_layer(
     segments_in: int, segments_out: int, in_features: int, out_features: int, n: int
@@ -101,3 +101,47 @@ def test_refine_polynomial_layer(
         assert torch.allclose(x_out_start, x_out_end, rtol=1e-3)
     else:
         pass
+
+
+@pytest.mark.parametrize(
+    "segments_in,segments_out,in_width,out_width,hidden_layers,hidden_width,n",
+    [(2, 4, 5, 5, 2, 5, 2), (3, 6, 5, 3, 3, 3, 3)],
+)
+def test_h_refinement_of_mlp(
+    segments_in, segments_out, in_width, out_width, hidden_layers, hidden_width, n
+):
+
+    network_in = HighOrderMLP(
+        layer_type="continuous",
+        n=n,
+        in_width=in_width,
+        out_width=out_width,
+        hidden_layers=hidden_layers,
+        hidden_width=hidden_width,
+        n_in=n,
+        n_hidden=n,
+        in_segments=segments_in,
+        out_segments=segments_in,
+        hidden_segments=segments_in,
+    )
+    network_out = HighOrderMLP(
+        layer_type="continuous",
+        n=n,
+        in_width=in_width,
+        out_width=out_width,
+        hidden_layers=hidden_layers,
+        hidden_width=hidden_width,
+        n_in=n,
+        n_out=n,
+        n_hidden=n,
+        in_segments=segments_out,
+        out_segments=segments_out,
+        hidden_segments=segments_out,
+    )
+
+    hp_refine_high_order_mlp(network_in, network_out)
+
+    x = torch.rand(2, 5)
+    y0 = network_in(x)
+    y1 = network_out(x)
+    assert torch.allclose(y0, y1, rtol=1e-3)

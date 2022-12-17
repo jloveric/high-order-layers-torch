@@ -14,7 +14,10 @@ from high_order_layers_torch.layers import (
     high_order_convolution_transpose_layers,
     high_order_fc_layers,
 )
-from high_order_layers_torch.PolynomialLayers import interpolate_polynomial_layer, refine_polynomial_layer
+from high_order_layers_torch.PolynomialLayers import (
+    interpolate_polynomial_layer,
+    refine_polynomial_layer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -764,7 +767,8 @@ def interpolate_high_order_mlp(
     for l_in, l_out in layer_pairs:
         interpolate_polynomial_layer(l_in, l_out)
 
-def hp_refinement_high_order_mlp(
+
+def hp_refine_high_order_mlp(
     network_in: HighOrderMLP, network_out: HighOrderMLP
 ) -> None:
     """

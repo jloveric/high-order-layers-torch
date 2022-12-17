@@ -81,9 +81,9 @@ class Piecewise(nn.Module):
         out_features: int,
         segments: int,
         length: int = 2.0,
-        weight_magnitude:float=1.0,
+        weight_magnitude: float = 1.0,
         poly=None,
-        periodicity:float=None,
+        periodicity: float = None,
         **kwargs,
     ):
         super().__init__()
@@ -127,24 +127,24 @@ class Piecewise(nn.Module):
             torch.tensor(self._segments - 1, device=device),
         )
         id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
-        
+
         return id_min
 
-    def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor :
+    def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
         # compute x_local from x_global
         x_min = self._eta(index)
-        x_max = self._eta(index+1)
+        x_max = self._eta(index + 1)
 
         # rescale to -1 to +1
         x_local = self._length * ((x_global - x_min) / (x_max - x_min)) - self._half
         return x_local
 
-    def x_global(self, x_local: torch.Tensor, index: torch.Tensor) -> torch.Tensor :
+    def x_global(self, x_local: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
         # compute x_global from x_local
         x_min = self._eta(index)
-        x_max = self._eta(index+1)
+        x_max = self._eta(index + 1)
 
-        x_global = ((x_local+self._half)/self._length)*(x_max-x_min)+x_min
+        x_global = ((x_local + self._half) / self._length) * (x_max - x_min) + x_min
         return x_global
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -473,13 +473,13 @@ def refine_polynomial_layer(
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
-                
+
                 # TODO: I could probably do this as a single matrix operation,
                 # but this was easier for me to debug.  Also, it's not performance
                 # critical.
 
                 # loop through the out segments
-                for j in range(segments_out) :
+                for j in range(segments_out):
                     # compute x in the global space
                     x_global = layer_out.x_global(x_out, j)
 
@@ -490,11 +490,10 @@ def refine_polynomial_layer(
                     x_local_in = layer_in.x_local(x_global, index_in)
 
                     # Since the segments may not be aligned, modify the weights one by one
-                    for index, i in enumerate(index_in) :
-                        x = torch.tensor([[x_local_in[index,0]]])
+                    for index, i in enumerate(index_in):
+                        x = torch.tensor([[x_local_in[index, 0]]])
                         w = w_in[
                             inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
                         ].reshape(1, 1, 1, -1)
                         w_b = poly_in.interpolate(x, w)
-                        w_out[inputs, outputs, j * (n_out - 1) +index] = w_b.flatten()
-
+                        w_out[inputs, outputs, j * (n_out - 1) + index] = w_b.flatten()
