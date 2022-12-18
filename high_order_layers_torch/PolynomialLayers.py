@@ -169,8 +169,8 @@ class Piecewise(nn.Module):
         wid_max = (id_max * (self._n - 1)).long() + 1
 
         # Fill in the ranges
-        wid_min_flat = wid_min.view(-1)
-        wid_max_flat = wid_max.view(-1)
+        wid_min_flat = wid_min.reshape(-1)
+        wid_max_flat = wid_max.reshape(-1)
         wrange = wid_min_flat.unsqueeze(-1) + torch.arange(self._n, device=device).view(
             -1
         )
