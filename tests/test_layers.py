@@ -50,3 +50,21 @@ def test_compare():
     bout = b(x)
 
     assert torch.allclose(aout, bout, atol=1e-5)
+
+
+@pytest.mark.parametrize("n", [2, 3])
+@pytest.mark.parametrize("in_features", [1, 3])
+@pytest.mark.parametrize("out_features", [1, 3])
+@pytest.mark.parametrize("segments", [2, 4])
+def test_smooth_discontinuous_layer(n, in_features, out_features, segments):
+    layer = PiecewiseDiscontinuousPolynomial(
+        n=n, in_features=in_features, out_features=out_features, segments=segments
+    )
+
+    # A factor of 1 will make the edges continuous.
+    smooth_discontinuous_layer(layer=layer, factor=1.0)
+
+    left = layer.w[:, :, (n - 1) : -1 : n]
+    right = layer.w[:, :, n:-1:n]
+
+    assert torch.all(torch.isclose(left, right, rtol=1e-3))

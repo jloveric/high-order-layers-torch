@@ -271,8 +271,8 @@ class PiecewiseDiscontinuous(nn.Module):
         **kwargs,
     ):
         super().__init__()
-        self._poly = poly(n)
         self._n = n
+        self._poly = poly(self._n)
         self._segments = segments
         self.in_features = in_features
         self.out_features = out_features
@@ -285,6 +285,13 @@ class PiecewiseDiscontinuous(nn.Module):
 
         self._length = length
         self._half = 0.5 * length
+
+    @property
+    def n(self) -> int:
+        """
+        The polynomial order
+        """
+        return self._n
 
     def forward(self, x: torch.Tensor):
         periodicity = self.periodicity
@@ -497,3 +504,24 @@ def refine_polynomial_layer(
                         ].reshape(1, 1, 1, -1)
                         w_b = poly_in.interpolate(x, w)
                         w_out[inputs, outputs, j * (n_out - 1) + index] = w_b.flatten()
+
+
+def smooth_discontinuous_layer(layer: PiecewiseDiscontinuous, factor: float):
+    """
+    Bring the discontinuous nodes closer together by the given
+    factor.
+    Args :
+        - layer: A layer of type piecewise discontinuous
+        - factor: 0.5 brings the high value down by 25% and the lower value
+        up by 25%.  With enough application the discontinuous node then
+        approximates a continuous one.
+    """
+    n = layer.n
+
+    # every nth interior node is discontinuous
+    with torch.no_grad():
+        left = layer.w[:, :, (n - 1) : -1 : n]
+        right = layer.w[:, :, n:-1:n]
+        diff = left - right
+        layer.w[:, :, (n - 1) : -1 : n] = left - 0.5 * factor * diff
+        layer.w[:, :, n:-1:n] = right + 0.5 * factor * diff
