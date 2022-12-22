@@ -53,9 +53,9 @@ def test_compare():
 
 
 @pytest.mark.parametrize("n", [2, 3])
-@pytest.mark.parametrize("in_features", [1, 3])
-@pytest.mark.parametrize("out_features", [1, 3])
-@pytest.mark.parametrize("segments", [2, 4])
+@pytest.mark.parametrize("in_features", [1, 2, 3])
+@pytest.mark.parametrize("out_features", [1, 2, 3])
+@pytest.mark.parametrize("segments", [2, 3, 4])
 def test_smooth_discontinuous_layer(n, in_features, out_features, segments):
     layer = PiecewiseDiscontinuousPolynomial(
         n=n, in_features=in_features, out_features=out_features, segments=segments
