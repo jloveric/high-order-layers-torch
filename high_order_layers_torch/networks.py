@@ -17,6 +17,8 @@ from high_order_layers_torch.layers import (
 from high_order_layers_torch.PolynomialLayers import (
     interpolate_polynomial_layer,
     refine_polynomial_layer,
+    smooth_discontinuous_layer,
+    PiecewiseDiscontinuous
 )
 
 logger = logging.getLogger(__name__)
@@ -712,7 +714,8 @@ class VanillaVAE(LightningModule):
         Args :
             num_samples: (Int) Number of samples
             current_device: (Int) Device to run the model
-        Returns (Tensor)
+        Returns :
+            (Tensor)
         """
         z = torch.randn(num_samples, self.latent_dim, device=self.device)
 
@@ -797,3 +800,12 @@ def hp_refine_high_order_mlp(
 
     for l_in, l_out in layer_pairs:
         refine_polynomial_layer(l_in, l_out)
+
+
+def smooth_discontinuous_network(network_in : torch.Module, factor: float) -> None :
+    layers = [
+        module for module in network_in.model.modules() if isinstance(module, PiecewiseDiscontinuous)
+    ]
+    
+    for layer in layers :
+        smooth_discontinuous_layer(layer=layer, factor=factor)
