@@ -802,7 +802,7 @@ def hp_refine_high_order_mlp(
         refine_polynomial_layer(l_in, l_out)
 
 
-def smooth_discontinuous_network(network_in : torch.Module, factor: float) -> None :
+def smooth_discontinuous_network(network_in : torch.nn.Module, factor: float) -> None :
     layers = [
         module for module in network_in.model.modules() if isinstance(module, PiecewiseDiscontinuous)
     ]
