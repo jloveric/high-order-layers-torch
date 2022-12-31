@@ -24,6 +24,7 @@ pre-commit = "^2.20.0"
 isort = "^5.10.1"
 pylint = "^2.15.5"
 torchvision = "^0.14.0"
+tensorboard = "^2.11.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

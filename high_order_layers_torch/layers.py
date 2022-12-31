@@ -1,7 +1,4 @@
-import numpy as np
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from torch.nn import Linear
 
 from .FunctionalConvolution import *
