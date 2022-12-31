@@ -48,7 +48,7 @@ class Net(LightningModule):
             periodicity=cfg.periodicity,
             hidden_layers=cfg.mlp.hidden.layers,
             hidden_width=cfg.mlp.hidden.width,
-            #normalization = MaxAbsNormalization
+            normalization = None if cfg.mlp.normalize is False else MaxAbsNormalization
         )
 
     def setup(self, stage):
