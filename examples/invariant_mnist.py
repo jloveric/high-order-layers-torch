@@ -181,7 +181,7 @@ def invariant_mnist(cfg: DictConfig):
             print(f"Training order {order}")
             trainer.fit(model)
             trainer.test(model)
-            cfg.n = order + 1
+            cfg.mlp.n = order + 1
             next_model = Net(cfg)
 
             interpolate_high_order_mlp(

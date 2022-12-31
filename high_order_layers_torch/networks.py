@@ -18,7 +18,8 @@ from high_order_layers_torch.PolynomialLayers import (
     interpolate_polynomial_layer,
     refine_polynomial_layer,
     smooth_discontinuous_layer,
-    PiecewiseDiscontinuous
+    PiecewiseDiscontinuous,
+    PiecewisePolynomial
 )
 
 logger = logging.getLogger(__name__)
@@ -768,7 +769,8 @@ def interpolate_high_order_mlp(
     layer_pairs = zip(layers_in, layers_out)
 
     for l_in, l_out in layer_pairs:
-        interpolate_polynomial_layer(l_in, l_out)
+        if isinstance(l_in, PiecewisePolynomial) :
+            interpolate_polynomial_layer(l_in, l_out)
 
 
 def hp_refine_high_order_mlp(

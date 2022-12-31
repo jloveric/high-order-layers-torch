@@ -6,6 +6,7 @@ synaptic weights
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.optim
 import torch_optimizer as alt_optim
 from pytorch_lightning import LightningModule, Trainer
 from torch.nn import functional as F
@@ -133,9 +134,9 @@ class PolynomialFunctionApproximation(LightningModule):
                 hessian_power=1.0,
             )
         elif self.optimizer == "adam":
-            return optim.Adam(self.parameters(), lr=0.001)
+            return torch.optim.Adam(self.parameters(), lr=0.001)
         elif self.optimizer == "lbfgs":
-            return optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
+            return torch.optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
         else:
             raise ValueError(f"Optimizer {self.optimizer} not recognized")
 

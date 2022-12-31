@@ -15,18 +15,40 @@ def test_invariant_mnist(p_refine: bool):
         content={
             "max_epochs": 1,
             "gpus": 0,
-            "n": 2,
             "batch_size": 64,
-            "segments": 2,
-            "layer_type": "continuous",
             "train_fraction": 0.0001,
             "val_fraction": 0.0001,
             "periodicity": 2.0,
-            "p_refine": p_refine,
-            "target_n": 3,
             "gradient_clip_val": 0,
-            "optimizer": "adam",  # adam,adahessian
-            "linear_part": 1.0,
+            "optimizer": {
+                "name": "adam",
+                "lr": 1e-4,
+                "patience": 5,
+                "factor": 0.1,
+                "gamma": 0.9,
+                "scheduler": "plateau"
+            },
+            "mlp" : {
+                "normalize" : True,
+                "segments" : 2,
+                "layer_type" : "continuous",
+                "p_refine" : p_refine,
+                "target_n" : 3,
+                "n" : 2,
+                "input" : {
+                    "width" : 784,
+                    "segments" : 2
+                },
+                "hidden" : {
+                    "width" : 10,
+                    "segments" : 2,
+                    "layers" : 1,
+                },
+                "output" : {
+                    "width" : 10,
+                    "segments" : 2
+                }
+            }
         }
     )
     result = invariant_mnist(cfg=cfg)
