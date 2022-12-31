@@ -4,6 +4,19 @@ from typing import List
 import torch
 from torch import Tensor
 
+def max_abs(x : Tensor) :
+    return torch.max(x.abs(), dim=1, keepdim=True)[0]
+
+def max_abs_normalization(x : Tensor, eps : float=1e-6) :
+    return x / (max_abs(x)+eps)
+
+def l2_normalization(x : Tensor, eps : float=1e-6) :
+    return x / (x.norm(2, 1, keepdim=True) + eps)
+
+norm_type = {
+    "max_abs" : max_abs_normalization,
+    "l2" : l2_normalization,
+}
 
 def make_periodic(x, periodicity: float):
     xp = x + 0.5 * periodicity
