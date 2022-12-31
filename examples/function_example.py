@@ -136,7 +136,9 @@ class PolynomialFunctionApproximation(LightningModule):
         elif self.optimizer == "adam":
             return torch.optim.Adam(self.parameters(), lr=0.001)
         elif self.optimizer == "lbfgs":
-            return torch.optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
+            return torch.optim.LBFGS(
+                self.parameters(), lr=1, max_iter=20, history_size=100
+            )
         else:
             raise ValueError(f"Optimizer {self.optimizer} not recognized")
 

@@ -48,7 +48,7 @@ class Net(LightningModule):
             periodicity=cfg.periodicity,
             hidden_layers=cfg.mlp.hidden.layers,
             hidden_width=cfg.mlp.hidden.width,
-            normalization = None if cfg.mlp.normalize is False else MaxAbsNormalization
+            normalization=None if cfg.mlp.normalize is False else MaxAbsNormalization,
         )
 
     def setup(self, stage):
@@ -166,10 +166,11 @@ def invariant_mnist(cfg: DictConfig):
 
     lr_monitor = LearningRateMonitor(logging_interval="step")
 
-
     diff = 1
     if cfg.mlp.p_refine is False:
-        trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus, callbacks=[lr_monitor])
+        trainer = Trainer(
+            max_epochs=cfg.max_epochs, gpus=cfg.gpus, callbacks=[lr_monitor]
+        )
         model = Net(cfg)
         trainer.fit(model)
     else:

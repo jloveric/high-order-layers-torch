@@ -19,7 +19,7 @@ from high_order_layers_torch.PolynomialLayers import (
     refine_polynomial_layer,
     smooth_discontinuous_layer,
     PiecewiseDiscontinuous,
-    PiecewisePolynomial
+    PiecewisePolynomial,
 )
 
 logger = logging.getLogger(__name__)
@@ -769,7 +769,7 @@ def interpolate_high_order_mlp(
     layer_pairs = zip(layers_in, layers_out)
 
     for l_in, l_out in layer_pairs:
-        if isinstance(l_in, PiecewisePolynomial) :
+        if isinstance(l_in, PiecewisePolynomial):
             interpolate_polynomial_layer(l_in, l_out)
 
 
@@ -804,10 +804,12 @@ def hp_refine_high_order_mlp(
         refine_polynomial_layer(l_in, l_out)
 
 
-def smooth_discontinuous_network(network_in : torch.nn.Module, factor: float) -> None :
+def smooth_discontinuous_network(network_in: torch.nn.Module, factor: float) -> None:
     layers = [
-        module for module in network_in.model.modules() if isinstance(module, PiecewiseDiscontinuous)
+        module
+        for module in network_in.model.modules()
+        if isinstance(module, PiecewiseDiscontinuous)
     ]
-    
-    for layer in layers :
+
+    for layer in layers:
         smooth_discontinuous_layer(layer=layer, factor=factor)

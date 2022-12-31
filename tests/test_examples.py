@@ -26,29 +26,23 @@ def test_invariant_mnist(p_refine: bool):
                 "patience": 5,
                 "factor": 0.1,
                 "gamma": 0.9,
-                "scheduler": "plateau"
+                "scheduler": "plateau",
             },
-            "mlp" : {
-                "normalize" : True,
-                "segments" : 2,
-                "layer_type" : "continuous",
-                "p_refine" : p_refine,
-                "target_n" : 3,
-                "n" : 2,
-                "input" : {
-                    "width" : 784,
-                    "segments" : 2
+            "mlp": {
+                "normalize": True,
+                "segments": 2,
+                "layer_type": "continuous",
+                "p_refine": p_refine,
+                "target_n": 3,
+                "n": 2,
+                "input": {"width": 784, "segments": 2},
+                "hidden": {
+                    "width": 10,
+                    "segments": 2,
+                    "layers": 1,
                 },
-                "hidden" : {
-                    "width" : 10,
-                    "segments" : 2,
-                    "layers" : 1,
-                },
-                "output" : {
-                    "width" : 10,
-                    "segments" : 2
-                }
-            }
+                "output": {"width": 10, "segments": 2},
+            },
         }
     )
     result = invariant_mnist(cfg=cfg)

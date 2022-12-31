@@ -8,20 +8,21 @@ from .ProductLayer import *
 from .utils import max_abs_normalization, l2_normalization
 
 
-class MaxAbsNormalization(nn.Module) :
-    def __init__(self, eps:float=1e-6) :
+class MaxAbsNormalization(nn.Module):
+    def __init__(self, eps: float = 1e-6):
         super().__init__()
         self._eps = eps
 
-    def forward(self, x) :
+    def forward(self, x):
         return max_abs_normalization(x, eps=self._eps)
 
-class L2Normalization(nn.Module) :
-    def __init__(self, eps:float=1e-6) :
+
+class L2Normalization(nn.Module):
+    def __init__(self, eps: float = 1e-6):
         super().__init__()
         self._eps = eps
-    
-    def forward(self, x) :
+
+    def forward(self, x):
         return l2_normalization(x, eps=self._eps)
 
 
