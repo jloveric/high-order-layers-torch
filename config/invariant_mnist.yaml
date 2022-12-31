@@ -23,7 +23,7 @@ mlp :
 
   # Set to true to do polynomial refinement
   p_refine: True
-  normalize: True
+  normalize: max_abs # l2 or False
 
   input :
     width: 784

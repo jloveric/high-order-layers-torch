@@ -25,6 +25,11 @@ class L2Normalization(nn.Module):
     def forward(self, x):
         return l2_normalization(x, eps=self._eps)
 
+normalization_layers = {
+    "max_abs" : MaxAbsNormalization,
+    "l2" : L2Normalization,
+}
+
 
 def LinearAdapter(*args, in_features: int, out_features: int, **kwargs):
     return Linear(in_features=in_features, out_features=out_features, bias=True)

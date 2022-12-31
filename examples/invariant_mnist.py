@@ -37,6 +37,10 @@ class Net(LightningModule):
         # We want to use second order optimizers
         self.automatic_optimization = False
 
+        normalization = None
+        if cfg.mlp.normalize is not False :
+            normalization = normalization_layers[cfg.mlp.normalize]
+
         self.layer = HighOrderMLP(
             layer_type=cfg.mlp.layer_type,
             n=cfg.mlp.n,
@@ -48,7 +52,7 @@ class Net(LightningModule):
             periodicity=cfg.periodicity,
             hidden_layers=cfg.mlp.hidden.layers,
             hidden_width=cfg.mlp.hidden.width,
-            normalization=None if cfg.mlp.normalize is False else MaxAbsNormalization,
+            normalization=normalization,
         )
 
     def setup(self, stage):

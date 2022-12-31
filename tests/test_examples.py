@@ -29,7 +29,7 @@ def test_invariant_mnist(p_refine: bool):
                 "scheduler": "plateau",
             },
             "mlp": {
-                "normalize": True,
+                "normalize": "max_abs",
                 "segments": 2,
                 "layer_type": "continuous",
                 "p_refine": p_refine,
