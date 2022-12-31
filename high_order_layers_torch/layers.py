@@ -5,10 +5,14 @@ from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
 from .PolynomialLayers import *
 from .ProductLayer import *
-from .utils import max_abs_normalization, l2_normalization
+from .utils import max_abs_normalization, l2_normalization, max_abs_normalization_nd
 
 
 class MaxAbsNormalization(nn.Module):
+    """
+    Normalization for the 1D case (MLP)
+    """
+
     def __init__(self, eps: float = 1e-6):
         super().__init__()
         self._eps = eps
@@ -17,7 +21,25 @@ class MaxAbsNormalization(nn.Module):
         return max_abs_normalization(x, eps=self._eps)
 
 
+class MaxAbsNormalizationND(nn.Module):
+    """
+    Normalization for ND case, specifically convolutions
+    but also works for MLP layers.
+    """
+
+    def __init__(self, eps: float = 1e-6):
+        super().__init__()
+        self._eps = eps
+
+    def forward(self, x):
+        return max_abs_normalization_nd(x, eps=self._eps)
+
+
 class L2Normalization(nn.Module):
+    """
+    L2 normalization for MLP layers
+    """
+
     def __init__(self, eps: float = 1e-6):
         super().__init__()
         self._eps = eps
@@ -25,9 +47,10 @@ class L2Normalization(nn.Module):
     def forward(self, x):
         return l2_normalization(x, eps=self._eps)
 
+
 normalization_layers = {
-    "max_abs" : MaxAbsNormalization,
-    "l2" : L2Normalization,
+    "max_abs": MaxAbsNormalization,
+    "l2": L2Normalization,
 }
 
 

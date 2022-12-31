@@ -38,7 +38,7 @@ class Net(LightningModule):
         self.automatic_optimization = False
 
         normalization = None
-        if cfg.mlp.normalize is not False :
+        if cfg.mlp.normalize is not False:
             normalization = normalization_layers[cfg.mlp.normalize]
 
         self.layer = HighOrderMLP(

@@ -17,6 +17,13 @@ def l2_normalization(x: Tensor, eps: float = 1e-6):
     return x / (x.norm(2, 1, keepdim=True) + eps)
 
 
+def max_abs_normalization_nd(x: Tensor, eps: float = 1e-6):
+    shape = x.shape
+    xn = x.reshape(shape[0], -1)
+    norm = xn / (max_abs(xn) + eps)
+    return norm.reshape(shape)
+
+
 norm_type = {
     "max_abs": max_abs_normalization,
     "l2": l2_normalization,
