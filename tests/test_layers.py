@@ -6,7 +6,12 @@ from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.networks import *
 from high_order_layers_torch.PolynomialLayers import *
-from high_order_layers_torch.layers import MaxAbsNormalization, MaxAbsNormalizationND, L2Normalization
+from high_order_layers_torch.layers import (
+    MaxAbsNormalization,
+    MaxAbsNormalizationND,
+    L2Normalization,
+)
+
 
 def test_nodes():
     ans = chebyshevLobatto(20)
@@ -69,23 +74,24 @@ def test_smooth_discontinuous_layer(n, in_features, out_features, segments):
 
     assert torch.all(torch.isclose(left, right, rtol=1e-3))
 
-def test_max_abs_layers() :
 
-    x = torch.tensor([[1,0.5,0.5],[2,0.5,0.5]])
+def test_max_abs_layers():
 
-    layer = MaxAbsNormalization(eps=0.0) 
+    x = torch.tensor([[1, 0.5, 0.5], [2, 0.5, 0.5]])
+
+    layer = MaxAbsNormalization(eps=0.0)
     ans = layer(x)
-    assert torch.all(torch.eq(ans[0],torch.tensor([1,0.5,0.5])))
+    assert torch.all(torch.eq(ans[0], torch.tensor([1, 0.5, 0.5])))
     assert torch.all(torch.eq(ans[1], torch.tensor([1, 0.25, 0.25])))
 
-    layer = MaxAbsNormalizationND(eps=0.0) 
+    layer = MaxAbsNormalizationND(eps=0.0)
     ans = layer(x)
-    assert torch.all(torch.eq(ans[0],torch.tensor([1,0.5,0.5])))
+    assert torch.all(torch.eq(ans[0], torch.tensor([1, 0.5, 0.5])))
     assert torch.all(torch.eq(ans[1], torch.tensor([1, 0.25, 0.25])))
 
-    x = torch.tensor([[[1,0.5,0.5],[2,0.5,0.5]],[[4,0.5,0.5],[8,0.5,0.5]]])
+    x = torch.tensor([[[1, 0.5, 0.5], [2, 0.5, 0.5]], [[4, 0.5, 0.5], [8, 0.5, 0.5]]])
     ans = layer(x)
-    assert torch.all(torch.eq(ans[0][0],torch.tensor([0.5,0.25,0.25])))
+    assert torch.all(torch.eq(ans[0][0], torch.tensor([0.5, 0.25, 0.25])))
     assert torch.all(torch.eq(ans[0][1], torch.tensor([1, 0.25, 0.25])))
-    assert torch.all(torch.eq(ans[1][0],torch.tensor([0.5,0.0625,0.0625])))
+    assert torch.all(torch.eq(ans[1][0], torch.tensor([0.5, 0.0625, 0.0625])))
     assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
