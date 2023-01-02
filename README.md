@@ -17,17 +17,37 @@ In the image below each "link" instead of being a single weight, is a function o
 ## Why
 
 Using higher order polynomial representations might allow networks with much fewer total weights. In physics, higher order methods
-can be much more efficient. Spectral and discontinuous galerkin methods are examples of this.  Note that a standard neural network with relu activations is piecewise linear.  Here there are no bias weights and the "non-linearity" is in the synapse. 
+can be much more efficient. Spectral and discontinuous galerkin methods are examples of this.  Note that a standard neural network with relu activations is piecewise linear.  Here there are no bias weights and the "non-linearity" is in the synapse.  Also, I've included discontinuous
+layers, in physics there are many problems that are discontinuous (most non-linear hyperbolic PDEs form discontinuities) in this case the method becomes a subgradient descent.
 
 In addition, it's well known that the dendrites are also computational units in neurons, for example [Dendritic action potentials and computation in human layer 2/3 cortical neurons](https://science.sciencemag.org/content/367/6473/83) and this is a simple way to add more computational power into the artificial neural network model. In addition it's been shown that a single pyramidal has the same computational capacity as a 5 to 8 layer convolutional NN, [Single cortical neurons as deep artificial neural networks](https://www.sciencedirect.com/science/article/abs/pii/S0896627321005018?dgcid=author)
 
 ## A note on the unit
-The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.  Product is performed in this manner
+The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.
+I almost always use sum units, but product units are performed in this manner
 
 $$ product=-1+\prod_{i}(1 + f_{i})+(1-\alpha)\sum_{i}f_{i} $$
 
 The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
 the alpha parameter.
+
+## Notes on normalization
+Although you can use batchnorm, layernorm etc... I've found that you can actually just use "max_abs" norm which has no parameters
+for this formulation (same approach seems not to work very well for standard relu networks - but need to investigate this further).
+The max_abs normalization is defined this way
+```
+normalized_x = x/(max(abs(x))+eps)
+```
+where the normalization is done per sample (as opposed to per batch).  The way the layers are formulated, we don't want the neuron
+values to extend beyond [-1, 1] as the polynomial values grow rapidly beyond that range.  I also use mirror periodicity to keep the
+values within from growing rapidly. We want the values to cover the entire range [-1, 1] of the polynomials as the weights 
+are packed towards the edges of each segment. Normalizing by the sample L2 norm pushes most of the values towards 
+zero, which I don't want.
+
+## Speed
+Solving with relu layers is faster, however, sparsity may mean that there is a speed advantage in using the piecewise polynomial approach
+when there are many segments.  There do seem to be situations where the piecewise polynomial approach is significantly better than
+standard relu layers.  Also, combining these layers with standard relu inputs, or using piecewise polynomial layer as inputs especially for implicit representation type problems (or as "positional embeddings") and in natural language problems seems to be useful.
 
 # Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.

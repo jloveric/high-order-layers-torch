@@ -6,10 +6,7 @@ train_fraction: 1.0
 val_fraction: 1.0
 periodicity: 2.0
 
-
-
 gradient_clip_val: 0
-
 
 mlp :
   
