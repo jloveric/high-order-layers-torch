@@ -10,16 +10,17 @@ from torch import Tensor
 from torch.nn import Linear
 
 from high_order_layers_torch.layers import (
+    fixed_rotation_layer,
     high_order_convolution_layers,
     high_order_convolution_transpose_layers,
     high_order_fc_layers,
 )
 from high_order_layers_torch.PolynomialLayers import (
+    PiecewiseDiscontinuous,
+    PiecewisePolynomial,
     interpolate_polynomial_layer,
     refine_polynomial_layer,
     smooth_discontinuous_layer,
-    PiecewiseDiscontinuous,
-    PiecewisePolynomial,
 )
 
 logger = logging.getLogger(__name__)
@@ -738,6 +739,78 @@ class VanillaVAE(LightningModule):
 class HighOrderMLPMixerBlock(nn.Module):
     # Follow this block https://papers.nips.cc/paper/2021/file/cba0a4ee5ccd02fda0fe3f9a3e7b89fe-Paper.pdf
     pass
+
+
+def transform_mlp(
+    layer_type: str,
+    in_width: int,
+    hidden_width: int,
+    out_width: int,
+    n: int,
+    n_in: int,
+    n_hidden: int,
+    n_out: int,
+    in_segments: int,
+    hidden_segments: int,
+    out_segments: int,
+    hidden_layers: int,
+    scale: float,
+    periodicity: float,
+    normalization: torch.nn.Module,
+    rotations: int,
+) -> torch.nn.Module:
+
+    fixed_input, fixed_output_width = fixed_rotation_layer(
+        n=in_width, rotations=rotations
+    )
+
+    mlp = HighOrderMLP(
+        layer_type=layer_type,
+        n=n,
+        n_in=n_in,
+        n_hidden=n_hidden,
+        n_out=n_out,
+        in_width=fixed_output_width,
+        in_segments=in_segments,
+        out_width=out_width,
+        out_segments=out_segments,
+        hidden_width=hidden_width,
+        hidden_layers=hidden_layers,
+        hidden_segments=hidden_segments,
+        normalization=normalization,
+        scale=scale,
+        periodicity=periodicity,
+    )
+    tl = [fixed_input, mlp]
+    model = torch.nn.Sequential(*tl)
+    return model
+
+
+def transform_low_mlp(
+    in_width: int,
+    hidden_width: int,
+    out_width: int,
+    hidden_layers: int,
+    non_linearity: None,
+    normalization: torch.nn.Module,
+    rotations: int,
+) -> torch.nn.Module:
+
+    fixed_input, fixed_output_width = fixed_rotation_layer(
+        n=in_width, rotations=rotations
+    )
+
+    mlp = LowOrderMLP(
+        in_width=fixed_output_width,
+        out_width=out_width,
+        hidden_width=hidden_width,
+        hidden_layers=hidden_layers,
+        non_linearity=non_linearity,
+        normalization=normalization,
+    )
+    tl = [fixed_input, mlp]
+    model = torch.nn.Sequential(*tl)
+    return model
 
 
 def interpolate_high_order_mlp(

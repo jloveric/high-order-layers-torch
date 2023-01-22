@@ -1,3 +1,5 @@
+import math
+
 import torch.nn as nn
 from torch.nn import Linear
 
@@ -5,7 +7,7 @@ from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
 from .PolynomialLayers import *
 from .ProductLayer import *
-from .utils import max_abs_normalization, l2_normalization, max_abs_normalization_nd
+from .utils import l2_normalization, max_abs_normalization, max_abs_normalization_nd
 
 
 class MaxAbsNormalization(nn.Module):
@@ -98,6 +100,57 @@ convolutional_layers = {
 convolutional_transpose_layers = {
     "continuous2d": PiecewisePolynomialConvolutionTranspose2d
 }
+
+
+def fixed_rotation_layer(n: int, rotations: int = 2):
+    """
+    Take n inputs and compute all the variations, n_i+n_j, n_i-n_j
+    and create a layer that computes these with fixed weights. For
+    n=2, and rotations=2 outputs [x, t, a(x+t), a(x-t)].  Returns a fixed
+    linear rotation layer (one that is not updated by gradients)
+    Args :
+        - n: The number of inputs, would be 2 for (x, t)
+        - rotations: Number of rotations to apply pair by based on the inputs. So
+        for input [x, y] and rotations=3, rotations are [x, y,a*(x+t), a*(x-t) ]
+    Returns :
+        A tuple containing the rotation layer and the output width of the layer
+    """
+
+    if rotations < 1:
+        raise ValueError(
+            f"Rotations must be 1 or greater. 1 represents no additional rotations. Got rotations={rotations}"
+        )
+
+    combos = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            for r in range(rotations):
+
+                # We need to add rotations from each of 2 quadrants
+                for t in range(2):
+                    a = t * math.pi / 2.0
+
+                    temp = [0] * n
+
+                    theta = a + math.pi * (r / rotations)
+                    rot_x = math.cos(theta)
+                    rot_y = math.sin(theta)
+
+                    # Add the line and the line orthogonal
+                    temp[i] += rot_x
+                    temp[j] += rot_y
+
+                    combos.append(temp)
+
+    # 2 inputs, 1 rotation -> 2 combos
+    # 2 inputs, 2 rotations -> 4 combos
+    # 2 inputs, 3 rotations -> 6 combos
+    # 2 inputs, 4 rotations -> 8 combos
+    output_width = n * (n - 1) * rotations
+    layer = torch.nn.Linear(n, n * (n - 1) * rotations, bias=False)
+    weights = torch.tensor(combos)
+    layer.weight = torch.nn.Parameter(weights, requires_grad=False)
+    return layer, output_width
 
 
 def high_order_fc_layers(layer_type: str, **kwargs):
