@@ -102,9 +102,7 @@ def test_max_abs_layers():
 @pytest.mark.parametrize("rotations", [1, 2, 3])
 def test_fixed_rotation_layer(n: int, rotations: int):
     layer, size = fixed_rotation_layer(n=n, rotations=rotations)
-    # print(layer.weight, size)
 
-    print("layer.shape", layer.weight)
     if n == 2 and rotations == 1:
         assert torch.allclose(
             torch.tensor([[1.0000e00, 0.0000e00], [0.0, 1.0000e00]]),
@@ -114,32 +112,53 @@ def test_fixed_rotation_layer(n: int, rotations: int):
         assert torch.allclose(
             torch.tensor(
                 [
-                    [
-                        [1.0000e00, 0.0000e00],
-                        [0, 1.0000e00],
-                        [7.0711e-01, 7.0711e-01],
-                        [-7.0711e-01, 7.0711e-01],
-                    ],
+                    [1.0000, 0.0000],
+                    [0.7071, 0.7071],
+                    [0.7071, -0.7071],
+                    [0.0000, 1.0000],
                 ]
             ),
             layer.weight,
         )
-    elif n == 2 and rotations == 3:
+    elif (n == 2) and (rotations == 3):
         assert torch.allclose(
             torch.tensor(
                 [
-                    [1.0000e00, 0.0000e00],
-                    [0, 1.0000e00],
-                    [8.6603e-01, 5.0000e-01],
-                    [-5.0000e-01, 8.6603e-01],
-                    [5.0000e-01, 8.6603e-01],
-                    [-8.6603e-01, 5.0000e-01],
+                    [1.0000, 0.0000],
+                    [0.8660, 0.5000],
+                    [0.5000, -0.8660],
+                    [0.5000, 0.8660],
+                    [0.8660, -0.5000],
+                    [0.0000, 1.0000],
                 ]
             ),
             layer.weight,
+            atol=1.0e-4
         )
     elif n == 3 and rotations == 1:
-        assert torch.allclose(torch.tensor(), layer.weight)
+        assert torch.allclose(
+            torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]),
+            layer.weight,
+        )
+    elif n == 3 and rotations == 2:
+        assert torch.allclose(
+            torch.tensor(
+                [
+                    [1.0000, 0.0000, 0.0000],
+                    [0.7071, 0.7071, 0.0000],
+                    [0.7071, -0.7071, 0.0000],
+                    [0.7071, 0.0000, 0.7071],
+                    [0.7071, 0.0000, -0.7071],
+                    [0.0000, 1.0000, 0.0000],
+                    [0.0000, 0.7071, 0.7071],
+                    [0.0000, 0.7071, -0.7071],
+                    [0.0000, 0.0000, 1.0000],
+                ]
+            ),
+            layer.weight,
+            atol=1e-4,
+        )
 
-    assert size == n * (n - 1) * rotations
-    assert layer.weight.shape == torch.Size([n * (n - 1) * rotations, n])
+    tsize = n+n*(n-1)*(rotations-1)
+    assert size == tsize
+    assert layer.weight.shape == torch.Size([tsize, n])

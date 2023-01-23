@@ -123,31 +123,38 @@ def fixed_rotation_layer(n: int, rotations: int = 2):
 
     combos = []
     for i in range(n):
+        reg = [0]*n
+        reg[i]=1.0
+        combos.append(reg)
+
         for j in range(i + 1, n):
-            for r in range(rotations):
+            for r in range(1,rotations):
 
                 # We need to add rotations from each of 2 quadrants
-                for t in range(2):
-                    a = t * math.pi / 2.0
+                temp = [0] * n
 
-                    temp = [0] * n
+                theta = (math.pi/2) * (r / rotations)
+                rot_x = math.cos(theta)
+                rot_y = math.sin(theta)
 
-                    theta = a + (math.pi/2) * (r / rotations)
-                    rot_x = math.cos(theta)
-                    rot_y = math.sin(theta)
+                # Add the line and the line orthogonal
+                temp[i] += rot_x
+                temp[j] += rot_y
 
-                    # Add the line and the line orthogonal
-                    temp[i] += rot_x
-                    temp[j] += rot_y
+                combos.append(temp)
 
-                    combos.append(temp)
+                other = [0]*n
+                other[i]+=rot_y
+                other[j]+=-rot_x
+
+                combos.append(other)
 
     # 2 inputs, 1 rotation -> 2 combos
     # 2 inputs, 2 rotations -> 4 combos
     # 2 inputs, 3 rotations -> 6 combos
     # 2 inputs, 4 rotations -> 8 combos
-    output_width = n * (n - 1) * rotations
-    layer = torch.nn.Linear(n, n * (n - 1) * rotations, bias=False)
+    output_width = n+ n * (n - 1) * (rotations-1)
+    layer = torch.nn.Linear(n, output_width, bias=False)
     weights = torch.tensor(combos)
     layer.weight = torch.nn.Parameter(weights, requires_grad=False)
     return layer, output_width
