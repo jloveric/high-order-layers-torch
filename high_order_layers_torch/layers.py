@@ -132,7 +132,7 @@ def fixed_rotation_layer(n: int, rotations: int = 2):
 
                     temp = [0] * n
 
-                    theta = a + math.pi * (r / rotations)
+                    theta = a + (math.pi/2) * (r / rotations)
                     rot_x = math.cos(theta)
                     rot_y = math.sin(theta)
 

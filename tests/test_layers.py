@@ -10,6 +10,7 @@ from high_order_layers_torch.layers import (
     MaxAbsNormalization,
     MaxAbsNormalizationND,
     L2Normalization,
+    fixed_rotation_layer,
 )
 
 
@@ -95,3 +96,50 @@ def test_max_abs_layers():
     assert torch.all(torch.eq(ans[0][1], torch.tensor([1, 0.25, 0.25])))
     assert torch.all(torch.eq(ans[1][0], torch.tensor([0.5, 0.0625, 0.0625])))
     assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
+
+
+@pytest.mark.parametrize("n", [2, 3])
+@pytest.mark.parametrize("rotations", [1, 2, 3])
+def test_fixed_rotation_layer(n: int, rotations: int):
+    layer, size = fixed_rotation_layer(n=n, rotations=rotations)
+    # print(layer.weight, size)
+
+    print("layer.shape", layer.weight)
+    if n == 2 and rotations == 1:
+        assert torch.allclose(
+            torch.tensor([[1.0000e00, 0.0000e00], [0.0, 1.0000e00]]),
+            layer.weight,
+        )
+    elif n == 2 and rotations == 2:
+        assert torch.allclose(
+            torch.tensor(
+                [
+                    [
+                        [1.0000e00, 0.0000e00],
+                        [0, 1.0000e00],
+                        [7.0711e-01, 7.0711e-01],
+                        [-7.0711e-01, 7.0711e-01],
+                    ],
+                ]
+            ),
+            layer.weight,
+        )
+    elif n == 2 and rotations == 3:
+        assert torch.allclose(
+            torch.tensor(
+                [
+                    [1.0000e00, 0.0000e00],
+                    [0, 1.0000e00],
+                    [8.6603e-01, 5.0000e-01],
+                    [-5.0000e-01, 8.6603e-01],
+                    [5.0000e-01, 8.6603e-01],
+                    [-8.6603e-01, 5.0000e-01],
+                ]
+            ),
+            layer.weight,
+        )
+    elif n == 3 and rotations == 1:
+        assert torch.allclose(torch.tensor(), layer.weight)
+
+    assert size == n * (n - 1) * rotations
+    assert layer.weight.shape == torch.Size([n * (n - 1) * rotations, n])
