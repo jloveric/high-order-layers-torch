@@ -1,3 +1,5 @@
+import random
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -525,3 +527,47 @@ def smooth_discontinuous_layer(layer: PiecewiseDiscontinuous, factor: float):
         diff = left - right
         layer.w[:, :, (n - 1) : -1 : n] = left - 0.5 * factor * diff
         layer.w[:, :, n:-1:n] = right + 0.5 * factor * diff
+
+
+def initialize_polynomial_layer(
+    layer_in: PiecewisePolynomial, max_slope=1.0, max_offset=0.0
+) -> None:
+    """
+    TODO: If the segments in and segments out are not multiples of each other accuracy
+    can be very wrong.  I need to investigate this further whether its a bug or if that's
+    in fact how the math works out.
+
+    Initialize the layer so that the initial value is a line accross the region.  Without
+    this, high order polynomials start out arbitrarily wiggly which can take time to flatten
+    out.
+
+    Args :
+        layer_in : The layer to initialize
+        max_slope : Maximum slope of the input
+        max_offset : Maximum mean value or b in ax+b
+    """
+
+    poly_in = layer_in._poly
+    segments_in = layer_in._segments
+    w_in = layer_in.w
+
+    x_in = poly_in.basis.X.reshape(-1, 1)
+    n_in = poly_in.basis.n
+
+    with torch.no_grad():  # No grad so we can assign leaf variable in place
+        for inputs in range(w_in.shape[0]):
+            for outputs in range(w_in.shape[1]):
+
+                a = max_slope * (random.random() * 2 - 1.0)
+                b = max_offset * (random.random() * 2 - 1.0)
+
+                for j in range(segments_in):
+
+                    # compute x in the global space
+                    x_global = layer_in.x_global(x_in, j)
+
+                    y_global = a * x_global + b
+
+                    w_in[
+                        inputs, outputs, j * (n_in - 1) : (j + 1) * (n_in - 1) + 1
+                    ] = y_global.flatten()

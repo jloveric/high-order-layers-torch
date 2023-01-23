@@ -4,14 +4,15 @@ import pytest
 
 from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
-from high_order_layers_torch.networks import *
-from high_order_layers_torch.PolynomialLayers import *
 from high_order_layers_torch.layers import (
+    L2Normalization,
     MaxAbsNormalization,
     MaxAbsNormalizationND,
-    L2Normalization,
     fixed_rotation_layer,
+    initialize_polynomial_layer,
 )
+from high_order_layers_torch.networks import *
+from high_order_layers_torch.PolynomialLayers import *
 
 
 def test_nodes():
@@ -133,7 +134,7 @@ def test_fixed_rotation_layer(n: int, rotations: int):
                 ]
             ),
             layer.weight,
-            atol=1.0e-4
+            atol=1.0e-4,
         )
     elif n == 3 and rotations == 1:
         assert torch.allclose(
@@ -159,6 +160,23 @@ def test_fixed_rotation_layer(n: int, rotations: int):
             atol=1e-4,
         )
 
-    tsize = n+n*(n-1)*(rotations-1)
+    tsize = n + n * (n - 1) * (rotations - 1)
     assert size == tsize
     assert layer.weight.shape == torch.Size([tsize, n])
+
+
+@pytest.mark.parametrize("n", [3, 10])
+@pytest.mark.parametrize("in_features", [2, 3])
+@pytest.mark.parametrize("out_features", [2, 3])
+@pytest.mark.parametrize("segments", [2, 3])
+@pytest.mark.parametrize("max_offset", [0.0])
+def test_initialize_polynomial(
+    n: int, in_features: int, out_features: int, segments: int, max_offset
+):
+    layer = PiecewisePolynomial(
+        n=n, in_features=in_features, out_features=out_features, segments=segments
+    )
+
+    initialize_polynomial_layer(layer, max_slope=1.0, max_offset=max_offset)
+
+    assert torch.allclose(layer.w[:, :, 0], -layer.w[:, :, -1])
