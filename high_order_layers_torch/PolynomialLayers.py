@@ -1,4 +1,5 @@
 import random
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -349,6 +350,23 @@ class PiecewiseDiscontinuous(nn.Module):
         result = self._poly.interpolate(x_in, w)
         return result
 
+    def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+        # compute x_local from x_global
+        x_min = self._eta(index)
+        x_max = self._eta(index + 1)
+
+        # rescale to -1 to +1
+        x_local = self._length * ((x_global - x_min) / (x_max - x_min)) - self._half
+        return x_local
+
+    def x_global(self, x_local: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+        # compute x_global from x_local
+        x_min = self._eta(index)
+        x_max = self._eta(index + 1)
+
+        x_global = ((x_local + self._half) / self._length) * (x_max - x_min) + x_min
+        return x_global
+
     def _eta(self, index: int):
         eta = index / float(self._segments)
         return eta * 2 - 1
@@ -530,13 +548,11 @@ def smooth_discontinuous_layer(layer: PiecewiseDiscontinuous, factor: float):
 
 
 def initialize_polynomial_layer(
-    layer_in: PiecewisePolynomial, max_slope=1.0, max_offset=0.0
+    layer_in: Union[PiecewisePolynomial, PiecewiseDiscontinuous],
+    max_slope: float = 1.0,
+    max_offset: float = 0.0,
 ) -> None:
     """
-    TODO: If the segments in and segments out are not multiples of each other accuracy
-    can be very wrong.  I need to investigate this further whether its a bug or if that's
-    in fact how the math works out.
-
     Initialize the layer so that the initial value is a line accross the region.  Without
     this, high order polynomials start out arbitrarily wiggly which can take time to flatten
     out.
@@ -547,12 +563,22 @@ def initialize_polynomial_layer(
         max_offset : Maximum mean value or b in ax+b
     """
 
+    if not isinstance(layer_in, (PiecewisePolynomial, PiecewiseDiscontinuous)):
+        return
+
     poly_in = layer_in._poly
     segments_in = layer_in._segments
     w_in = layer_in.w
 
     x_in = poly_in.basis.X.reshape(-1, 1)
     n_in = poly_in.basis.n
+
+    if isinstance(layer_in, PiecewisePolynomial):
+        nodes_per_segment = n_in - 1
+        upper_limit = 1
+    elif isinstance(layer_in, PiecewiseDiscontinuous):
+        nodes_per_segment = n_in
+        upper_limit = 0
 
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
@@ -569,5 +595,8 @@ def initialize_polynomial_layer(
                     y_global = a * x_global + b
 
                     w_in[
-                        inputs, outputs, j * (n_in - 1) : (j + 1) * (n_in - 1) + 1
+                        inputs,
+                        outputs,
+                        j * nodes_per_segment : (j + 1) * nodes_per_segment
+                        + upper_limit,
                     ] = y_global.flatten()

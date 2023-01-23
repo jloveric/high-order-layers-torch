@@ -180,3 +180,20 @@ def test_initialize_polynomial(
     initialize_polynomial_layer(layer, max_slope=1.0, max_offset=max_offset)
 
     assert torch.allclose(layer.w[:, :, 0], -layer.w[:, :, -1])
+
+
+@pytest.mark.parametrize("n", [3, 4])
+@pytest.mark.parametrize("in_features", [2, 3])
+@pytest.mark.parametrize("out_features", [2, 3])
+@pytest.mark.parametrize("segments", [2, 3])
+@pytest.mark.parametrize("max_offset", [0.0])
+def test_initialize_discontinuous_polynomial(
+    n: int, in_features: int, out_features: int, segments: int, max_offset
+):
+    layer = PiecewiseDiscontinuousPolynomial(
+        n=n, in_features=in_features, out_features=out_features, segments=segments
+    )
+
+    initialize_polynomial_layer(layer, max_slope=1.0, max_offset=max_offset)
+
+    assert torch.allclose(layer.w[:, :, 0], -layer.w[:, :, -1])
