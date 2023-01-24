@@ -9,6 +9,7 @@ from high_order_layers_torch.networks import (
     HighOrderMLP,
     transform_mlp,
     initialize_network_polynomial_layers,
+    LowOrderMLP,
 )
 
 
@@ -155,8 +156,8 @@ def test_tail_focus(segments, n, kernel_size, ctype, channels, layers):
 @pytest.mark.parametrize("layer_type", ["continuous", "discontinuous"])
 def test_initialize_network_polynomial_layers(layer_type: str):
 
-    in_width=3
-    out_width=2
+    in_width = 3
+    out_width = 2
     network = HighOrderMLP(
         layer_type=layer_type,
         n=3,
@@ -166,11 +167,30 @@ def test_initialize_network_polynomial_layers(layer_type: str):
         hidden_width=4,
         hidden_segments=2,
         in_segments=2,
-        out_segments=2
+        out_segments=2,
     )
-    initialize_network_polynomial_layers(network=network, max_slope=1.0, max_offset=0.0)
+    
     x = torch.rand(2, in_width)
+    s = network(x)
+    initialize_network_polynomial_layers(network=network, max_slope=1.0, max_offset=0.0)
     y = network(x)
 
-    # Ok, this tests nothing other than the thing runs
-    assert torch.Size([2,2])==y.shape
+    assert not torch.allclose(s,y)
+
+
+def test_ignores_non_polynomial_layers() :
+    in_width=3
+    out_width=2
+    network = LowOrderMLP(
+        in_width=in_width,
+        out_width=out_width,
+        hidden_layers=2,
+        hidden_width=4,
+    )
+
+    x = torch.rand(2, in_width)
+    s = network(x)
+    initialize_network_polynomial_layers(network=network, max_slope=1.0, max_offset=0.0)
+    y = network(x)
+
+    assert torch.allclose(s,y)
