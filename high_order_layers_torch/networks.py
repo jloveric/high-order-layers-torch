@@ -21,6 +21,7 @@ from high_order_layers_torch.PolynomialLayers import (
     interpolate_polynomial_layer,
     refine_polynomial_layer,
     smooth_discontinuous_layer,
+    initialize_polynomial_layer
 )
 
 logger = logging.getLogger(__name__)
@@ -811,6 +812,35 @@ def transform_low_mlp(
     tl = [fixed_input, mlp]
     model = torch.nn.Sequential(*tl)
     return model
+
+
+def initialize_network_polynomial_layers(network: nn.Module, max_slope:float, max_offset:float) -> None :
+    """
+    Loop through the elements of a network and initialize the Polynomial layers to linear. Layers could be 
+    very wiggly 3rd or 4th order layers and we don't want to initialize with all that noise.  Also accross
+    segments it should be a uniform line. Chooses slope and max_offset randomly for each feature/output pair.
+
+    Args :
+        - network : The network with layers to initialize
+        - max_slope : The maximum slope of the line passed to the output nodes
+        - max_offset : The maximum y intercept
+    Returns :
+        Nothing, updates network in place.
+    """
+    layers = [
+        module
+        for module in network.model.modules()
+        if not isinstance(module, nn.Sequential)
+    ]
+
+    for layer in layers:
+        if isinstance(layer, (PiecewisePolynomial, PiecewiseDiscontinuous)):
+            inputs = layer.in_features
+
+            # In the worst case all the inputs have the same slope, so we normalize by number
+            # of inputs.  Would still approach 0 avg slope for infinite width so maybe should
+            # using kaiming init...
+            initialize_polynomial_layer(layer,max_slope=max_slope/inputs, max_offset=max_offset)
 
 
 def interpolate_high_order_mlp(
