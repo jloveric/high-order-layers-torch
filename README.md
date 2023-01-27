@@ -156,7 +156,7 @@ Polynomial doesn't work well at all (expected).
 ## MNIST (convolutional)
 
 ```python
-python examples/mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous n=4 segments=2
+python examples/mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous2d n=4 segments=2
 ```
 
 ## CIFAR100 (convolutional)
@@ -177,11 +177,11 @@ python examples/variational_autoencoder.py -m
 ## Invariant MNIST (fully connected)
 Without polynomial refinement
 ```python
-python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=polynomial n=5 p_refine=False
+python examples/invariant_mnist.py max_epochs=100 train_fraction=1 mlp.layer_type=continuous mlp.n=5 mlp.p_refine=False mlp.hidden.layers=4
 ```
 with polynomial refinement (p-refinement)
 ```
-python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=continuous n=2 p_refine=False target_n=5 p_refine=True
+python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=mlp.continuous mlp.n=2 mlp.target_n=5 mlp.p_refine=True
 ```
 I've also added hp refinement, but it needs a lot of testing.
 ## Implicit Representation

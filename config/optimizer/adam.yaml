@@ -1,5 +1,5 @@
 name: adam
-lr: 1e-4
+lr: 1e-3
 patience: 5
 factor: 0.1
 gamma: 0.9

@@ -55,6 +55,8 @@ class Net(LightningModule):
             normalization=normalization,
         )
 
+        initialize_network_polynomial_layers(self.layer, max_slope=1.0, max_offset=0.0)
+
     def setup(self, stage):
         num_train = int(self._train_fraction * 50000)
         num_val = int(self._val_fraction * 10000)

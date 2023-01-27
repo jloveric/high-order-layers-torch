@@ -1,6 +1,6 @@
 max_epochs: 100
 gpus: 1
-batch_size: 64
+batch_size: 256
 
 train_fraction: 1.0
 val_fraction: 1.0
@@ -20,7 +20,7 @@ mlp :
 
   # Set to true to do polynomial refinement
   p_refine: True
-  normalize: max_abs # l2 or False
+  normalize: False #max_abs # l2 or False
 
   input :
     width: 784
