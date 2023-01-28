@@ -102,7 +102,7 @@ def test_max_abs_layers():
 @pytest.mark.parametrize("n", [2, 3])
 @pytest.mark.parametrize("rotations", [1, 2, 3])
 def test_fixed_rotation_layer(n: int, rotations: int):
-    layer, size = fixed_rotation_layer(n=n, rotations=rotations)
+    layer, size = fixed_rotation_layer(n=n, rotations=rotations, normalize=False)
 
     if n == 2 and rotations == 1:
         assert torch.allclose(
@@ -163,6 +163,13 @@ def test_fixed_rotation_layer(n: int, rotations: int):
     tsize = n + n * (n - 1) * (rotations - 1)
     assert size == tsize
     assert layer.weight.shape == torch.Size([tsize, n])
+
+
+@pytest.mark.parametrize("n", [2, 4])
+@pytest.mark.parametrize("rotations", [1, 2, 3])
+def test_fixed_rotation_layer_normalize(n: int, rotations: int):
+    layer, size = fixed_rotation_layer(n=n, rotations=rotations, normalize=True)
+    assert math.isclose(torch.sum(torch.abs(layer.weight)).item(), float(size))
 
 
 @pytest.mark.parametrize("n", [3, 10])
