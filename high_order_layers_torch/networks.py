@@ -10,6 +10,7 @@ from torch import Tensor
 from torch.nn import Linear
 
 from high_order_layers_torch.layers import (
+    SumLayer,
     fixed_rotation_layer,
     high_order_convolution_layers,
     high_order_convolution_transpose_layers,
@@ -18,10 +19,10 @@ from high_order_layers_torch.layers import (
 from high_order_layers_torch.PolynomialLayers import (
     PiecewiseDiscontinuous,
     PiecewisePolynomial,
+    initialize_polynomial_layer,
     interpolate_polynomial_layer,
     refine_polynomial_layer,
     smooth_discontinuous_layer,
-    initialize_polynomial_layer
 )
 
 logger = logging.getLogger(__name__)
@@ -173,6 +174,7 @@ class HighOrderMLP(nn.Module):
         out_segments: int = None,
         hidden_segments: int = None,
         normalization: Callable[[Any], Any] = None,
+        resnet: bool = False,
     ) -> None:
         """
         Args :
@@ -198,6 +200,7 @@ class HighOrderMLP(nn.Module):
             out_segments: Number of output segments for each link.
             hidden_segments: Number of hidden segments for each link.
             normalization: Normalization to apply after each layer (before any additional nonlinearity).
+            resnet: True if layer output should be added to the previous.
         """
         super().__init__()
         layer_list = []
@@ -232,6 +235,8 @@ class HighOrderMLP(nn.Module):
                 scale=scale,
                 periodicity=periodicity,
             )
+            if resnet is True:
+                hidden_layer = SumLayer(layer_list=[hidden_layer, layer_list[-1]])
             layer_list.append(hidden_layer)
 
         if normalization is not None:
@@ -814,9 +819,11 @@ def transform_low_mlp(
     return model
 
 
-def initialize_network_polynomial_layers(network: nn.Module, max_slope:float, max_offset:float) -> None :
+def initialize_network_polynomial_layers(
+    network: nn.Module, max_slope: float, max_offset: float
+) -> None:
     """
-    Loop through the elements of a network and initialize the Polynomial layers to linear. Layers could be 
+    Loop through the elements of a network and initialize the Polynomial layers to linear. Layers could be
     very wiggly 3rd or 4th order layers and we don't want to initialize with all that noise.  Also accross
     segments it should be a uniform line. Chooses slope and max_offset randomly for each feature/output pair.
 
@@ -840,7 +847,9 @@ def initialize_network_polynomial_layers(network: nn.Module, max_slope:float, ma
             # In the worst case all the inputs have the same slope, so we normalize by number
             # of inputs.  Would still approach 0 avg slope for infinite width so maybe should
             # using kaiming init...
-            initialize_polynomial_layer(layer,max_slope=max_slope/inputs, max_offset=max_offset)
+            initialize_polynomial_layer(
+                layer, max_slope=max_slope / inputs, max_offset=max_offset
+            )
 
 
 def interpolate_high_order_mlp(

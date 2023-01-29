@@ -8,7 +8,6 @@ from .FunctionalConvolutionTranspose import *
 from .PolynomialLayers import *
 from .ProductLayer import *
 from .utils import l2_normalization, max_abs_normalization, max_abs_normalization_nd
-import math
 
 
 class MaxAbsNormalization(nn.Module):
@@ -68,6 +67,16 @@ class LinearReluAdapter(nn.Module):
 
     def forward(self, x):
         return torch.nn.functional.relu(self.f.forward(x))
+
+
+class SumLayer(nn.Module):
+    def __init__(self, *args, layer_list: list[nn.Module], **kwargs):
+        super().__init__()
+        self._layer_list = layer_list
+
+    def forward(self, x):
+        x_all = [layer(x) for layer in self._layer_list]
+        return torch.add(*x_all)
 
 
 fc_layers = {
