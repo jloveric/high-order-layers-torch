@@ -180,7 +180,7 @@ class Piecewise(nn.Module):
 
         windex = (
             torch.div(
-                torch.arange(wrange.shape[0] * wrange.shape[1]),
+                torch.arange(wrange.shape[0] * wrange.shape[1], device=device),
                 self._n,
                 rounding_mode="floor",
             )
@@ -335,7 +335,7 @@ class PiecewiseDiscontinuous(nn.Module):
         # should be size batches*inputs*n
         windex = (
             torch.div(
-                torch.arange(wrange.shape[0] * wrange.shape[1]),
+                torch.arange(wrange.shape[0] * wrange.shape[1], device=device),
                 self._n,
                 rounding_mode="floor",
             )
