@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 import torch.nn as nn
@@ -235,7 +235,9 @@ class HighOrderMLP(nn.Module):
                 scale=scale,
                 periodicity=periodicity,
             )
-            if resnet is True:
+
+            # This will add the result of the previous layer after normalization
+            if resnet is True and i > 0:
                 hidden_layer = SumLayer(layer_list=[hidden_layer, layer_list[-1]])
             layer_list.append(hidden_layer)
 
@@ -760,10 +762,11 @@ def transform_mlp(
     hidden_segments: int,
     out_segments: int,
     hidden_layers: int,
-    scale: float,
-    periodicity: float,
-    normalization: torch.nn.Module,
     rotations: int,
+    scale: float = 2.0,
+    periodicity: float = 2.0,
+    normalization: Optional[torch.nn.Module] = None,
+    resnet: bool = False,
 ) -> torch.nn.Module:
 
     fixed_input, fixed_output_width = fixed_rotation_layer(
@@ -786,6 +789,7 @@ def transform_mlp(
         normalization=normalization,
         scale=scale,
         periodicity=periodicity,
+        resnet=resnet,
     )
     tl = [fixed_input, mlp]
     model = torch.nn.Sequential(*tl)

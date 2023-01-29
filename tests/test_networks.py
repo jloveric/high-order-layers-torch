@@ -5,11 +5,11 @@ import torch
 
 from high_order_layers_torch.networks import (
     HighOrderFullyConvolutionalNetwork,
-    HighOrderTailFocusNetwork,
     HighOrderMLP,
-    transform_mlp,
-    initialize_network_polynomial_layers,
+    HighOrderTailFocusNetwork,
     LowOrderMLP,
+    initialize_network_polynomial_layers,
+    transform_mlp,
 )
 
 
@@ -154,7 +154,40 @@ def test_tail_focus(segments, n, kernel_size, ctype, channels, layers):
 
 
 @pytest.mark.parametrize("layer_type", ["continuous", "discontinuous"])
-def test_initialize_network_polynomial_layers(layer_type: str):
+@pytest.mark.parametrize("resnet", [True, False])
+@pytest.mark.parametrize("rotations", [1, 3])
+def test_transform_mlp(layer_type: str, resnet: bool, rotations: int):
+
+    in_width = 3
+    out_width = 2
+    n = 3
+    network = transform_mlp(
+        layer_type=layer_type,
+        n=3,
+        n_in=n,
+        n_hidden=n,
+        n_out=n,
+        in_width=in_width,
+        out_width=out_width,
+        hidden_layers=2,
+        hidden_width=4,
+        hidden_segments=2,
+        in_segments=2,
+        out_segments=2,
+        resnet=resnet,
+        rotations=rotations,
+    )
+
+    x = torch.rand(2, in_width)
+    s = network(x)
+
+    # Not much of a test, just verify nothing crashes the code
+    assert isinstance(s, torch.Tensor)
+
+
+@pytest.mark.parametrize("layer_type", ["continuous", "discontinuous"])
+@pytest.mark.parametrize("resnet", [True, False])
+def test_initialize_network_polynomial_layers(layer_type: str, resnet: bool):
 
     in_width = 3
     out_width = 2
@@ -168,19 +201,20 @@ def test_initialize_network_polynomial_layers(layer_type: str):
         hidden_segments=2,
         in_segments=2,
         out_segments=2,
+        resnet=resnet,
     )
-    
+
     x = torch.rand(2, in_width)
     s = network(x)
     initialize_network_polynomial_layers(network=network, max_slope=1.0, max_offset=0.0)
     y = network(x)
 
-    assert not torch.allclose(s,y)
+    assert not torch.allclose(s, y)
 
 
-def test_ignores_non_polynomial_layers() :
-    in_width=3
-    out_width=2
+def test_ignores_non_polynomial_layers():
+    in_width = 3
+    out_width = 2
     network = LowOrderMLP(
         in_width=in_width,
         out_width=out_width,
@@ -193,4 +227,4 @@ def test_ignores_non_polynomial_layers() :
     initialize_network_polynomial_layers(network=network, max_slope=1.0, max_offset=0.0)
     y = network(x)
 
-    assert torch.allclose(s,y)
+    assert torch.allclose(s, y)
