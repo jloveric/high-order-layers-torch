@@ -22,34 +22,14 @@ layers, in physics there are many problems that are discontinuous (most non-line
 
 In addition, it's well known that the dendrites are also computational units in neurons, for example [Dendritic action potentials and computation in human layer 2/3 cortical neurons](https://science.sciencemag.org/content/367/6473/83) and this is a simple way to add more computational power into the artificial neural network model. In addition it's been shown that a single pyramidal has the same computational capacity as a 5 to 8 layer convolutional NN, [Single cortical neurons as deep artificial neural networks](https://www.sciencedirect.com/science/article/abs/pii/S0896627321005018?dgcid=author)
 
-## A note on the unit
-The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.
-I almost always use sum units, but product units are performed in this manner
 
-$$ product=-1+\prod_{i}(1 + f_{i})+(1-\alpha)\sum_{i}f_{i} $$
-
-The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
-the alpha parameter.
-
-## Notes on normalization
-Although you can use batchnorm, layernorm etc... I've found that you can actually just use the infinity norm ("max_abs" norm) which has no parameters
-for this formulation (same approach seems not to work very well for standard relu networks - but need to investigate this further).
-The max_abs normalization is defined this way
-```
-normalized_x = x/(max(abs(x))+eps)
-```
-where the normalization is done per sample (as opposed to per batch).  The way the layers are formulated, we don't want the neuron
-values to extend beyond [-1, 1] as the polynomial values grow rapidly beyond that range.  I also use mirror periodicity to keep the
-values within from growing rapidly. We want the values to cover the entire range [-1, 1] of the polynomials as the weights 
-are packed towards the edges of each segment. Normalizing by the sample L2 norm pushes most of the values towards 
-zero, which I don't want.
 
 ## Speed
 Solving with relu layers is faster, however, sparsity may mean that there is a speed advantage in using the piecewise polynomial approach
 when there are many segments.  There do seem to be situations where the piecewise polynomial approach is significantly better than
 standard relu layers.  Also, combining these layers with standard relu inputs, or using piecewise polynomial layer as inputs especially for implicit representation type problems (or as "positional embeddings") and in natural language problems seems to be useful.
 
-# Fully Connected Layer Types
+## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
 A helper function is provided in selecting and switching between these layers
@@ -58,7 +38,7 @@ A helper function is provided in selecting and switching between these layers
 from high_order_layers_torch.layers import *
 layer1 = high_order_fc_layers(
     layer_type=layer_type,
-    n=n, 
+    n=n,
     in_features=784,
     out_features=100,
     segments=segments,
@@ -82,15 +62,11 @@ where `layer_type` is one of
 
 `n` is the number of interpolation points per segment for polynomials or the number of frequencies for fourier series, `segments` is the number of segments for piecewise polynomials, `alpha` is used in product layers and when set to 1 keeps the linear part of the product, when set to 0 it subtracts the linear part from the product.
 
-## Product Layers
-
-Product layers
-
-# Convolutional Layer Types
+## Convolutional Layer Types
 
 ```python
 conv_layer = high_order_convolution_layers(layer_type=layer_type, n=n, in_channels=3, out_channels=6, kernel_size=5, segments=segments, rescale_output=rescale_output, periodicity=periodicity)
-```         
+```
 
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 | layer_type   | representation       |
@@ -100,6 +76,22 @@ All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 |polynomial(1d,2d) | single polynomial
 |fourier(1d,2d) | fourier series convolution
 
+## h and p refinement
+p refinement is taking an existing network and increasing the polynomial order of that network without changing the network output.  This allow the user to train a network at low polynomial order and then use that same network to initialize a network with higher polynomial order.  This is particularly useful since a high order polynomial network will often converge poorly without the right initialization, the lower order network provides a good initial solution.  The function for changing the order of a network is
+```
+from high_order_layers_torch.networks import interpolate_high_order_mlp
+interpolate_high_order_mlp(
+    network_in: HighOrderMLP, network_out: HighOrderMLP
+```
+current implementation only works with high order MLPs, not with convnets.  A similar function exists for h refinement.  h refinement is
+refining the number of segments in a layer, and is used for similar reasoning.  Layers with lots of segments may be slow to converge
+so the user starts with a small number of segments (1 or 2) and then increases the number of segments (h) using the lower initialization.  The following function currently only works for high order MLPs, not with convnets
+```
+from high_order_layers_torch.network import hp_refine_high_order_mlp
+hp_refine_high_order_mlp(
+    network_in: HighOrderMLP, network_out: HighOrderMLP
+)
+```
 # Installing
 
 ## Installing locally
@@ -142,11 +134,11 @@ the implicit representation page [here](https://github.com/jloveric/high-order-i
 ![fourier series](plots/fourier_series.png)
 
 ```python
-python examples/function_example.py 
+python examples/function_example.py
 ```
 
 ## XOR : 0.5 for x*y > 0 else -0.5
-Simple XOR problem using the standard network structure (2 inputs 2 hidden 1 output) this will also work with no hidden layers. The function is discontinuous along the axis and we try and fit that function. Using piecewise discontinuous layers the model can match the function exactly.  
+Simple XOR problem using the standard network structure (2 inputs 2 hidden 1 output) this will also work with no hidden layers. The function is discontinuous along the axis and we try and fit that function. Using piecewise discontinuous layers the model can match the function exactly.
 ![piecewise discontinuous polynomial](plots/xor_discontinuous.png)
 With piecewise continuous it doesn't work quite as well.
 ![piecewise continuous polynomial](plots/xor_continuous.png)
@@ -210,7 +202,7 @@ poetry shell
 ```
 run
 ```
-pytest 
+pytest
 ```
 for coverage, run
 ```
@@ -220,6 +212,29 @@ and then
 ```
 coverage report
 ```
+## A note on the unit
+The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.
+I almost always use sum units, but product units are performed in this manner
+
+$$ product=-1+\prod_{i}(1 + f_{i})+(1-\alpha)\sum_{i}f_{i} $$
+
+The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
+the alpha parameter.
+
+## Notes on normalization
+Although you can use batchnorm, layernorm etc... I've found that you can actually just use the infinity norm ("max_abs" norm) which has no parameters
+for this formulation (same approach seems not to work very well for standard relu networks - but need to investigate this further).
+The max_abs normalization is defined this way
+```
+normalized_x = x/(max(abs(x))+eps)
+```
+where the normalization is done per sample (as opposed to per batch).  The way the layers are formulated, we don't want the neuron
+values to extend beyond [-1, 1] as the polynomial values grow rapidly beyond that range.  I also use mirror periodicity to keep the
+values within from growing rapidly. We want the values to cover the entire range [-1, 1] of the polynomials as the weights
+are packed towards the edges of each segment. Normalizing by the sample L2 norm pushes most of the values towards
+zero, which I don't want.
+
+
 ## Reference
 ```
 @misc{Loverich2020,
