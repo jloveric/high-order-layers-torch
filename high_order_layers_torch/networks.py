@@ -824,7 +824,10 @@ def transform_low_mlp(
 
 
 def initialize_network_polynomial_layers(
-    network: nn.Module, max_slope: float, max_offset: float
+    network: nn.Module,
+    max_slope: float,
+    max_offset: float,
+    scale_slope: Callable[[float], float] = lambda input_size: 1,
 ) -> None:
     """
     Loop through the elements of a network and initialize the Polynomial layers to linear. Layers could be
@@ -835,6 +838,12 @@ def initialize_network_polynomial_layers(
         - network : The network with layers to initialize
         - max_slope : The maximum slope of the line passed to the output nodes
         - max_offset : The maximum y intercept
+        - scale_slope : Function that takes the number of inputs and scales the slope accordingly.
+                        Good guesses are below, it seems not scaling (default) works pretty well and
+                        1/input_size is bad for deep networks.
+                        scale_slope=lambda input_size : 1/input_size
+                        scale_slope=lambda input_size : 1/sqrt(input_size)
+                        scale_slope=lambda input_size : 1
     Returns :
         Nothing, updates network in place.
     """
@@ -852,7 +861,7 @@ def initialize_network_polynomial_layers(
             # of inputs.  Would still approach 0 avg slope for infinite width so maybe should
             # using kaiming init...
             initialize_polynomial_layer(
-                layer, max_slope=max_slope / inputs, max_offset=max_offset
+                layer, max_slope=max_slope * scale_slope(inputs), max_offset=max_offset
             )
 
 
