@@ -7,7 +7,7 @@ from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
 from .PolynomialLayers import *
 from .ProductLayer import *
-from .utils import l2_normalization, max_abs_normalization, max_abs_normalization_nd
+from .utils import l2_normalization, max_abs_normalization, max_abs_normalization_nd, max_center_normalization
 
 
 class MaxAbsNormalization(nn.Module):
@@ -21,6 +21,19 @@ class MaxAbsNormalization(nn.Module):
 
     def forward(self, x):
         return max_abs_normalization(x, eps=self._eps)
+
+class MaxCenterNormalization(nn.Module) :
+    """
+    Normalization for the 1D case (MLP) (x-avg)/(max(x)+eps) for each
+    sample of the batch.
+    """
+
+    def __init__(self, eps: float = 1e-6):
+        super().__init__()
+        self._eps = eps
+
+    def forward(self, x):
+        return max_center_normalization(x, eps=self._eps)
 
 
 class MaxAbsNormalizationND(nn.Module):

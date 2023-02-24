@@ -13,6 +13,17 @@ def max_abs_normalization(x: Tensor, eps: float = 1e-6):
     return x / (max_abs(x) + eps)
 
 
+def max_center_normalization(x: Tensor, eps: float = 1e-6):
+    max_x = torch.max(x, dim=1, keepdim=True)[0]
+    min_x = torch.min(x, dim=1, keepdim=True)[0]
+
+    mean = 0.5*(max_x + min_x)
+    mag = max_x - mean
+
+    centered = x - mean
+    return centered / (mag + eps)
+
+
 def l2_normalization(x: Tensor, eps: float = 1e-6):
     return x / (x.norm(2, 1, keepdim=True) + eps)
 
