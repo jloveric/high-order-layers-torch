@@ -17,10 +17,10 @@ def max_center_normalization(x: Tensor, eps: float = 1e-6):
     max_x = torch.max(x, dim=1, keepdim=True)[0]
     min_x = torch.min(x, dim=1, keepdim=True)[0]
 
-    mean = 0.5*(max_x + min_x)
-    mag = max_x - mean
+    midrange = 0.5*(max_x + min_x)
+    mag = max_x - midrange
 
-    centered = x - mean
+    centered = x - midrange
     return centered / (mag + eps)
 
 
