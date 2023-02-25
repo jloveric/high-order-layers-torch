@@ -102,38 +102,46 @@ def test_refine_polynomial_layer(
     else:
         pass
 
-
+"""
+@pytest.mark.parametrize("segments_in",[2])
+@pytest.mark.parametrize("segments_out", [4])
+@pytest.mark.parametrize("in_width",[5])
+@pytest.mark.parametrize("out_width", [5])
+@pytest.mark.parametrize
+"""
 @pytest.mark.parametrize(
-    "segments_in,segments_out,in_width,out_width,hidden_layers,hidden_width,n",
-    [(2, 4, 5, 5, 2, 5, 2), (3, 6, 5, 3, 3, 3, 3)],
+    "segments_in,segments_out,in_width,out_width,hidden_layers,hidden_width",
+    [(2, 4, 5, 5, 2, 5), (3, 6, 5, 3, 3, 3)],
 )
+@pytest.mark.parametrize("n_in",[2,3])
+@pytest.mark.parametrize("n_out",[3,4])
 def test_h_refinement_of_mlp(
-    segments_in, segments_out, in_width, out_width, hidden_layers, hidden_width, n
+    segments_in, segments_out, in_width, out_width, hidden_layers, hidden_width, n_in, n_out
 ):
 
     network_in = HighOrderMLP(
         layer_type="continuous",
-        n=n,
+        n=n_in,
         in_width=in_width,
         out_width=out_width,
         hidden_layers=hidden_layers,
         hidden_width=hidden_width,
-        n_in=n,
-        n_hidden=n,
+        n_in=n_in,
+        n_hidden=n_in,
         in_segments=segments_in,
         out_segments=segments_in,
         hidden_segments=segments_in,
     )
     network_out = HighOrderMLP(
         layer_type="continuous",
-        n=n,
+        n=n_out,
         in_width=in_width,
         out_width=out_width,
         hidden_layers=hidden_layers,
         hidden_width=hidden_width,
-        n_in=n,
-        n_out=n,
-        n_hidden=n,
+        n_in=n_out,
+        n_out=n_out,
+        n_hidden=n_out,
         in_segments=segments_out,
         out_segments=segments_out,
         hidden_segments=segments_out,

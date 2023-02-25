@@ -902,9 +902,8 @@ def hp_refine_high_order_mlp(
     network_in: HighOrderMLP, network_out: HighOrderMLP
 ) -> None:
     """
-    Create a new network with weights interpolated from network_in.  The only difference between
-    the 2 networks should be the number of segments, although changing polynomial order may also
-    work (needs to be investigated).  For now, I only get good interpolation when the number of
+    Create a new network with weights interpolated from network_in.  The user can change both the polynomial
+    order and the number of segments in each later.  For now, I only get good interpolation when the number of
     segments are multiples of each other.
 
     Args :
