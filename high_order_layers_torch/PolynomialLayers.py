@@ -296,6 +296,31 @@ class PiecewiseDiscontinuous(nn.Module):
         """
         return self._n
 
+    def which_segment(self, x: torch.Tensor) -> Tensor:
+        """
+        Return the segment(s) the x are in.  This is being added for
+        use with h-refinement
+        Args :
+            - x the input values
+        Returns :
+            - tensor of segment indices
+        """
+
+        periodicity = self.periodicity
+        if periodicity is not None:
+            x = make_periodic(x, periodicity)
+
+        # get the segment index
+        id_min = (((x + self._half) / self._length) * self._segments).long()
+        device = id_min.device
+        id_min = torch.where(
+            id_min <= self._segments - 1,
+            id_min,
+            torch.tensor(self._segments - 1, device=device),
+        )
+        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
+        return id_min
+
     def forward(self, x: torch.Tensor):
         periodicity = self.periodicity
         if periodicity is not None:
@@ -464,6 +489,71 @@ def interpolate_polynomial_layer(
                     w_out[
                         inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
                     ] = w_b.flatten()
+
+
+def refine_discontinuous_polynomial_layer(
+    layer_in: PiecewiseDiscontinuousPolynomial,
+    layer_out: PiecewiseDiscontinuousPolynomial,
+):
+    """
+    TODO: If the segments in and segments out are not multiples of each other accuracy
+    can be very wrong.  I need to investigate this further whether its a bug or if that's
+    in fact how the math works out.
+
+    Given an input layer with N segments, use that to initialize another layer (output layer)
+    with M segments.  It's assumed that the polynomial order of both segments are identical.
+    This technique would be "h refinement"
+    Args :
+        layer_in : The layer to interpolate from
+        layer_out : The layer whose weights are changed
+    """
+
+    poly_in = layer_in._poly
+    segments_in = layer_in._segments
+    w_in = layer_in.w
+
+    poly_out = layer_out._poly
+    segments_out = layer_out._segments
+    w_out = layer_out.w
+
+    x_in = poly_in.basis.X.reshape(-1, 1)
+    x_out = poly_out.basis.X.reshape(-1, 1)
+
+    n_in = poly_in.basis.n
+    n_out = poly_out.basis.n
+
+    # Compute the weights on polynomial b from a
+    with torch.no_grad():  # No grad so we can assign leaf variable in place
+        for inputs in range(w_in.shape[0]):
+            for outputs in range(w_in.shape[1]):
+
+                # TODO: I could probably do this as a single matrix operation,
+                # but this was easier for me to debug.  Also, it's not performance
+                # critical.
+
+                # loop through the out segments
+                for j in range(segments_out):
+                    # compute x in the global space
+                    x_global = layer_out.x_global(x_out, j)
+
+                    # figure out which segments these correspond to in the input
+                    # TODO: This is a problem in discontinuous at the boundaries
+                    # since x is contained by 2 segments
+                    index_in = layer_in.which_segment(x_global)
+                    
+                    print('index_in', index_in)
+                    raise ValueError('Since boundaries are doubled up at discontinuities there is ambiguity and this does not work.  This function needs to be fixed.')
+                    # compute the local x value in the input so we can interpolate
+                    x_local_in = layer_in.x_local(x_global, index_in)
+
+                    # Since the segments may not be aligned, modify the weights one by one
+                    for index, i in enumerate(index_in):
+                        x = torch.tensor([[x_local_in[index, 0]]])
+                        w = w_in[
+                            inputs, outputs, i * n_in : (i + 1) * n_in
+                        ].reshape(1, 1, 1, -1)
+                        w_b = poly_in.interpolate(x, w)
+                        w_out[inputs, outputs, j * (n_out) + index] = w_b.flatten()
 
 
 def refine_polynomial_layer(

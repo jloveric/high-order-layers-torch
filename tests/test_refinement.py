@@ -115,12 +115,13 @@ def test_refine_polynomial_layer(
 )
 @pytest.mark.parametrize("n_in",[2,3])
 @pytest.mark.parametrize("n_out",[3,4])
+@pytest.mark.parametrize("layer_type", ["continuous"]) # TODO: add back in "discontinuous" when working
 def test_h_refinement_of_mlp(
-    segments_in, segments_out, in_width, out_width, hidden_layers, hidden_width, n_in, n_out
+    segments_in, segments_out, in_width, out_width, hidden_layers, hidden_width, n_in, n_out, layer_type
 ):
 
     network_in = HighOrderMLP(
-        layer_type="continuous",
+        layer_type=layer_type,
         n=n_in,
         in_width=in_width,
         out_width=out_width,
@@ -133,7 +134,7 @@ def test_h_refinement_of_mlp(
         hidden_segments=segments_in,
     )
     network_out = HighOrderMLP(
-        layer_type="continuous",
+        layer_type=layer_type,
         n=n_out,
         in_width=in_width,
         out_width=out_width,

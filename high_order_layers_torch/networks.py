@@ -22,6 +22,7 @@ from high_order_layers_torch.PolynomialLayers import (
     initialize_polynomial_layer,
     interpolate_polynomial_layer,
     refine_polynomial_layer,
+    refine_discontinuous_polynomial_layer,
     smooth_discontinuous_layer,
 )
 
@@ -925,7 +926,10 @@ def hp_refine_high_order_mlp(
     layer_pairs = zip(layers_in, layers_out)
 
     for l_in, l_out in layer_pairs:
-        refine_polynomial_layer(l_in, l_out)
+        if isinstance(l_in, PiecewisePolynomial) and isinstance(l_out, PiecewisePolynomial) :
+            refine_polynomial_layer(l_in, l_out)
+        elif isinstance(l_in, PiecewiseDiscontinuous) and isinstance(l_out, PiecewiseDiscontinuous) :
+            refine_discontinuous_polynomial_layer(l_in, l_out)
 
 
 def smooth_discontinuous_network(network_in: torch.nn.Module, factor: float) -> None:
