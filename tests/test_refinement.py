@@ -12,13 +12,21 @@ from high_order_layers_torch.PolynomialLayers import *
     "n_in,n_out,in_features,out_features,segments",
     [(3, 5, 3, 2, 5), (5, 5, 2, 3, 2), (7, 5, 3, 2, 5)],
 )
+@pytest.mark.parametrize(
+    "layer_type", [PiecewisePolynomial, PiecewiseDiscontinuousPolynomial]
+)
 def test_interpolate_layer(
-    n_in: int, n_out: int, in_features: int, out_features: int, segments: int
+    n_in: int,
+    n_out: int,
+    in_features: int,
+    out_features: int,
+    segments: int,
+    layer_type: Union[PiecewisePolynomial, PiecewiseDiscontinuousPolynomial],
 ):
-    layer_in = PiecewisePolynomial(
+    layer_in = layer_type(
         n=n_in, in_features=in_features, out_features=out_features, segments=segments
     )
-    layer_out = PiecewisePolynomial(
+    layer_out = layer_type(
         n=n_out, in_features=in_features, out_features=out_features, segments=segments
     )
     interpolate_polynomial_layer(layer_in=layer_in, layer_out=layer_out)
