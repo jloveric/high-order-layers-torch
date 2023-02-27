@@ -446,7 +446,8 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
 
 
 def interpolate_polynomial_layer(
-    layer_in: PiecewisePolynomial, layer_out: PiecewisePolynomial
+    layer_in: Union[PiecewisePolynomial, PiecewiseDiscontinuousPolynomial],
+    layer_out: Union[PiecewisePolynomial, PiecewiseDiscontinuousPolynomial],
 ) -> None:
     """
     Use layer_in to compute the weights in layer_out when layer_in and layer_out
@@ -477,17 +478,28 @@ def interpolate_polynomial_layer(
     n_in = poly_in.basis.n
     n_out = poly_out.basis.n
 
+    if isinstance(layer_in, PiecewisePolynomial):
+        offset = -1
+        end = 1
+    elif isinstance(layer_in, PiecewiseDiscontinuousPolynomial):
+        offset = 0
+        end = 0
+
     # Compute the weights on polynomial b from a
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
                 for i in range(segments_in):
                     w = w_in[
-                        inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
+                        inputs,
+                        outputs,
+                        i * (n_in + offset) : (i + 1) * (n_in + offset) + end,
                     ].reshape(1, 1, 1, -1)
                     w_b = poly_in.interpolate(x_out, w)
                     w_out[
-                        inputs, outputs, i * (n_out - 1) : (i + 1) * (n_out - 1) + 1
+                        inputs,
+                        outputs,
+                        i * (n_out + offset) : (i + 1) * (n_out + offset) + end,
                     ] = w_b.flatten()
 
 
@@ -540,18 +552,20 @@ def refine_discontinuous_polynomial_layer(
                     # TODO: This is a problem in discontinuous at the boundaries
                     # since x is contained by 2 segments
                     index_in = layer_in.which_segment(x_global)
-                    
-                    print('index_in', index_in)
-                    raise ValueError('Since boundaries are doubled up at discontinuities there is ambiguity and this does not work.  This function needs to be fixed.')
+
+                    print("index_in", index_in)
+                    raise ValueError(
+                        "Since boundaries are doubled up at discontinuities there is ambiguity and this does not work.  This function needs to be fixed."
+                    )
                     # compute the local x value in the input so we can interpolate
                     x_local_in = layer_in.x_local(x_global, index_in)
 
                     # Since the segments may not be aligned, modify the weights one by one
                     for index, i in enumerate(index_in):
                         x = torch.tensor([[x_local_in[index, 0]]])
-                        w = w_in[
-                            inputs, outputs, i * n_in : (i + 1) * n_in
-                        ].reshape(1, 1, 1, -1)
+                        w = w_in[inputs, outputs, i * n_in : (i + 1) * n_in].reshape(
+                            1, 1, 1, -1
+                        )
                         w_b = poly_in.interpolate(x, w)
                         w_out[inputs, outputs, j * (n_out) + index] = w_b.flatten()
 

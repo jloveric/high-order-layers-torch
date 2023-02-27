@@ -37,12 +37,13 @@ def test_interpolate_layer(
     "segments,in_width,out_width,hidden_layers,hidden_width,n0,n1",
     [(2, 5, 5, 2, 5, 2, 3), (2, 5, 3, 3, 3, 3, 5)],
 )
+@pytest.mark.parametrize("layer_type", ["continuous", "discontinuous"])
 def test_interpolate_mlp(
-    segments, in_width, out_width, hidden_layers, hidden_width, n0, n1
+    segments, in_width, out_width, hidden_layers, hidden_width, n0, n1, layer_type
 ):
 
     network_in = HighOrderMLP(
-        layer_type="continuous",
+        layer_type=layer_type,
         n=n0,
         in_width=in_width,
         out_width=out_width,
@@ -56,7 +57,7 @@ def test_interpolate_mlp(
         hidden_segments=segments,
     )
     network_out = HighOrderMLP(
-        layer_type="continuous",
+        layer_type=layer_type,
         n=n1,
         in_width=in_width,
         out_width=out_width,
@@ -82,13 +83,19 @@ def test_interpolate_mlp(
     "segments_in,segments_out,in_features,out_features,n",
     [(3, 9, 3, 2, 3), (5, 5, 2, 3, 2), (7, 5, 3, 2, 2), (2, 12, 3, 2, 6)],
 )
+@pytest.mark.parametrize("layer_type", [PiecewisePolynomial])
 def test_refine_polynomial_layer(
-    segments_in: int, segments_out: int, in_features: int, out_features: int, n: int
+    segments_in: int,
+    segments_out: int,
+    in_features: int,
+    out_features: int,
+    n: int,
+    layer_type: Union[PiecewisePolynomial, PiecewiseDiscontinuousPolynomial],
 ):
-    layer_in = PiecewisePolynomial(
+    layer_in = layer_type(
         n=n, in_features=in_features, out_features=out_features, segments=segments_in
     )
-    layer_out = PiecewisePolynomial(
+    layer_out = layer_type(
         n=n, in_features=in_features, out_features=out_features, segments=segments_out
     )
     refine_polynomial_layer(layer_in=layer_in, layer_out=layer_out)
@@ -102,22 +109,26 @@ def test_refine_polynomial_layer(
     else:
         pass
 
-"""
-@pytest.mark.parametrize("segments_in",[2])
-@pytest.mark.parametrize("segments_out", [4])
-@pytest.mark.parametrize("in_width",[5])
-@pytest.mark.parametrize("out_width", [5])
-@pytest.mark.parametrize
-"""
+
 @pytest.mark.parametrize(
     "segments_in,segments_out,in_width,out_width,hidden_layers,hidden_width",
     [(2, 4, 5, 5, 2, 5), (3, 6, 5, 3, 3, 3)],
 )
-@pytest.mark.parametrize("n_in",[2,3])
-@pytest.mark.parametrize("n_out",[3,4])
-@pytest.mark.parametrize("layer_type", ["continuous"]) # TODO: add back in "discontinuous" when working
+@pytest.mark.parametrize("n_in", [2, 3])
+@pytest.mark.parametrize("n_out", [3, 4])
+@pytest.mark.parametrize(
+    "layer_type", ["continuous"]
+)  # TODO: add back in "discontinuous" when working
 def test_h_refinement_of_mlp(
-    segments_in, segments_out, in_width, out_width, hidden_layers, hidden_width, n_in, n_out, layer_type
+    segments_in,
+    segments_out,
+    in_width,
+    out_width,
+    hidden_layers,
+    hidden_width,
+    n_in,
+    n_out,
+    layer_type,
 ):
 
     network_in = HighOrderMLP(
