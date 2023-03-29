@@ -136,3 +136,4 @@ MNIST
 *.pth
 outputs
 multirun
+poetry.lock
