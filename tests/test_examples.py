@@ -14,7 +14,7 @@ def test_invariant_mnist(p_refine: bool):
     cfg = DictConfig(
         content={
             "max_epochs": 1,
-            "gpus": 0,
+            "accelerator": 'cpu',
             "batch_size": 64,
             "train_fraction": 0.0001,
             "val_fraction": 0.0001,
@@ -56,7 +56,7 @@ def test_cifar100():
     cfg = DictConfig(
         content={
             "max_epochs": 1,
-            "gpus": 0,
+            "accelerator": "cpu",
             "n": 5,
             "batch_size": 128,
             "segments": 2,
@@ -79,7 +79,7 @@ def test_mnist():
     cfg = DictConfig(
         content={
             "max_epochs": 1,
-            "gpus": 0,
+            "accelerator": "cpu",
             "n": 3,
             "batch_size": 16,
             "segments": 2,

@@ -1,5 +1,5 @@
 max_epochs: 20
-gpus: 1
+accelerator: gpu
 batch_size: 128
 layer_type: continuous2d
 train_fraction: 1.0

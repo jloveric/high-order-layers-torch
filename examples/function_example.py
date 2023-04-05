@@ -196,14 +196,14 @@ def plot_approximation(
     model_set,
     segments,
     epochs,
-    gpus=0,
+    accelerator='cpu',
     periodicity=None,
     plot_result=True,
     opt="adam",
 ):
     for i in range(0, len(model_set)):
 
-        trainer = Trainer(max_epochs=epochs, gpus=gpus)
+        trainer = Trainer(max_epochs=epochs, accelerator=accelerator)
 
         model = PolynomialFunctionApproximation(
             n=model_set[i]["n"],
@@ -274,7 +274,7 @@ def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
         if plot is True:
             plt.figure(index)
         plot_approximation(
-            element["layer"], element["model_set"], 5, epochs, gpus=0, periodicity=2
+            element["layer"], element["model_set"], 5, epochs, accelerator='cpu', periodicity=2
         )
 
         if plot is True:

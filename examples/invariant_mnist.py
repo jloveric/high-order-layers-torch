@@ -175,7 +175,7 @@ def invariant_mnist(cfg: DictConfig):
     diff = 1
     if cfg.mlp.p_refine is False:
         trainer = Trainer(
-            max_epochs=cfg.max_epochs, gpus=cfg.gpus, callbacks=[lr_monitor]
+            max_epochs=cfg.max_epochs, accelerator=cfg.accelerator, callbacks=[lr_monitor]
         )
         model = Net(cfg)
         trainer.fit(model)
@@ -184,7 +184,7 @@ def invariant_mnist(cfg: DictConfig):
         model = Net(cfg)
 
         for order in range(cfg.mlp.n, cfg.mlp.target_n):
-            trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=cfg.gpus)
+            trainer = Trainer(max_epochs=cfg.max_epochs // diff, accelerator=cfg.accelerator)
             print(f"Training order {order}")
             trainer.fit(model)
             trainer.test(model)
@@ -195,7 +195,7 @@ def invariant_mnist(cfg: DictConfig):
                 network_in=model.layer, network_out=next_model.layer
             )
             model = next_model
-        trainer = Trainer(max_epochs=cfg.max_epochs // diff, gpus=cfg.gpus)
+        trainer = Trainer(max_epochs=cfg.max_epochs // diff, accelerator=cfg.accelerator)
 
     result = trainer.test(model)
     print("result", result)

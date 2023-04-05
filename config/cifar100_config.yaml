@@ -1,5 +1,5 @@
 max_epochs: 1
-gpus: 1
+accelerator: 'gpu'
 
 layer_type: continuous2d
 train_fraction: 1.0

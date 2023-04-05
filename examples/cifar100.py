@@ -89,7 +89,7 @@ def cifar100(cfg: DictConfig):
         batch_size=cfg.data.batch_size,
     )
 
-    trainer = Trainer(max_epochs=cfg.max_epochs, gpus=cfg.gpus)
+    trainer = Trainer(max_epochs=cfg.max_epochs, accelerator=cfg.accelerator)
     model = ClassificationNet(cfg)
     trainer.fit(model, datamodule=datamodule)
     result = trainer.test(model)

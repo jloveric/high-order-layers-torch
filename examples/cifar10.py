@@ -148,13 +148,13 @@ class Net(LightningModule):
 
 def run_cifar10(
     max_epochs: int = 1,
-    gpus: int = 1,
+    accelerator: str = 'gpu',
     n: int = 7,
     batch_size: int = 16,
     segments: int = 4,
     layer_type: str = "piecewise",
 ):
-    trainer = Trainer(max_epochs=max_epochs, gpus=gpus)
+    trainer = Trainer(max_epochs=max_epochs, accelerator=accelerator)
     model = Net(n=n, batch_size=batch_size, segments=segments, layer_type=layer_type)
 
     trainer.fit(model)
