@@ -9,6 +9,7 @@ from high_order_layers_torch.layers import (
     MaxAbsNormalization,
     MaxAbsNormalizationND,
     MaxCenterNormalization,
+    SwitchLayer,
     fixed_rotation_layer,
     initialize_polynomial_layer,
 )
@@ -32,7 +33,6 @@ def test_polynomial():
 
 
 def test_compare():
-
     in_channels = 2
     out_channels = 2
     kernel_size = 4
@@ -79,7 +79,6 @@ def test_smooth_discontinuous_layer(n, in_features, out_features, segments):
 
 
 def test_max_abs_layers():
-
     x = torch.tensor([[1, 0.5, 0.5], [2, 0.5, 0.5]])
 
     layer = MaxAbsNormalization(eps=0.0)
@@ -99,15 +98,14 @@ def test_max_abs_layers():
     assert torch.all(torch.eq(ans[1][0], torch.tensor([0.5, 0.0625, 0.0625])))
     assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
 
-def test_max_center_layers():
 
+def test_max_center_layers():
     x = torch.tensor([[1, 0.5, 0.5], [2, 0.5, 0.5]])
 
     layer = MaxCenterNormalization(eps=0.0)
     ans = layer(x)
     assert torch.all(torch.eq(ans[0], torch.tensor([1, -1, -1])))
     assert torch.all(torch.eq(ans[1], torch.tensor([1, -1, -1])))
-
 
 
 @pytest.mark.parametrize("n", [2, 3])
@@ -215,3 +213,28 @@ def test_initialize_discontinuous_polynomial(
     initialize_polynomial_layer(layer, max_slope=1.0, max_offset=max_offset)
 
     assert torch.allclose(layer.w[:, :, 0], -layer.w[:, :, -1])
+
+
+@pytest.mark.parametrize("n", [3, 4])
+@pytest.mark.parametrize("in_features", [2, 3])
+@pytest.mark.parametrize("out_features", [2, 3])
+@pytest.mark.parametrize("segments", [2])
+@pytest.mark.parametrize("num_input_layers", [2, 3])
+def test_switch_layer(
+    n: int, in_features: int, out_features: int, segments: int, num_input_layers: int
+):
+    switch_layer = SwitchLayer(
+        layer_type="continuous",
+        n=n,
+        in_width=in_features,
+        out_width=out_features,
+        segments=segments,
+        num_input_layers=num_input_layers,
+    )
+
+    x = torch.rand(5, in_features) * 2 - 1
+    print("x", x)
+
+    out = switch_layer(x)
+
+    assert out.shape == torch.Size([5, out_features])

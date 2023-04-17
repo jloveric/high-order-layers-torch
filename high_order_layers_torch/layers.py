@@ -7,7 +7,12 @@ from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
 from .PolynomialLayers import *
 from .ProductLayer import *
-from .utils import l2_normalization, max_abs_normalization, max_abs_normalization_nd, max_center_normalization
+from .utils import (
+    l2_normalization,
+    max_abs_normalization,
+    max_abs_normalization_nd,
+    max_center_normalization,
+)
 
 
 class MaxAbsNormalization(nn.Module):
@@ -22,7 +27,8 @@ class MaxAbsNormalization(nn.Module):
     def forward(self, x):
         return max_abs_normalization(x, eps=self._eps)
 
-class MaxCenterNormalization(nn.Module) :
+
+class MaxCenterNormalization(nn.Module):
     """
     Normalization for the 1D case (MLP) (x-avg)/(max(x)+eps) for each
     sample of the batch.
@@ -92,6 +98,57 @@ class SumLayer(nn.Module):
         return torch.add(*x_all)
 
 
+class SwitchLayer(Module):
+    """
+    Switch layer just creates 2 (or more) identical input layers
+    and then multiplies the output of all those layers.  In effect
+    one of the layers can turn of features of the other.
+    """
+
+    def __init__(
+        self,
+        layer_type: str,
+        n: str,
+        in_width: int,
+        out_width: int,
+        scale: float = 2.0,
+        segments: int = None,
+        normalization: Callable[[Any], Any] = None,
+        num_input_layers: int = 2,
+    ) -> None:
+        super().__init__()
+
+        self._layers = [
+            high_order_fc_layers(
+                layer_type=layer_type,
+                n=n,
+                in_features=in_width,
+                out_features=out_width,
+                segments=segments,
+                rescale_output=False,
+                scale=scale,
+                periodicity=False,
+            )
+            for _ in range(num_input_layers)
+        ]
+
+        self._normalization = normalization
+
+    def forward(self, x) -> Tensor:
+        outputs = [layer(x) for layer in self._layers]
+        print("outputs", outputs)
+
+        final = outputs[0]
+        for i in range(1, len(outputs)):
+            print("final", final)
+            final *= outputs[i]
+        print("final first", final)
+        if self._normalization is not None:
+            final = self._normalization(x)
+        print("final", final)
+        return final
+
+
 fc_layers = {
     "baseline_relu": LinearReluAdapter,  # Linear layer folowed by relu
     "baseline": LinearAdapter,  # Standard linear layer
@@ -153,7 +210,6 @@ def fixed_rotation_layer(n: int, rotations: int = 2, normalize: bool = True):
 
         for j in range(i + 1, n):
             for r in range(1, rotations):
-
                 # We need to add rotations from each of 2 quadrants
                 temp = [0] * n
 
@@ -186,7 +242,6 @@ def fixed_rotation_layer(n: int, rotations: int = 2, normalize: bool = True):
 
 
 def high_order_fc_layers(layer_type: str, **kwargs):
-
     if layer_type in fc_layers.keys():
         return fc_layers[layer_type](**kwargs)
 
@@ -196,7 +251,6 @@ def high_order_fc_layers(layer_type: str, **kwargs):
 
 
 def high_order_convolution_layers(layer_type: str, **kwargs):
-
     if layer_type in convolutional_layers.keys():
         return convolutional_layers[layer_type](**kwargs)
 
@@ -206,7 +260,6 @@ def high_order_convolution_layers(layer_type: str, **kwargs):
 
 
 def high_order_convolution_transpose_layers(layer_type: str, **kwargs):
-
     if layer_type in convolutional_transpose_layers.keys():
         return convolutional_transpose_layers[layer_type](**kwargs)
 
