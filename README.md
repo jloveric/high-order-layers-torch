@@ -23,12 +23,6 @@ layers, in physics there are many problems that are discontinuous (most non-line
 In addition, it's well known that the dendrites are also computational units in neurons, for example [Dendritic action potentials and computation in human layer 2/3 cortical neurons](https://science.sciencemag.org/content/367/6473/83) and this is a simple way to add more computational power into the artificial neural network model. In addition it's been shown that a single pyramidal has the same computational capacity as a 5 to 8 layer convolutional NN, [Single cortical neurons as deep artificial neural networks](https://www.sciencedirect.com/science/article/abs/pii/S0896627321005018?dgcid=author)
 
 
-
-## Speed
-Solving with relu layers is faster, however, sparsity may mean that there is a speed advantage in using the piecewise polynomial approach
-when there are many segments.  There do seem to be situations where the piecewise polynomial approach is significantly better than
-standard relu layers.  Also, combining these layers with standard relu inputs, or using piecewise polynomial layer as inputs especially for implicit representation type problems (or as "positional embeddings") and in natural language problems seems to be useful.
-
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
