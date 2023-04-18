@@ -189,7 +189,9 @@ def mnist(cfg: DictConfig):
     )
 
     trainer = Trainer(
-        max_epochs=cfg.max_epochs, accelerator=cfg.accelerator, callbacks=[early_stop_callback]
+        max_epochs=cfg.max_epochs,
+        accelerator=cfg.accelerator,
+        callbacks=[early_stop_callback],
     )
     model = Net(cfg)
     trainer.fit(model)

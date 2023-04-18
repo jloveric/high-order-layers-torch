@@ -196,7 +196,7 @@ def plot_approximation(
     model_set,
     segments,
     epochs,
-    accelerator='cpu',
+    accelerator="cpu",
     periodicity=None,
     plot_result=True,
     opt="adam",
@@ -274,7 +274,12 @@ def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
         if plot is True:
             plt.figure(index)
         plot_approximation(
-            element["layer"], element["model_set"], 5, epochs, accelerator='cpu', periodicity=2
+            element["layer"],
+            element["model_set"],
+            5,
+            epochs,
+            accelerator="cpu",
+            periodicity=2,
         )
 
         if plot is True:

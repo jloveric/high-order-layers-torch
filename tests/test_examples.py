@@ -14,7 +14,7 @@ def test_invariant_mnist(p_refine: bool):
     cfg = DictConfig(
         content={
             "max_epochs": 1,
-            "accelerator": 'cpu',
+            "accelerator": "cpu",
             "batch_size": 64,
             "train_fraction": 0.0001,
             "val_fraction": 0.0001,
