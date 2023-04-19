@@ -16,11 +16,7 @@ In the image below each "link" instead of being a single weight, is a function o
 
 ## Why
 
-Using higher order polynomial representations might allow networks with much fewer total weights. In physics, higher order methods
-can be much more efficient. Spectral and discontinuous galerkin methods are examples of this.  Note that a standard neural network with relu activations is piecewise linear.  Here there are no bias weights and the "non-linearity" is in the synapse.  Also, I've included discontinuous
-layers, in physics there are many problems that are discontinuous (most non-linear hyperbolic conservation laws form discontinuities) in this case the method becomes a subgradient descent.
-
-In addition, it's well known that the dendrites are also computational units in neurons, for example [Dendritic action potentials and computation in human layer 2/3 cortical neurons](https://science.sciencemag.org/content/367/6473/83) and this is a simple way to add more computational power into the artificial neural network model. In addition it's been shown that a single pyramidal has the same computational capacity as a 5 to 8 layer convolutional NN, [Single cortical neurons as deep artificial neural networks](https://www.sciencedirect.com/science/article/abs/pii/S0896627321005018?dgcid=author)
+Using higher order polynomial representations might allow networks with much fewer total weights.
 
 
 ## Fully Connected Layer Types
