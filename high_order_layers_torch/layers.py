@@ -127,7 +127,7 @@ class SwitchLayer(Module):
                 segments=segments,
                 rescale_output=False,
                 scale=scale,
-                periodicity=False,
+                periodicity=None,
             )
             for _ in range(num_input_layers)
         ]
@@ -136,16 +136,12 @@ class SwitchLayer(Module):
 
     def forward(self, x) -> Tensor:
         outputs = [layer(x) for layer in self._layers]
-        print("outputs", outputs)
 
         final = outputs[0]
         for i in range(1, len(outputs)):
-            print("final", final)
             final *= outputs[i]
-        print("final first", final)
         if self._normalization is not None:
             final = self._normalization(x)
-        print("final", final)
         return final
 
 

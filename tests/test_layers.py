@@ -215,7 +215,7 @@ def test_initialize_discontinuous_polynomial(
     assert torch.allclose(layer.w[:, :, 0], -layer.w[:, :, -1])
 
 
-@pytest.mark.parametrize("n", [3, 4])
+@pytest.mark.parametrize("n", [2, 3])
 @pytest.mark.parametrize("in_features", [2, 3])
 @pytest.mark.parametrize("out_features", [2, 3])
 @pytest.mark.parametrize("segments", [2])
@@ -233,8 +233,7 @@ def test_switch_layer(
     )
 
     x = torch.rand(5, in_features) * 2 - 1
-    print("x", x)
 
     out = switch_layer(x)
-
+    assert torch.any(torch.isnan(out)).item() is False
     assert out.shape == torch.Size([5, out_features])
