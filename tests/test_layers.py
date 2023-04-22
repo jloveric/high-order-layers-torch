@@ -230,10 +230,12 @@ def test_switch_layer(
         out_width=out_features,
         segments=segments,
         num_input_layers=num_input_layers,
+        normalization=MaxAbsNormalization()
     )
 
     x = torch.rand(5, in_features) * 2 - 1
 
     out = switch_layer(x)
     assert torch.any(torch.isnan(out)).item() is False
+
     assert out.shape == torch.Size([5, out_features])

@@ -140,8 +140,10 @@ class SwitchLayer(Module):
         final = outputs[0]
         for i in range(1, len(outputs)):
             final *= outputs[i]
+
         if self._normalization is not None:
-            final = self._normalization(x)
+            final = self._normalization(final)
+        
         return final
 
 
