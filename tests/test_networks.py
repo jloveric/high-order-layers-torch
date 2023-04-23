@@ -67,7 +67,6 @@ def test_fully_convolutional_network1d(
 
     x = torch.rand(2, channels, width)
     out = model(x)
-    print("out", out.shape)
 
     assert out.shape[0] == x.shape[0]
     assert out.shape[1] == channels

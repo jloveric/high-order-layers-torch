@@ -226,8 +226,8 @@ def test_switch_layer(
     switch_layer = SwitchLayer(
         layer_type="continuous",
         n=n,
-        in_width=in_features,
-        out_width=out_features,
+        in_features=in_features,
+        out_features=out_features,
         segments=segments,
         num_input_layers=num_input_layers,
         normalization=MaxAbsNormalization()
