@@ -45,11 +45,13 @@ def test_interpolate_layer(
     "segments,in_width,out_width,hidden_layers,hidden_width,n0,n1",
     [(2, 5, 5, 2, 5, 2, 3), (2, 5, 3, 3, 3, 3, 5)],
 )
-@pytest.mark.parametrize("layer_type", ["continuous", "discontinuous"])
+@pytest.mark.parametrize(
+    "layer_type",
+    ["continuous", "discontinuous", "switch_continuous", "switch_discontinuous"],
+)
 def test_interpolate_mlp(
     segments, in_width, out_width, hidden_layers, hidden_width, n0, n1, layer_type
 ):
-
     network_in = HighOrderMLP(
         layer_type=layer_type,
         n=n0,
@@ -138,7 +140,6 @@ def test_h_refinement_of_mlp(
     n_out,
     layer_type,
 ):
-
     network_in = HighOrderMLP(
         layer_type=layer_type,
         n=n_in,
