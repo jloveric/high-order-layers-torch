@@ -17,7 +17,16 @@ from high_order_layers_torch.networks import (
 @pytest.mark.parametrize("n", [3, 5])
 @pytest.mark.parametrize("in_width", [1, 3])
 @pytest.mark.parametrize("out_width", [1, 3])
-@pytest.mark.parametrize("ctype", ["polynomial", "continuous", "discontinuous", "switch_continuous", "switch_discontinuous"])
+@pytest.mark.parametrize(
+    "ctype",
+    [
+        "polynomial",
+        "continuous",
+        "discontinuous",
+        "switch_continuous",
+        "switch_discontinuous",
+    ],
+)
 @pytest.mark.parametrize("hidden_width", [1, 3])
 @pytest.mark.parametrize("hidden_layers", [1, 3])
 def test_fully_connected_network(
@@ -188,7 +197,6 @@ def test_tail_focus(segments, n, kernel_size, ctype, channels, layers):
 @pytest.mark.parametrize("resnet", [True, False])
 @pytest.mark.parametrize("rotations", [1, 3])
 def test_transform_mlp(layer_type: str, resnet: bool, rotations: int):
-
     in_width = 3
     out_width = 2
     n = 3
@@ -216,10 +224,12 @@ def test_transform_mlp(layer_type: str, resnet: bool, rotations: int):
     assert isinstance(s, torch.Tensor)
 
 
-@pytest.mark.parametrize("layer_type", ["continuous", "discontinuous"])
+@pytest.mark.parametrize(
+    "layer_type",
+    ["continuous", "discontinuous", "switch_continuous", "switch_discontinuous"],
+)
 @pytest.mark.parametrize("resnet", [True, False])
 def test_initialize_network_polynomial_layers(layer_type: str, resnet: bool):
-
     in_width = 3
     out_width = 2
     network = HighOrderMLP(

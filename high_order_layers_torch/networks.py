@@ -575,7 +575,6 @@ class HighOrderTailFocusNetwork(nn.Module):
                 self.layer_list.append(layer_name)
 
     def compute_sizes(self, input_size: int):
-
         widths = [input_size]
         for i, val in enumerate(self.kernel_size):
             nw = math.ceil((widths[i] - self.kernel_size[i] + 1) / self.stride[i])
@@ -589,7 +588,6 @@ class HighOrderTailFocusNetwork(nn.Module):
         return widths, output_sizes
 
     def forward(self, x: Tensor) -> Tensor:
-
         early = [x[:, :, -self.focus[0] :].flatten(1)]
         count = 1
         for name in self.layer_list:
@@ -771,7 +769,6 @@ def transform_mlp(
     normalization: Optional[torch.nn.Module] = None,
     resnet: bool = False,
 ) -> torch.nn.Module:
-
     fixed_input, fixed_output_width = fixed_rotation_layer(
         n=in_width, rotations=rotations
     )
@@ -808,7 +805,6 @@ def transform_low_mlp(
     normalization: torch.nn.Module,
     rotations: int,
 ) -> torch.nn.Module:
-
     fixed_input, fixed_output_width = fixed_rotation_layer(
         n=in_width, rotations=rotations
     )
@@ -867,6 +863,11 @@ def initialize_network_polynomial_layers(
             initialize_polynomial_layer(
                 layer, max_slope=max_slope * scale_slope(inputs), max_offset=max_offset
             )
+        if isinstance(layer, SwitchLayer):
+            inputs = layer.in_features
+            layer.initialize(
+                max_slope=max_slope * scale_slope(inputs), max_offset=max_offset
+            )
 
 
 def interpolate_high_order_mlp(
@@ -898,8 +899,8 @@ def interpolate_high_order_mlp(
     layer_pairs = zip(layers_in, layers_out)
 
     for l_in, l_out in layer_pairs:
-        if isinstance(l_in, (PiecewisePolynomial, PiecewiseDiscontinuousPolynomial)):
-            interpolate_polynomial_layer(l_in, l_out)
+        if hasattr(l_in, "interpolate"):
+            l_in.interpolate(l_out)
 
 
 def hp_refine_high_order_mlp(

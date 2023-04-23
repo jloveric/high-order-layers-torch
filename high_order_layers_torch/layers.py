@@ -115,10 +115,11 @@ class SwitchLayer(Module):
         segments: int = None,
         normalization: Callable[[Any], Any] = None,
         num_input_layers: int = 2,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__()
-
+        self._in_features = in_features
+        self._out_features = out_features
         self._layers = [
             high_order_fc_layers(
                 layer_type=layer_type,
@@ -135,6 +136,14 @@ class SwitchLayer(Module):
 
         self._normalization = normalization
 
+    @property
+    def in_features(self):
+        return self._in_features
+
+    @property
+    def out_features(self):
+        return self._out_features
+
     def forward(self, x) -> Tensor:
         outputs = [layer(x) for layer in self._layers]
 
@@ -144,15 +153,30 @@ class SwitchLayer(Module):
 
         if self._normalization is not None:
             final = self._normalization(final)
-        
+
         return final
 
+    def initialize(self, max_slope: int, max_offset: int):
+        for layer in self._layers:
+            initialize_polynomial_layer(
+                layer_in=layer, max_slope=max_slope, max_offset=max_offset
+            )
 
-def switch_continuous(**kwargs) :
+    def interpolate(
+        self,
+        layer_out: "SwitchLayer",
+    ) -> None:
+        for layer1, layer2 in zip(self._layers, layer_out._layers):
+            interpolate_polynomial_layer(layer1, layer2)
+
+
+def switch_continuous(**kwargs):
     return SwitchLayer(layer_type="continuous", **kwargs)
 
-def switch_discontinuous(**kwargs) :
+
+def switch_discontinuous(**kwargs):
     return SwitchLayer(layer_type="discontinuous", **kwargs)
+
 
 fc_layers = {
     "baseline_relu": LinearReluAdapter,  # Linear layer folowed by relu
@@ -165,8 +189,8 @@ fc_layers = {
     "polynomial_prod": PolynomialProd,
     "product": Product,
     "fourier": FourierSeries,
-    "switch_continuous" : switch_continuous,
-    "switch_discontinuous" : switch_discontinuous
+    "switch_continuous": switch_continuous,
+    "switch_discontinuous": switch_discontinuous,
 }
 
 convolutional_layers = {

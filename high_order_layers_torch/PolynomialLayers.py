@@ -151,7 +151,6 @@ class Piecewise(nn.Module):
         return x_global
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-
         periodicity = self.periodicity
         if periodicity is not None:
             x = make_periodic(x, periodicity)
@@ -210,6 +209,12 @@ class Piecewise(nn.Module):
         """
         eta = index / float(self._segments)
         return eta * 2 - 1
+
+    def interpolate(
+        self,
+        layer_out: "Piecewise",
+    ) -> None:
+        interpolate_polynomial_layer(self, layer_out)
 
 
 class PiecewisePolynomial(Piecewise):
@@ -396,6 +401,9 @@ class PiecewiseDiscontinuous(nn.Module):
         eta = index / float(self._segments)
         return eta * 2 - 1
 
+    def interpolate(self, layer_out: "PiecewiseDiscontinuous"):
+        interpolate_polynomial_layer(layer_in=self, layer_out=layer_out)
+
 
 class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
     def __init__(
@@ -538,7 +546,6 @@ def refine_discontinuous_polynomial_layer(
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
-
                 # TODO: I could probably do this as a single matrix operation,
                 # but this was easier for me to debug.  Also, it's not performance
                 # critical.
@@ -604,7 +611,6 @@ def refine_polynomial_layer(
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
-
                 # TODO: I could probably do this as a single matrix operation,
                 # but this was easier for me to debug.  Also, it's not performance
                 # critical.
@@ -687,12 +693,10 @@ def initialize_polynomial_layer(
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
-
                 a = max_slope * (random.random() * 2 - 1.0)
                 b = max_offset * (random.random() * 2 - 1.0)
 
                 for j in range(segments_in):
-
                     # compute x in the global space
                     x_global = layer_in.x_global(x_in, j)
 
