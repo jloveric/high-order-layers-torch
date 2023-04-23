@@ -216,6 +216,12 @@ class Piecewise(nn.Module):
     ) -> None:
         interpolate_polynomial_layer(self, layer_out)
 
+    def refine(
+        self,
+        layer_out: "Piecewise",
+    ) -> None:
+        refine_polynomial_layer(layer_in=self, layer_out=layer_out)
+
 
 class PiecewisePolynomial(Piecewise):
     def __init__(
@@ -403,6 +409,9 @@ class PiecewiseDiscontinuous(nn.Module):
 
     def interpolate(self, layer_out: "PiecewiseDiscontinuous"):
         interpolate_polynomial_layer(layer_in=self, layer_out=layer_out)
+
+    def refine(self, layer_out: "PiecewiseDiscontinuous"):
+        refine_discontinuous_polynomial_layer(layer_in=self, layer_out=layer_out)
 
 
 class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):

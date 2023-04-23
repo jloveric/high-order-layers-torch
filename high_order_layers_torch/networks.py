@@ -930,6 +930,10 @@ def hp_refine_high_order_mlp(
     layer_pairs = zip(layers_in, layers_out)
 
     for l_in, l_out in layer_pairs:
+        if hasattr(l_in, "refine"):
+            l_in.refine(l_out)
+
+        """
         if isinstance(l_in, PiecewisePolynomial) and isinstance(
             l_out, PiecewisePolynomial
         ):
@@ -938,6 +942,7 @@ def hp_refine_high_order_mlp(
             l_out, PiecewiseDiscontinuous
         ):
             refine_discontinuous_polynomial_layer(l_in, l_out)
+        """
 
 
 def smooth_discontinuous_network(network_in: torch.nn.Module, factor: float) -> None:

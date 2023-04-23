@@ -167,7 +167,11 @@ class SwitchLayer(Module):
         layer_out: "SwitchLayer",
     ) -> None:
         for layer1, layer2 in zip(self._layers, layer_out._layers):
-            interpolate_polynomial_layer(layer1, layer2)
+            layer1.interpolate(layer2)
+
+    def refine(self, layer_out: "SwitchLayer"):
+        for layer1, layer2 in zip(self._layers, layer_out._layers):
+            layer1.refine(layer2)
 
 
 def switch_continuous(**kwargs):
