@@ -109,12 +109,13 @@ class SwitchLayer(Module):
         self,
         layer_type: str,
         n: str,
-        in_width: int,
-        out_width: int,
+        in_features: int,
+        out_features: int,
         scale: float = 2.0,
         segments: int = None,
         normalization: Callable[[Any], Any] = None,
         num_input_layers: int = 2,
+        **kwargs
     ) -> None:
         super().__init__()
 
@@ -122,8 +123,8 @@ class SwitchLayer(Module):
             high_order_fc_layers(
                 layer_type=layer_type,
                 n=n,
-                in_features=in_width,
-                out_features=out_width,
+                in_features=in_features,
+                out_features=out_features,
                 segments=segments,
                 rescale_output=False,
                 scale=scale,
@@ -147,6 +148,12 @@ class SwitchLayer(Module):
         return final
 
 
+def switch_continuous(**kwargs) :
+    return SwitchLayer(layer_type="continuous", **kwargs)
+
+def switch_discontinuous(**kwargs) :
+    return SwitchLayer(layer_type="discontinuous", **kwargs)
+
 fc_layers = {
     "baseline_relu": LinearReluAdapter,  # Linear layer folowed by relu
     "baseline": LinearAdapter,  # Standard linear layer
@@ -158,6 +165,8 @@ fc_layers = {
     "polynomial_prod": PolynomialProd,
     "product": Product,
     "fourier": FourierSeries,
+    "switch_continuous" : switch_continuous,
+    "switch_discontinuous" : switch_discontinuous
 }
 
 convolutional_layers = {

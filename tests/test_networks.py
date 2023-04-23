@@ -15,6 +15,38 @@ from high_order_layers_torch.networks import (
 
 @pytest.mark.parametrize("segments", [1, 2])
 @pytest.mark.parametrize("n", [3, 5])
+@pytest.mark.parametrize("in_width", [1, 3])
+@pytest.mark.parametrize("out_width", [1, 3])
+@pytest.mark.parametrize("ctype", ["polynomial", "continuous", "discontinuous", "switch_continuous", "switch_discontinuous"])
+@pytest.mark.parametrize("hidden_width", [1, 3])
+@pytest.mark.parametrize("hidden_layers", [1, 3])
+def test_fully_connected_network(
+    segments, n, in_width, out_width, ctype, hidden_width, hidden_layers
+):
+    width = 100
+
+    model = HighOrderMLP(
+        in_segments=segments,
+        out_segments=segments,
+        hidden_segments=segments,
+        layer_type=ctype,
+        n=n,
+        in_width=in_width,
+        out_width=out_width,
+        hidden_layers=hidden_layers,
+        hidden_width=hidden_width,
+        normalization=None,
+    )
+
+    x = torch.rand(2, in_width)
+    out = model(x)
+
+    assert out.shape == torch.Size([2, out_width])
+    assert True is True
+
+
+@pytest.mark.parametrize("segments", [1, 2])
+@pytest.mark.parametrize("n", [3, 5])
 @pytest.mark.parametrize("kernel_size", [1, 3])
 @pytest.mark.parametrize("ctype", ["polynomial1d", "continuous1d", "discontinuous1d"])
 @pytest.mark.parametrize("channels", [1, 3])

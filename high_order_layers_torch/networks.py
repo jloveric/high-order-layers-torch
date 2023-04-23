@@ -11,6 +11,7 @@ from torch.nn import Linear
 
 from high_order_layers_torch.layers import (
     SumLayer,
+    SwitchLayer,
     fixed_rotation_layer,
     high_order_convolution_layers,
     high_order_convolution_transpose_layers,
@@ -849,6 +850,7 @@ def initialize_network_polynomial_layers(
     Returns :
         Nothing, updates network in place.
     """
+
     layers = [
         module
         for module in network.model.modules()
