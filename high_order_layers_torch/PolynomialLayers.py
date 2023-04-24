@@ -25,14 +25,14 @@ class Function(nn.Module):
         self.n = n
         self.periodicity = periodicity
         self.w = torch.nn.Parameter(
-            data=torch.Tensor(out_features, in_features, n), requires_grad=True
+            data=torch.empty(out_features, in_features, n), requires_grad=True
         )
         self.w.data.uniform_(
             -weight_magnitude / in_features, weight_magnitude / in_features
         )
 
         self.result = torch.nn.Parameter(
-            data=torch.Tensor(out_features), requires_grad=True
+            data=torch.empty(out_features), requires_grad=True
         )
 
     def forward(self, x: torch.Tensor):
@@ -87,6 +87,7 @@ class Piecewise(nn.Module):
         weight_magnitude: float = 1.0,
         poly=None,
         periodicity: float = None,
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__()
@@ -96,8 +97,11 @@ class Piecewise(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
         self.periodicity = periodicity
+        self.device = device
         self.w = torch.nn.Parameter(
-            data=torch.Tensor(out_features, in_features, ((n - 1) * segments + 1)),
+            data=torch.empty(
+                out_features, in_features, ((n - 1) * segments + 1), device=device
+            ),
             requires_grad=True,
         )
         self.w.data.uniform_(
@@ -233,6 +237,7 @@ class PiecewisePolynomial(Piecewise):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__(
@@ -244,6 +249,7 @@ class PiecewisePolynomial(Piecewise):
             weight_magnitude,
             poly=LagrangePoly,
             periodicity=periodicity,
+            device=device,
         )
 
 
@@ -257,6 +263,7 @@ class PiecewisePolynomialProd(Piecewise):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__(
@@ -268,6 +275,7 @@ class PiecewisePolynomialProd(Piecewise):
             weight_magnitude,
             poly=LagrangePolyProd,
             periodicity=periodicity,
+            device=device,
         )
 
 
@@ -282,17 +290,19 @@ class PiecewiseDiscontinuous(nn.Module):
         weight_magnitude=1.0,
         poly=None,
         periodicity: float = None,
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__()
         self._n = n
+        self.device = device
         self._poly = poly(self._n)
         self._segments = segments
         self.in_features = in_features
         self.out_features = out_features
         self.periodicity = periodicity
         self.w = torch.nn.Parameter(
-            data=torch.Tensor(out_features, in_features, n * segments),
+            data=torch.empty(out_features, in_features, n * segments, device=device),
             requires_grad=True,
         )
         self.w.data.uniform_(-1 / in_features, 1 / in_features)
@@ -424,6 +434,7 @@ class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__(
@@ -435,6 +446,7 @@ class PiecewiseDiscontinuousPolynomial(PiecewiseDiscontinuous):
             weight_magnitude,
             poly=LagrangePoly,
             periodicity=periodicity,
+            device=device,
         )
 
 
@@ -448,6 +460,7 @@ class PiecewiseDiscontinuousPolynomialProd(PiecewiseDiscontinuous):
         length=2.0,
         weight_magnitude=1.0,
         periodicity: float = None,
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__(
@@ -537,6 +550,8 @@ def refine_discontinuous_polynomial_layer(
         layer_out : The layer whose weights are changed
     """
 
+    device = layer_in.device
+
     poly_in = layer_in._poly
     segments_in = layer_in._segments
     w_in = layer_in.w
@@ -545,8 +560,8 @@ def refine_discontinuous_polynomial_layer(
     segments_out = layer_out._segments
     w_out = layer_out.w
 
-    x_in = poly_in.basis.X.reshape(-1, 1)
-    x_out = poly_out.basis.X.reshape(-1, 1)
+    x_in = poly_in.basis.X.reshape(-1, 1).to(device)
+    x_out = poly_out.basis.X.reshape(-1, 1).to(device)
 
     n_in = poly_in.basis.n
     n_out = poly_out.basis.n
@@ -578,9 +593,11 @@ def refine_discontinuous_polynomial_layer(
 
                     # Since the segments may not be aligned, modify the weights one by one
                     for index, i in enumerate(index_in):
-                        x = torch.tensor([[x_local_in[index, 0]]])
-                        w = w_in[inputs, outputs, i * n_in : (i + 1) * n_in].reshape(
-                            1, 1, 1, -1
+                        x = torch.tensor([[x_local_in[index, 0]]], device=device)
+                        w = (
+                            w_in[inputs, outputs, i * n_in : (i + 1) * n_in]
+                            .reshape(1, 1, 1, -1)
+                            .to(device)
                         )
                         w_b = poly_in.interpolate(x, w)
                         w_out[inputs, outputs, j * (n_out) + index] = w_b.flatten()
@@ -602,6 +619,8 @@ def refine_polynomial_layer(
         layer_out : The layer whose weights are changed
     """
 
+    device = layer_in.device
+
     poly_in = layer_in._poly
     segments_in = layer_in._segments
     w_in = layer_in.w
@@ -610,8 +629,8 @@ def refine_polynomial_layer(
     segments_out = layer_out._segments
     w_out = layer_out.w
 
-    x_in = poly_in.basis.X.reshape(-1, 1)
-    x_out = poly_out.basis.X.reshape(-1, 1)
+    x_in = poly_in.basis.X.reshape(-1, 1).to(device)
+    x_out = poly_out.basis.X.reshape(-1, 1).to(device)
 
     n_in = poly_in.basis.n
     n_out = poly_out.basis.n
@@ -637,10 +656,16 @@ def refine_polynomial_layer(
 
                     # Since the segments may not be aligned, modify the weights one by one
                     for index, i in enumerate(index_in):
-                        x = torch.tensor([[x_local_in[index, 0]]])
-                        w = w_in[
-                            inputs, outputs, i * (n_in - 1) : (i + 1) * (n_in - 1) + 1
-                        ].reshape(1, 1, 1, -1)
+                        x = torch.tensor([[x_local_in[index, 0]]], device=device)
+                        w = (
+                            w_in[
+                                inputs,
+                                outputs,
+                                i * (n_in - 1) : (i + 1) * (n_in - 1) + 1,
+                            ]
+                            .reshape(1, 1, 1, -1)
+                            .to(device)
+                        )
                         w_b = poly_in.interpolate(x, w)
                         w_out[inputs, outputs, j * (n_out - 1) + index] = w_b.flatten()
 

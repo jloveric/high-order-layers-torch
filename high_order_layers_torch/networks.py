@@ -178,6 +178,7 @@ class HighOrderMLP(nn.Module):
         hidden_segments: int = None,
         normalization: Callable[[Any], Any] = None,
         resnet: bool = False,
+        device: str = "cpu",
     ) -> None:
         """
         Args :
@@ -220,6 +221,7 @@ class HighOrderMLP(nn.Module):
             rescale_output=rescale_output,
             scale=scale,
             periodicity=periodicity,
+            device=device,
         )
         layer_list.append(input_layer)
         for i in range(hidden_layers):
@@ -237,6 +239,7 @@ class HighOrderMLP(nn.Module):
                 rescale_output=rescale_output,
                 scale=scale,
                 periodicity=periodicity,
+                device=device,
             )
 
             # This will add the result of the previous layer after normalization
@@ -258,6 +261,7 @@ class HighOrderMLP(nn.Module):
             rescale_output=rescale_output,
             scale=scale,
             periodicity=periodicity,
+            device=device,
         )
         layer_list.append(output_layer)
         self.model = nn.Sequential(*layer_list)
@@ -768,6 +772,7 @@ def transform_mlp(
     periodicity: float = 2.0,
     normalization: Optional[torch.nn.Module] = None,
     resnet: bool = False,
+    device: str = "cpu",
 ) -> torch.nn.Module:
     fixed_input, fixed_output_width = fixed_rotation_layer(
         n=in_width, rotations=rotations
@@ -790,6 +795,7 @@ def transform_mlp(
         scale=scale,
         periodicity=periodicity,
         resnet=resnet,
+        device=device,
     )
     tl = [fixed_input, mlp]
     model = torch.nn.Sequential(*tl)

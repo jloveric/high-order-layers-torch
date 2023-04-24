@@ -152,6 +152,7 @@ def test_h_refinement_of_mlp(
         in_segments=segments_in,
         out_segments=segments_in,
         hidden_segments=segments_in,
+        device="cpu",
     )
     network_out = HighOrderMLP(
         layer_type=layer_type,
@@ -166,11 +167,12 @@ def test_h_refinement_of_mlp(
         in_segments=segments_out,
         out_segments=segments_out,
         hidden_segments=segments_out,
+        device="cpu",
     )
 
     hp_refine_high_order_mlp(network_in, network_out)
 
-    x = torch.rand(2, 5)
+    x = torch.rand(2, 5, device="cpu")
     y0 = network_in(x)
     y1 = network_out(x)
     assert torch.allclose(y0, y1, rtol=1e-3)

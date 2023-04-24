@@ -115,11 +115,13 @@ class SwitchLayer(Module):
         segments: int = None,
         normalization: Callable[[Any], Any] = None,
         num_input_layers: int = 2,
+        device: str = "cpu",
         **kwargs,
     ) -> None:
         super().__init__()
         self._in_features = in_features
         self._out_features = out_features
+
         self._layers = [
             high_order_fc_layers(
                 layer_type=layer_type,
@@ -130,6 +132,7 @@ class SwitchLayer(Module):
                 rescale_output=False,
                 scale=scale,
                 periodicity=None,
+                device=device,
             )
             for _ in range(num_input_layers)
         ]
