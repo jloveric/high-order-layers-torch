@@ -7,7 +7,6 @@ from high_order_layers_torch.LagrangePolynomial import *
 
 
 def test_poly_convolution_2d_produces_correct_sizes():
-
     in_channels = 2
     out_channels = 2
     kernel_size = 4
@@ -22,6 +21,7 @@ def test_poly_convolution_2d_produces_correct_sizes():
         "out_channels": out_channels,
         "kernel_size": kernel_size,
         "stride": stride,
+        "device": "cpu",
     }
 
     x = torch.rand(1, in_channels, height, width)
@@ -36,7 +36,6 @@ def test_poly_convolution_2d_produces_correct_sizes():
 
 
 def test_poly_convolution_1d_produces_correct_sizes():
-
     in_channels = 2
     out_channels = 2
     kernel_size = 4
@@ -50,6 +49,7 @@ def test_poly_convolution_1d_produces_correct_sizes():
         "out_channels": out_channels,
         "kernel_size": kernel_size,
         "stride": stride,
+        "device": "cpu",
     }
 
     x = torch.rand(1, in_channels, width)
@@ -63,7 +63,6 @@ def test_poly_convolution_1d_produces_correct_sizes():
 
 
 def test_piecewise_poly_convolution_2d_produces_correct_sizes():
-
     in_channels = 2
     out_channels = 2
     kernel_size = 4
@@ -78,6 +77,7 @@ def test_piecewise_poly_convolution_2d_produces_correct_sizes():
         "out_channels": out_channels,
         "kernel_size": kernel_size,
         "stride": stride,
+        "device": "cpu",
     }
 
     x = torch.rand(1, in_channels, height, width)
@@ -93,7 +93,6 @@ def test_piecewise_poly_convolution_2d_produces_correct_sizes():
 
 # Currently broken!
 def test_piecewise_poly_convolution_1d_produces_correct_sizes():
-
     in_channels = 2
     out_channels = 2
     kernel_size = 4
@@ -108,6 +107,7 @@ def test_piecewise_poly_convolution_1d_produces_correct_sizes():
         "out_channels": out_channels,
         "kernel_size": kernel_size,
         "stride": stride,
+        "device": "cpu",
     }
 
     x = torch.rand(1, in_channels, height)
@@ -123,7 +123,6 @@ def test_piecewise_poly_convolution_1d_produces_correct_sizes():
 
 
 def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
-
     in_channels = 2
     out_channels = 2
     kernel_size = 4
@@ -138,6 +137,7 @@ def test_discontinuous_poly_convolution_2d_produces_correct_sizes():
         "out_channels": out_channels,
         "kernel_size": kernel_size,
         "stride": stride,
+        "device": "cpu",
     }
 
     x = torch.rand(1, in_channels, height, width)
