@@ -7,6 +7,9 @@ from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.networks import *
 from high_order_layers_torch.PolynomialLayers import *
+import torch
+
+torch.set_default_device(device="cpu")
 
 
 @pytest.mark.parametrize("segments", [1, 2])
@@ -70,7 +73,6 @@ def test_low_order_mlp(
     normalization,
     nonlinearity,
 ):
-
     network = LowOrderMLP(
         in_width=in_width,
         out_width=out_width,

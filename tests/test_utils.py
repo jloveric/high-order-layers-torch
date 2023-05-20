@@ -4,6 +4,9 @@ import pytest
 import torch
 
 from high_order_layers_torch.utils import make_periodic, positions_from_mesh
+import torch
+
+torch.set_default_device(device="cpu")
 
 
 def test_positions_from_mesh():

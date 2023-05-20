@@ -3,6 +3,9 @@ import os
 import pytest
 
 from high_order_layers_torch.FunctionalConvolutionTranspose import *
+import torch
+
+torch.set_default_device(device="cpu")
 
 
 @pytest.mark.parametrize("segments", [1, 2])
@@ -16,7 +19,6 @@ from high_order_layers_torch.FunctionalConvolutionTranspose import *
 def test_piecewise_poly_convolution_transpose_2d_produces_correct_sizes(
     segments, n, kernel_size, in_channels, out_channels, height, width, stride
 ):
-
     output_padding = 0
     padding = 0
 

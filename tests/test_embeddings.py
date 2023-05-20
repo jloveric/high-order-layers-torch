@@ -10,9 +10,10 @@ from high_order_layers_torch.positional_embeddings import (
     PiecewisePolynomialEmbedding,
 )
 
+torch.set_default_device(device="cpu")
+
 
 def test_classic_embedding():
-
     x = torch.rand([5, 7])
     embedding = ClassicSinusoidalEmbedding(10)
     ans = embedding(x)

@@ -11,6 +11,9 @@ from high_order_layers_torch.networks import (
     initialize_network_polynomial_layers,
     transform_mlp,
 )
+import torch
+
+torch.set_default_device(device="cpu")
 
 
 @pytest.mark.parametrize("segments", [1, 2])

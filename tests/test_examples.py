@@ -7,6 +7,9 @@ from examples.function_example import plot_results
 from examples.invariant_mnist import invariant_mnist
 from examples.mnist import mnist
 from examples.xor import model_set_d, plot_approximation
+import torch
+
+torch.set_default_device(device="cpu")
 
 
 @pytest.mark.parametrize("p_refine", [True, False])

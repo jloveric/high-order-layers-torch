@@ -15,6 +15,9 @@ from high_order_layers_torch.layers import (
 )
 from high_order_layers_torch.networks import *
 from high_order_layers_torch.PolynomialLayers import *
+import torch
+
+torch.set_default_device(device="cpu")
 
 
 def test_nodes():
@@ -230,7 +233,7 @@ def test_switch_layer(
         out_features=out_features,
         segments=segments,
         num_input_layers=num_input_layers,
-        normalization=MaxAbsNormalization()
+        normalization=MaxAbsNormalization(),
     )
 
     x = torch.rand(5, in_features) * 2 - 1

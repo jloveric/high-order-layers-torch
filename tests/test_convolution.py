@@ -2,8 +2,11 @@ import os
 
 import pytest
 
+import torch
 from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
+
+torch.set_default_device(device="cpu")
 
 
 def test_poly_convolution_2d_produces_correct_sizes():
