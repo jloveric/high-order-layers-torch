@@ -17,6 +17,9 @@ In the image below each "link" instead of being a single weight, is a function o
 
 Using higher order polynomial representations might allow networks with much fewer total weights.
 
+## Collab Notebook
+
+[Simple Examples](https://colab.research.google.com/drive/1kew0Kz4v5GB5D59-wP1rHZuCdhYknz4s?usp=sharing)
 
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
@@ -31,7 +34,6 @@ layer1 = high_order_fc_layers(
     in_features=784,
     out_features=100,
     segments=segments,
-    alpha=linear_part
 )
 ```
 
