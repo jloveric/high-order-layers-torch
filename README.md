@@ -3,11 +3,11 @@
 
 This is a PyTorch implementation of my tensorflow [repository](https://github.com/jloveric/high-order-layers) and is more complete due to the flexibility of PyTorch.
 
-Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagrange Polynomial, Fourier Series, sum and product layers in PyTorch.  The sparsity of using piecewise polynomial layers means that by adding new segments the representational power of your network increases, but the time to complete a forward step remains constant.  Implementation includes simple fully connected layers, convolution layers and deconvolutional layers using these models.  This is a PyTorch implementation of this [paper](https://www.researchgate.net/publication/276923198_Discontinuous_Piecewise_Polynomial_Neural_Networks) including extension to Fourier Series and convolutional neural networks.
+Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagrange Polynomial, Fourier Series, sum and product layers in PyTorch.  The sparsity of using piecewise polynomial layers means that by adding new segments the representational power of your network increases, but the time to complete a forward step remains constant. Implementation includes simple fully connected layers, convolution layers and deconvolutional layers using these models. This is a PyTorch implementation of this [paper](https://www.researchgate.net/publication/276923198_Discontinuous_Piecewise_Polynomial_Neural_Networks) including extension to Fourier Series and convolutional neural networks.
 
 ## Idea
 
-The idea is extremely simple - instead of a single weight at the synapse, use n-weights.  The n-weights describe a piecewise polynomial (or other complex function) and each of the n-weights can be updated independently.  A Lagrange polynomial and Gauss Lobatto points are used to minimize oscillations of the polynomial.  The same approach can be applied to any "functional" synapse, and I also have Fourier series synapses in this repo as well.  This can be implemented as construction of a polynomial or Fourier kernel followed by a standard pytorch layer where a linear activation is used.
+The idea is extremely simple - instead of a single weight at the synapse, use n-weights.  The n-weights describe a piecewise polynomial (or other complex function) and each of the n-weights can be updated independently. A Lagrange polynomial and Gauss Lobatto points are used to minimize oscillations of the polynomial.  The same approach can be applied to any "functional" synapse, and I also have Fourier series synapses in this repo as well.  This can be implemented as construction of a polynomial or Fourier kernel followed by a standard pytorch layer where a linear activation is used.
 
 In the image below each "link" instead of being a single weight, is a function of both x and a set of weights.  These functions can consist of an orthogonal basis functions for efficient approximation.
 
@@ -155,6 +155,7 @@ run with nevergrad for parameter tuning
 ```
 python examples/variational_autoencoder.py -m
 ```
+
 ## Invariant MNIST (fully connected)
 Without polynomial refinement
 ```python
@@ -165,6 +166,7 @@ with polynomial refinement (p-refinement)
 python examples/invariant_mnist.py max_epochs=100 train_fraction=1 layer_type=mlp.continuous mlp.n=2 mlp.target_n=5 mlp.p_refine=True
 ```
 I've also added hp refinement, but it needs a lot of testing.
+
 ## Implicit Representation
 
 An example of implicit representation for image compression, language generation can be found [here](https://github.com/jloveric/high-order-implicit-representation).  I intend to explore generative models in natural language further [here](https://github.com/jloveric/language-interpolation)
@@ -180,11 +182,12 @@ Examples using these networks for natural language generation can be found
 
 ## Generative music
 
-Work in progress
+No real progress here
 [here](https://github.com/jloveric/high-order-generative-music)
 
 
 ## Test and Coverage
+
 After installing and running
 ```
 poetry shell
@@ -201,7 +204,7 @@ and then
 ```
 coverage report
 ```
-## A note on the unit
+## A note on the product unit (I rarely use anymore)
 The layers used here do not require additional activation functions and use a simple sum or product in place of the activation.
 I almost always use sum units, but product units are performed in this manner
 
@@ -218,10 +221,9 @@ The max_abs normalization is defined this way
 normalized_x = x/(max(abs(x))+eps)
 ```
 where the normalization is done per sample (as opposed to per batch).  The way the layers are formulated, we don't want the neuron
-values to extend beyond [-1, 1] as the polynomial values grow rapidly beyond that range.  I also use mirror periodicity to keep the
+values to extend beyond [-1, 1] as the polynomial values grow rapidly beyond that range.  You can also use mirror periodicity to keep the
 values within from growing rapidly. We want the values to cover the entire range [-1, 1] of the polynomials as the weights
-are packed towards the edges of each segment. Normalizing by the sample L2 norm pushes most of the values towards
-zero, which I don't want.
+are packed towards the edges of each segment (though using even number of segments means you'll have a lot of weights near the origin).
 
 
 ## Reference

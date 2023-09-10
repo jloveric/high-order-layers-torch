@@ -13,7 +13,7 @@ hydra-core = "^1.2.0"
 torchmetrics = "^0.10.2"
 torchvision = "^0.15.1"
 pytorch-lightning = "^2.0.0"
-torch = "^2.0.1"
+torch = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 coverage = "^6.3.3"
