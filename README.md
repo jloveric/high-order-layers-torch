@@ -1,4 +1,4 @@
-![Build Status](https://github.com/jloveric/high-order-layers-torch/actions/workflows/python-app.yml/badge.svg)
+[comment] # strange cuda errors ![Build Status](https://github.com/jloveric/high-order-layers-torch/actions/workflows/python-app.yml/badge.svg)
 
 # Piecewise Polynomial and Fourier Layers in PyTorch
 
