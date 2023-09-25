@@ -8,6 +8,7 @@ Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagr
 ## Collab Notebook
 Using simple high order layers
 [Simple function approximation](https://colab.research.google.com/drive/1kew0Kz4v5GB5D59-wP1rHZuCdhYknz4s?usp=sharing)
+
 Using simple high order MLP
 [2d function approximation](https://colab.research.google.com/drive/14wSNzBUFYk-1o6fuqiux_y33aV9VuwkF?usp=sharing)
 
