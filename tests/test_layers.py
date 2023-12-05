@@ -101,6 +101,14 @@ def test_max_abs_layers():
     assert torch.all(torch.eq(ans[1][0], torch.tensor([0.5, 0.0625, 0.0625])))
     assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
 
+    layer = MaxAbsNormalization(eps=0.0, dim=2)
+    ans = layer(x)
+    assert torch.all(torch.eq(ans[0][0], torch.tensor([1, 0.5, 0.5])))
+    assert torch.all(torch.eq(ans[0][1], torch.tensor([1, 0.25, 0.25])))
+    assert torch.all(torch.eq(ans[1][0], torch.tensor([1, 0.125, 0.125])))
+    assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
+
+
 
 def test_max_center_layers():
     x = torch.tensor([[1, 0.5, 0.5], [2, 0.5, 0.5]])

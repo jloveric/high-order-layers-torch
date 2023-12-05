@@ -5,17 +5,17 @@ import torch
 from torch import Tensor
 
 
-def max_abs(x: Tensor):
-    return torch.max(x.abs(), dim=1, keepdim=True)[0]
+def max_abs(x: Tensor, dim: int=1):
+    return torch.max(x.abs(), dim=dim, keepdim=True)[0]
 
 
-def max_abs_normalization(x: Tensor, eps: float = 1e-6):
-    return x / (max_abs(x) + eps)
+def max_abs_normalization(x: Tensor, eps: float = 1e-6, dim:int=1):
+    return x / (max_abs(x, dim=dim) + eps)
 
 
-def max_center_normalization(x: Tensor, eps: float = 1e-6):
-    max_x = torch.max(x, dim=1, keepdim=True)[0]
-    min_x = torch.min(x, dim=1, keepdim=True)[0]
+def max_center_normalization(x: Tensor, eps: float = 1e-6, dim:int=1):
+    max_x = torch.max(x, dim=dim, keepdim=True)[0]
+    min_x = torch.min(x, dim=dim, keepdim=True)[0]
 
     midrange = 0.5 * (max_x + min_x)
     mag = max_x - midrange

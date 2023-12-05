@@ -20,12 +20,13 @@ class MaxAbsNormalization(nn.Module):
     Normalization for the 1D case (MLP)
     """
 
-    def __init__(self, eps: float = 1e-6):
+    def __init__(self, eps: float = 1e-6, dim: int = 1):
         super().__init__()
         self._eps = eps
+        self._dim = dim
 
     def forward(self, x):
-        return max_abs_normalization(x, eps=self._eps)
+        return max_abs_normalization(x, eps=self._eps, dim=self._dim)
 
 
 class MaxCenterNormalization(nn.Module):
