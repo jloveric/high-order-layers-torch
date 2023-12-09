@@ -9,10 +9,23 @@ from .PolynomialLayers import *
 from .ProductLayer import *
 from .utils import (
     l2_normalization,
+    max_abs_normalization_last,
     max_abs_normalization,
     max_abs_normalization_nd,
     max_center_normalization,
 )
+
+
+class MaxAbsNormalizationLast(nn.Module):
+    """
+    Normalize the last dimension of the input variable
+    """
+    def __init__(self, eps: float = 1e-6):
+        super().__init__()
+        self._eps = eps
+
+    def forward(self, x):
+        return max_abs_normalization_last(x, eps=self._eps)
 
 
 class MaxAbsNormalization(nn.Module):

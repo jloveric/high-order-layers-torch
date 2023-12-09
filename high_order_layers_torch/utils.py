@@ -12,6 +12,8 @@ def max_abs(x: Tensor, dim: int=1):
 def max_abs_normalization(x: Tensor, eps: float = 1e-6, dim:int=1):
     return x / (max_abs(x, dim=dim) + eps)
 
+def max_abs_normalization_last(x: Tensor, eps: float = 1e-6):
+    return x / (max_abs(x, dim=len(x.shape)-1) + eps)
 
 def max_center_normalization(x: Tensor, eps: float = 1e-6, dim:int=1):
     max_x = torch.max(x, dim=dim, keepdim=True)[0]

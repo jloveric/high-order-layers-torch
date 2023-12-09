@@ -8,6 +8,7 @@ from high_order_layers_torch.layers import (
     L2Normalization,
     MaxAbsNormalization,
     MaxAbsNormalizationND,
+    MaxAbsNormalizationLast,
     MaxCenterNormalization,
     SwitchLayer,
     fixed_rotation_layer,
@@ -108,6 +109,17 @@ def test_max_abs_layers():
     assert torch.all(torch.eq(ans[1][0], torch.tensor([1, 0.125, 0.125])))
     assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
 
+    layer = MaxAbsNormalizationLast(eps=0.0)
+    ans = layer(x)
+    assert torch.all(torch.eq(ans[0][0], torch.tensor([1, 0.5, 0.5])))
+    assert torch.all(torch.eq(ans[0][1], torch.tensor([1, 0.25, 0.25])))
+    assert torch.all(torch.eq(ans[1][0], torch.tensor([1, 0.125, 0.125])))
+    assert torch.all(torch.eq(ans[1][1], torch.tensor([1, 0.0625, 0.0625])))
+
+    x = torch.tensor([0, 0.5, 0.25])
+    layer = MaxAbsNormalizationLast(eps=0.0)
+    ans = layer(x)
+    assert torch.all(torch.eq(ans, torch.tensor([0, 1.0, 0.5])))
 
 
 def test_max_center_layers():
