@@ -855,7 +855,7 @@ def initialize_network_polynomial_layers(
 
     layers = [
         module
-        for module in network.model.modules()
+        for module in network.modules()
         if not isinstance(module, nn.Sequential)
     ]
 
