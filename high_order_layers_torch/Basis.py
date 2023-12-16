@@ -474,10 +474,10 @@ class Basis:
             mat.append(basis_j)
         mat = torch.stack(mat)
 
-        assemble = torch.einsum("ijk,jkli->jlk", mat, w)
-
+        # assemble = torch.einsum("ijk,jkli->jlk", mat, w)
+        out_sum = torch.einsum("ijk,jkli->jl", mat, w)
         # Compute sum and product at output
-        out_sum = torch.sum(assemble, dim=2)
+        # out_sum = torch.sum(assemble, dim=2)
 
         return out_sum
 
