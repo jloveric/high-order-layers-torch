@@ -48,6 +48,12 @@ class PiecewiseExpand:
         Expand a piecewise polynomial into basis values.  Only
         one of the pieces will need to be expanded for each of
         the inputs as only one will contain the value of interest.
+        :param basis: basis function computer
+        :param n: basis function order
+        :param segment: Number of polynomial segments
+        :param length: range, value of 2 means [-1, 1]
+        :param sparse: Not used, but would be used to use
+        pytorch sparse options if available.
         """
         super().__init__()
         self._basis = basis
