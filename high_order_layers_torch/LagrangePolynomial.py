@@ -66,6 +66,19 @@ class LagrangeBasis:
         ans = torch.prod(b, dim=0)
         return ans
 
+class LagrangeBasis0:
+    """
+    TODO: Degenerate case, test this and see if it works with everything else.
+
+    """
+    def __init__(self, length: float = 2.0):
+        pass
+    
+    def __call__(self, x, j: int):
+
+        b = torch.ones_like(x)
+        return b
+
 
 class LagrangeExpand(BasisExpand):
     def __init__(self, n: int, length: float = 2.0):

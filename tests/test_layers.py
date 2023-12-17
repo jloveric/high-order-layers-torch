@@ -35,6 +35,16 @@ def test_polynomial():
     ans = poly.interpolate(x, w)
     assert abs(0.5 - ans[0]) < 1.0e-6
 
+"""
+Finish later maybe!
+def test_constant_polynomial():
+    poly = LagrangePoly(1)
+    w = chebyshevLobatto(1)
+    w = w.reshape(1,1,1,1)
+    x = torch.tensor([[0.5]])
+    ans = poly.interpolate(x, w)
+    print('constant polynomial', ans)
+"""
 
 def test_compare():
     in_channels = 2
