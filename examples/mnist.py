@@ -160,7 +160,7 @@ class Net(LightningModule):
         logits = self(x)
         loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
-        acc = accuracy(preds, y)
+        acc = accuracy(preds, y, task='multiclass',num_classes=10)
 
         # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f"{name}_loss", loss, prog_bar=True)

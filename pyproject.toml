@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "high-order-layers-torch"
-version = "2.2.4"
+version = "2.2.5"
 description = "High order layers in pytorch"
 authors = ["jloverich <john.loverich@gmail.com>"]
 license = "MIT"
@@ -10,11 +10,11 @@ readme = "README.md"
 python = ">=3.9"
 torch-optimizer = "^0.3.0"
 hydra-core = "^1.2.0"
-torchmetrics = "^0.10.2"
 pytorch-lightning = "^2.0.0"
 torch = ">=2.1.1"
 torchvision = "^0.16.1"
 lion-pytorch = "^0.1.2"
+torchmetrics = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 coverage = "^6.3.3"

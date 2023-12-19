@@ -124,7 +124,7 @@ class Net(LightningModule):
         logits = self(x_new)
         loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
-        acc = accuracy(preds, y)
+        acc = accuracy(preds, y, task='multiclass',num_classes=10)
 
         self.log(f"{name}_loss", loss, prog_bar=True)
         self.log(f"{name}_acc", acc, prog_bar=True)
