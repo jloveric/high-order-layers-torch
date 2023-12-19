@@ -19,7 +19,6 @@ torchmetrics = "^1.2.1"
 [tool.poetry.dev-dependencies]
 coverage = "^6.3.3"
 black = "^22.3.0"
-lightning-bolts = "^0.5.0"
 pytest = "^7.1.2"
 matplotlib = "^3.5.2"
 pre-commit = "^2.20.0"
