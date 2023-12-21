@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "high-order-layers-torch"
-version = "2.2.5"
+version = "2.3.0"
 description = "High order layers in pytorch"
 authors = ["jloverich <john.loverich@gmail.com>"]
 license = "MIT"
