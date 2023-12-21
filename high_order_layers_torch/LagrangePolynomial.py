@@ -63,29 +63,31 @@ class LagrangeBasis:
         self.X = (length / 2.0) * chebyshevLobatto(n)
 
     def __call__(self, x, j: int):
-
         b = [(x - self.X[m]) / (self.X[j] - self.X[m]) for m in range(self.n) if m != j]
         b = torch.stack(b)
         ans = torch.prod(b, dim=0)
         return ans
+
 
 class LagrangeBasis1:
     """
     TODO: Degenerate case, test this and see if it works with everything else.
 
     """
+
     def __init__(self, length: float = 2.0):
-        pass
+        self.n = 1
+        self.X = torch.tensor([0.0])
 
     def __call__(self, x, j: int):
-
         b = torch.ones_like(x)
         return b
 
-def get_lagrange_basis(n: int, length: float=2.0) :
+
+def get_lagrange_basis(n: int, length: float = 2.0):
     if n == 1:
         return LagrangeBasis1(length=length)
-    else :
+    else:
         return LagrangeBasis(n, length=length)
 
 
@@ -96,22 +98,30 @@ class LagrangeExpand(BasisExpand):
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
+        super().__init__(
+            basis=get_lagrange_basis(n, length), n=n, segments=segments, length=length
+        )
 
 
 class PiecewisePolynomialExpand1d(PiecewiseExpand1d):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
+        super().__init__(
+            basis=get_lagrange_basis(n, length), n=n, segments=segments, length=length
+        )
 
 
 class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
+        super().__init__(
+            basis=get_lagrange_basis(n, length), n=n, segments=segments, length=length
+        )
 
 
 class PiecewiseDiscontinuousPolynomialExpand1d(PiecewiseDiscontinuousExpand1d):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
+        super().__init__(
+            basis=get_lagrange_basis(n, length), n=n, segments=segments, length=length
+        )
 
 
 class FourierExpand(BasisExpand):
@@ -121,12 +131,12 @@ class FourierExpand(BasisExpand):
 
 class LagrangePolyFlat(BasisFlat):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, get_lagrange_basis(n,length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n, length), **kwargs)
 
 
 class LagrangePolyFlatProd(BasisFlatProd):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, get_lagrange_basis(n,length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n, length), **kwargs)
 
 
 class LagrangePoly(Basis):
@@ -136,7 +146,7 @@ class LagrangePoly(Basis):
 
 class LagrangePolyProd(BasisProd):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, get_lagrange_basis(n,length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n, length), **kwargs)
 
 
 class FourierSeriesFlat(BasisFlat):

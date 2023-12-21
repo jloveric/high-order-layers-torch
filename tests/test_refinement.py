@@ -13,7 +13,7 @@ torch.set_default_device(device="cpu")
 
 @pytest.mark.parametrize(
     "n_in,n_out,in_features,out_features,segments",
-    [(3, 5, 3, 2, 5), (5, 5, 2, 3, 2), (7, 5, 3, 2, 5)],
+    [(1, 4, 3, 2, 5), (3, 5, 3, 2, 5), (5, 5, 2, 3, 2), (7, 5, 3, 2, 5)],
 )
 @pytest.mark.parametrize(
     "layer_type", [PiecewisePolynomial, PiecewiseDiscontinuousPolynomial]

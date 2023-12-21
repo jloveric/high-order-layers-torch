@@ -42,10 +42,10 @@ def test_constant_polynomial():
     # The constant case
     poly = LagrangePoly(1)
     w = torch.tensor([0.25])
-    w = w.reshape(1,1,1,1)
+    w = w.reshape(1, 1, 1, 1)
     x = torch.tensor([[0.5]])
     ans = poly.interpolate(x, w)
-    assert abs(ans-w) < 1.0e-6
+    assert abs(ans - w) < 1.0e-6
 
 
 def test_compare():
@@ -233,7 +233,7 @@ def test_initialize_polynomial(
     assert torch.allclose(layer.w[:, :, 0], -layer.w[:, :, -1])
 
 
-@pytest.mark.parametrize("n", [3, 4])
+@pytest.mark.parametrize("n", [1, 3, 4])
 @pytest.mark.parametrize("in_features", [2, 3])
 @pytest.mark.parametrize("out_features", [2, 3])
 @pytest.mark.parametrize("segments", [2, 3])
