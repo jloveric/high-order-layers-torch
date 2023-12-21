@@ -17,6 +17,9 @@ def chebyshevLobatto(n: int):
         negative to positive including -1 and 1
          [-1,...,+1]
     """
+    if n == 1:
+        return torch.tensor([0.0])
+
     k = torch.arange(0, n)
 
     ans = -torch.cos(k * math.pi / (n - 1))
@@ -66,43 +69,49 @@ class LagrangeBasis:
         ans = torch.prod(b, dim=0)
         return ans
 
-class LagrangeBasis0:
+class LagrangeBasis1:
     """
     TODO: Degenerate case, test this and see if it works with everything else.
 
     """
     def __init__(self, length: float = 2.0):
         pass
-    
+
     def __call__(self, x, j: int):
 
         b = torch.ones_like(x)
         return b
 
+def get_lagrange_basis(n: int, length: float=2.0) :
+    if n == 1:
+        return LagrangeBasis1(length=length)
+    else :
+        return LagrangeBasis(n, length=length)
+
 
 class LagrangeExpand(BasisExpand):
     def __init__(self, n: int, length: float = 2.0):
-        super().__init__(LagrangeBasis(n, length=length), n)
+        super().__init__(get_lagrange_basis(n, length), n)
 
 
 class PiecewisePolynomialExpand(PiecewiseExpand):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
+        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
 
 
 class PiecewisePolynomialExpand1d(PiecewiseExpand1d):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
+        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
 
 
 class PiecewiseDiscontinuousPolynomialExpand(PiecewiseDiscontinuousExpand):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
+        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
 
 
 class PiecewiseDiscontinuousPolynomialExpand1d(PiecewiseDiscontinuousExpand1d):
     def __init__(self, n: int, segments: int, length: float = 2.0):
-        super().__init__(basis=LagrangeBasis(n), n=n, segments=segments, length=length)
+        super().__init__(basis=get_lagrange_basis(n,length), n=n, segments=segments, length=length)
 
 
 class FourierExpand(BasisExpand):
@@ -112,22 +121,22 @@ class FourierExpand(BasisExpand):
 
 class LagrangePolyFlat(BasisFlat):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n,length), **kwargs)
 
 
 class LagrangePolyFlatProd(BasisFlatProd):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n,length), **kwargs)
 
 
 class LagrangePoly(Basis):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n, length=length), **kwargs)
 
 
 class LagrangePolyProd(BasisProd):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
-        super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+        super().__init__(n, get_lagrange_basis(n,length), **kwargs)
 
 
 class FourierSeriesFlat(BasisFlat):

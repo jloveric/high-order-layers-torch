@@ -219,8 +219,12 @@ $$ product=-1+\prod_{i}(1 + f_{i})+(1-\alpha)\sum_{i}f_{i} $$
 The 1 is added to each function output to as each of the sub products is also computed.  The linear part is controlled by
 the alpha parameter.
 
+## Notes on optimizer
+The Lion optimizer seems to be the best choice since it performs better than Adam in general, but seems to work especially well
+for the case of polynomials.
+
 ## Notes on normalization
-Although you can use batchnorm, layernorm etc... I've found that you can actually just use the infinity norm ("max_abs" norm) which has no parameters
+Although you can use batchnorm, layernorm etc... work better, I've found that you can actually just use the infinity norm ("max_abs" norm) which has no parameters
 for this formulation (same approach seems not to work very well for standard relu networks - but need to investigate this further).
 The max_abs normalization is defined this way
 ```

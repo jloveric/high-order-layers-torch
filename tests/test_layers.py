@@ -4,6 +4,8 @@ import pytest
 
 from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
+from high_order_layers_torch.LagrangePolynomial import LagrangePoly
+
 from high_order_layers_torch.layers import (
     L2Normalization,
     MaxAbsNormalization,
@@ -35,16 +37,16 @@ def test_polynomial():
     ans = poly.interpolate(x, w)
     assert abs(0.5 - ans[0]) < 1.0e-6
 
-"""
-Finish later maybe!
+
 def test_constant_polynomial():
+    # The constant case
     poly = LagrangePoly(1)
-    w = chebyshevLobatto(1)
+    w = torch.tensor([0.25])
     w = w.reshape(1,1,1,1)
     x = torch.tensor([[0.5]])
     ans = poly.interpolate(x, w)
-    print('constant polynomial', ans)
-"""
+    assert abs(ans-w) < 1.0e-6
+
 
 def test_compare():
     in_channels = 2
