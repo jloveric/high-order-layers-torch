@@ -11,6 +11,7 @@ import torch_optimizer as alt_optim
 from pytorch_lightning import LightningModule, Trainer
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
+from lion_pytorch import Lion
 
 from high_order_layers_torch.layers import *
 
@@ -59,7 +60,7 @@ class PolynomialFunctionApproximation(LightningModule):
     """
 
     def __init__(
-        self, n, segments=2, function=True, periodicity=None, opt: str = "adam"
+        self, n, segments=2, function=True, periodicity=None, opt: str = "lion"
     ):
         super().__init__()
         self.automatic_optimization = False
@@ -135,6 +136,8 @@ class PolynomialFunctionApproximation(LightningModule):
             )
         elif self.optimizer == "adam":
             return torch.optim.Adam(self.parameters(), lr=0.001)
+        elif self.optimizer == "lion" :
+            return Lion(self.parameters(), lr=0.001)
         elif self.optimizer == "lbfgs":
             return torch.optim.LBFGS(
                 self.parameters(), lr=1, max_iter=20, history_size=100
@@ -156,6 +159,7 @@ modelSetProd = [
 ]
 
 modelSetD = [
+    {"name": "Discontinuous", "n": 1},
     {"name": "Discontinuous", "n": 2},
     # {'name': 'Discontinuous 2', 'order' : 2},
     {"name": "Discontinuous", "n": 4},
@@ -164,6 +168,7 @@ modelSetD = [
 ]
 
 modelSetC = [
+    #{"name": "Continuous", "n": 1},
     {"name": "Continuous", "n": 2},
     # {'name': 'Continuous 2', 'order' : 2},
     {"name": "Continuous", "n": 4},
@@ -199,7 +204,7 @@ def plot_approximation(
     accelerator="cpu",
     periodicity=None,
     plot_result=True,
-    opt="adam",
+    opt="lion",
 ):
     for i in range(0, len(model_set)):
 
