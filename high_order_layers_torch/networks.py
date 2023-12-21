@@ -179,6 +179,7 @@ class HighOrderMLP(nn.Module):
         normalization: Callable[[Any], Any] = None,
         resnet: bool = False,
         device: str = "cpu",
+        layer_type_in: str = None,
     ) -> None:
         """
         Args :
@@ -205,6 +206,7 @@ class HighOrderMLP(nn.Module):
             hidden_segments: Number of hidden segments for each link.
             normalization: Normalization to apply after each layer (before any additional nonlinearity).
             resnet: True if layer output should be added to the previous.
+            layer_type_in: Layer type for the input layer. If not defined, defaults to layer_type
         """
         super().__init__()
         layer_list = []
@@ -213,7 +215,7 @@ class HighOrderMLP(nn.Module):
         n_out = n_out or n
 
         input_layer = high_order_fc_layers(
-            layer_type=layer_type,
+            layer_type=layer_type_in or layer_type,
             n=n_in,
             in_features=in_width,
             out_features=hidden_width,
@@ -854,9 +856,7 @@ def initialize_network_polynomial_layers(
     """
 
     layers = [
-        module
-        for module in network.modules()
-        if not isinstance(module, nn.Sequential)
+        module for module in network.modules() if not isinstance(module, nn.Sequential)
     ]
 
     for layer in layers:
