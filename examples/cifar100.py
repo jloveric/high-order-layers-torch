@@ -9,6 +9,7 @@ from pytorch_lightning import LightningDataModule, Trainer
 
 from high_order_layers_torch.layers import *
 from high_order_layers_torch.modules import ClassificationNet
+from lion_pytorch import Lion
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]

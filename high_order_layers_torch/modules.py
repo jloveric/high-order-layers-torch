@@ -7,6 +7,7 @@ from omegaconf import DictConfig
 from pytorch_lightning import LightningModule
 from torch import Tensor
 from torchmetrics import Accuracy
+from lion_pytorch import Lion
 
 from high_order_layers_torch.layers import *
 from high_order_layers_torch.networks import *
@@ -61,39 +62,45 @@ class PredictionNetMixin:
                 weight_decay=self.cfg.optimizer.weight_decay,
                 hessian_power=self.cfg.optimizer.hessian_power,
             )
-        elif self.cfg.optimizer.name == "adam":
-
+        
+        if self.cfg.optimizer.name == "adam" :
             optimizer = optim.Adam(
                 params=self.parameters(),
                 lr=self.cfg.optimizer.lr,
             )
-
-            reduce_on_plateau = False
-            if self.cfg.optimizer.scheduler == "plateau":
-                logger.info("Reducing lr on plateau")
-                lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-                    optimizer,
-                    patience=self.cfg.optimizer.patience,
-                    factor=self.cfg.optimizer.factor,
-                    verbose=True,
-                )
-                reduce_on_plateau = True
-            elif self.cfg.optimizer.scheduler == "exponential":
-                logger.info("Reducing lr exponentially")
-                lr_scheduler = optim.lr_scheduler.ExponentialLR(
-                    optimizer, gamma=self.cfg.optimizer.gamma
-                )
-            else:
-                return optimizer
-
-            scheduler = {
-                "scheduler": lr_scheduler,
-                "reduce_on_plateau": reduce_on_plateau,
-                "monitor": "train_loss",
-            }
-            return [optimizer], [scheduler]
+        elif self.cfg.optimizer.name == "lion":
+            optimizer = Lion(
+                params=self.parameters(),
+                lr=self.cfg.optimizer.lr,
+            )
         else:
             raise ValueError(f"Optimizer {self.cfg.optimizer.name} not recognized")
+
+        reduce_on_plateau = False
+        if self.cfg.optimizer.scheduler == "plateau":
+            logger.info("Reducing lr on plateau")
+            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer,
+                patience=self.cfg.optimizer.patience,
+                factor=self.cfg.optimizer.factor,
+                verbose=True,
+            )
+            reduce_on_plateau = True
+        elif self.cfg.optimizer.scheduler == "exponential":
+            logger.info("Reducing lr exponentially")
+            lr_scheduler = optim.lr_scheduler.ExponentialLR(
+                optimizer, gamma=self.cfg.optimizer.gamma
+            )
+        else:
+            return optimizer
+
+        scheduler = {
+            "scheduler": lr_scheduler,
+            "reduce_on_plateau": reduce_on_plateau,
+            "monitor": "train_loss",
+        }
+        return [optimizer], [scheduler]
+        
 
 
 def select_network(cfg: DictConfig, device: str = None):
@@ -203,7 +210,7 @@ class ClassificationNet(ClassificationMixin, PredictionNetMixin, LightningModule
         self.model = select_network(cfg)
 
         self.loss = torch.nn.CrossEntropyLoss()
-        self.accuracy = Accuracy(top_k=1)
+        self.accuracy = Accuracy(top_k=1,task="multiclass", num_classes=cfg.data.classes)
 
 
 class RegressionNet(RegressionMixin, PredictionNetMixin, LightningModule):

@@ -6,6 +6,7 @@ import torchvision
 import torchvision.transforms as transforms
 from pytorch_lightning import LightningModule, Trainer
 from torchmetrics import Accuracy
+from lion_pytorch import Lion
 
 from high_order_layers_torch.FunctionalConvolution import (
     PiecewiseDiscontinuousPolynomialConvolution2d as PiecewiseDiscontinuousPolyConv2d,
@@ -56,7 +57,7 @@ class Net(LightningModule):
         self.n = n
         self._batch_size = batch_size
         self._layer_type = layer_type
-        self._accuracy = Accuracy()
+        self._accuracy = Accuracy(task="multiclass",num_classes=10)
 
         if layer_type == "continuous":
             self.conv1 = PolyConv2d(n, in_channels=3, out_channels=6, kernel_size=5)
@@ -143,7 +144,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.001)
+        return Lion(self.parameters(), lr=1e-4)
 
 
 def run_cifar10(
