@@ -3,18 +3,18 @@ from typing import Tuple, Optional, Callable
 import torch
 from torch.optim.optimizer import Optimizer
 
-# functions
+# Took this code from lucid rains version and updated for the sparse case
 
 
 def exists(val):
     return val is not None
 
 
-# update functions
-
-
-def update_fn(p, grad, exp_avg, lr, wd, beta1, beta2, update_indexes):
-    # stepweight decay
+def update_fn(p, grad, exp_avg, lr, wd, beta1, beta2, update_indexes: torch.Tensor):
+    """
+    TODO: I can probably do this more efficiently
+    :param update_indexes: True/False array indicating which indexes should be updated
+    """
 
     p.data[update_indexes].mul_(1 - lr * wd)
 
@@ -27,14 +27,12 @@ def update_fn(p, grad, exp_avg, lr, wd, beta1, beta2, update_indexes):
         .add(grad_update, alpha=1 - beta1)
         .sign_()
     )
-    p[update_indexes].add_(update, alpha=-lr)
+    p[update_indexes] = p[update_indexes].add_(update, alpha=-lr)
 
     # decay the momentum running average coefficient
-
-    exp_avg[update_indexes].mul_(beta2).add_(grad_update, alpha=1 - beta2)
-
-
-# class
+    exp_avg[update_indexes] = (
+        exp_avg[update_indexes].mul_(beta2).add_(grad_update, alpha=1 - beta2)
+    )
 
 
 class SparseLion(Optimizer):
@@ -82,8 +80,10 @@ class SparseLion(Optimizer):
                 if len(state) == 0:
                     state["exp_avg"] = torch.zeros_like(p)
 
-                # In each layer only a fraction of each path is actually updated
-                update_indexes = torch.where(p.grad != 0.0)
+                # In each layer only a fraction of each path is actually updated. In my
+                # case the gradients will be identically zero for those that should
+                # not be updated.
+                update_indexes = p.grad != 0.0
 
                 exp_avg = state["exp_avg"]
 
