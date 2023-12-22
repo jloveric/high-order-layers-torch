@@ -12,6 +12,7 @@ from pytorch_lightning import LightningModule, Trainer
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
 from lion_pytorch import Lion
+from high_order_layers_torch.sparse_optimizers import SparseLion
 
 from high_order_layers_torch.layers import *
 
@@ -60,7 +61,7 @@ class PolynomialFunctionApproximation(LightningModule):
     """
 
     def __init__(
-        self, n, segments=2, function=True, periodicity=None, opt: str = "lion"
+        self, n, segments=2, function=True, periodicity=None, opt: str = "sparse_lion"
     ):
         super().__init__()
         self.automatic_optimization = False
@@ -118,7 +119,7 @@ class PolynomialFunctionApproximation(LightningModule):
             self.manual_backward(loss, create_graph=False)
 
         opt.step()
-
+        self.log(f"loss", loss, prog_bar=True)
         return {"loss": loss}
 
     def train_dataloader(self):
@@ -136,8 +137,11 @@ class PolynomialFunctionApproximation(LightningModule):
             )
         elif self.optimizer == "adam":
             return torch.optim.Adam(self.parameters(), lr=0.001)
-        elif self.optimizer == "lion" :
+        elif self.optimizer == "lion":
             return Lion(self.parameters(), lr=0.001)
+        elif self.optimizer == "sparse_lion":
+            print(f"Using sparse lion")
+            return SparseLion(self.parameters(), lr=0.001)
         elif self.optimizer == "lbfgs":
             return torch.optim.LBFGS(
                 self.parameters(), lr=1, max_iter=20, history_size=100
@@ -204,9 +208,12 @@ def plot_approximation(
     accelerator="cpu",
     periodicity=None,
     plot_result=True,
-    opt="lion",
+    opt="sparse_lion",
+    first_only=False,
 ):
     for i in range(0, len(model_set)):
+        if i > 0 and first_only:
+            break
 
         trainer = Trainer(max_epochs=epochs, accelerator=accelerator)
 
@@ -240,8 +247,9 @@ def plot_approximation(
         plt.legend()
 
 
-def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
-
+def plot_results(
+    epochs: int = 20, segments: int = 5, plot: bool = True, first_only: bool = False
+):
     """
     plt.figure(0)
     plot_approximation("standard", modelSetL, 1, epochs, gpus=0)
@@ -285,14 +293,16 @@ def plot_results(epochs: int = 20, segments: int = 5, plot: bool = True):
             epochs,
             accelerator="cpu",
             periodicity=2,
+            opt="sparse_lion",
+            first_only=first_only,
         )
 
         if plot is True:
-            plt.title("Piecewise Discontinuous Function Approximation")
+            plt.title(element["title"])
 
     if plot is True:
         plt.show()
 
 
 if __name__ == "__main__":
-    plot_results()
+    plot_results(first_only=False)
