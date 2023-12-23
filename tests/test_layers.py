@@ -12,6 +12,7 @@ from high_order_layers_torch.layers import (
     MaxAbsNormalizationND,
     MaxAbsNormalizationLast,
     MaxCenterNormalization,
+    MaxCenterNormalizationLast,
     SwitchLayer,
     fixed_rotation_layer,
     initialize_polynomial_layer,
