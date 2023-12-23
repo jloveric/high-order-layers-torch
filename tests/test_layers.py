@@ -169,6 +169,12 @@ def test_max_center_layers():
     assert torch.all(torch.eq(ans[0], torch.tensor([1, -1, -1])))
     assert torch.all(torch.eq(ans[1], torch.tensor([1, -1, -1])))
 
+    x = torch.tensor([[[1, 0.5, 0.5], [2, 0.5, 0.5]]])
+    layer = MaxCenterNormalizationLast(eps=0.0)
+    ans = layer(x)
+    assert torch.all(torch.eq(ans[0][0], torch.tensor([1, -1, -1])))
+    assert torch.all(torch.eq(ans[0][1], torch.tensor([1, -1, -1])))
+
 
 @pytest.mark.parametrize("n", [2, 3])
 @pytest.mark.parametrize("rotations", [1, 2, 3])
