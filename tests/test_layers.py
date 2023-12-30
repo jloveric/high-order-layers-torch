@@ -23,6 +23,20 @@ import torch
 
 torch.set_default_device(device="cpu")
 
+"""
+We want this to work at some point so leaving it
+@pytest.mark.parametrize("n", [2, 3])
+@pytest.mark.parametrize("in_features", [1, 2, 3])
+@pytest.mark.parametrize("out_features", [1, 2, 3])
+@pytest.mark.parametrize("segments", [2, 3, 4])
+def test_variable_dimension_input(n, in_features, out_features, segments):
+    layer = PiecewiseDiscontinuousPolynomial(
+        n=n, in_features=in_features, out_features=out_features, segments=segments
+    )
+
+    a = torch.rand(10, 4, in_features, out_features)
+    layer(a)
+"""
 
 def test_nodes():
     ans = chebyshevLobatto(20)
