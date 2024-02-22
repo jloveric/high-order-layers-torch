@@ -1,4 +1,6 @@
 
+[![CI](https://github.com/jloveric/high-order-layers-torch/actions/workflows/python-app.yml/badge.svg)](https://github.com/jloveric/high-order-layers-torch/actions/workflows/python-app.yml)
+
 # Piecewise Polynomial in PyTorch
 
 This is a PyTorch implementation of my tensorflow [repository](https://github.com/jloveric/high-order-layers) and is more complete due to the flexibility of PyTorch.
