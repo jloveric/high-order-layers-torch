@@ -17,7 +17,7 @@ Using simple high order MLP
 
 ## Idea
 
-The idea is extremely simple - instead of a single weight at the synapse, use n-weights.  The n-weights describe a piecewise polynomial (or other complex function) and each of the n-weights can be updated independently. A Lagrange polynomial and Gauss Lobatto points are used to minimize oscillations of the polynomial.  The same approach can be applied to any "functional" synapse, and I also have Fourier series synapses in this repo as well.  This can be implemented as construction of a polynomial or Fourier kernel followed by a standard pytorch layer where a linear activation is used.
+The idea is extremely simple - instead of a single weight at the synapse, use n-weights.  The n-weights describe the value of a piecewise polynomial on a regular grid (in the case of a piecewise polynomial) each of the n-weights can be updated independently. A Lagrange polynomial and Gauss Lobatto points are used to minimize oscillations of the polynomial.  The same approach can be applied to any "functional" synapse, and I also have Fourier series synapses in this repo as well. Because the non-linearity is applied on the link, the node is simply a summation
 
 In the image below each "link" instead of being a single weight, is a function of both x and a set of weights.  These functions can consist of an orthogonal basis functions for efficient approximation.
 
@@ -25,7 +25,7 @@ In the image below each "link" instead of being a single weight, is a function o
 
 ## Why
 
-Using higher order polynomial representations might allow networks with much fewer total weights.
+Using higher order polynomial representations allow networks with much fewer total weights in certain cases
 
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
@@ -249,3 +249,6 @@ are packed towards the edges of each segment (though using even number of segmen
   howpublished = {\url{https://github.com/jloveric/high-order-layers-torch}},
 }
 ```
+## Notes
+
+Recently the paper [KAN: Kolmogorov–Arnold Networks](https://arxiv.org/pdf/2404.19756) was published (9 years after the original implementation of the technique in this repo), where B-splines were used on the grid. I suspect the benefits/limitations when applied to real problems will be similar.
