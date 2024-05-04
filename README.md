@@ -252,3 +252,6 @@ are packed towards the edges of each segment (though using even number of segmen
 ## Notes
 
 Recently the paper [KAN: Kolmogorov–Arnold Networks](https://arxiv.org/pdf/2404.19756) was published (9 years after the original implementation of the technique in this repo), where B-splines were used on the grid. I suspect the benefits/limitations when applied to real problems will be similar.
+
+This paper [Variations on the Chebyshev-Lagrange Activation Function](https://arxiv.org/abs/1906.10064) implements a linear extension 
+to the values beyond [-1,1] so it might be interesting to investigate 
