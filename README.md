@@ -27,6 +27,11 @@ A single neuron input output pair with a piecewise function is shown below. In t
 
 <img src="plots/NeuronDrawing.svg" width=50% height=50% style="display: block; margin: 0 auto">
 
+The image below shows the function passing through the weights when using lagrange polynomials. Note that there is no derivative continuity at the boundaries.
+
+<img src="plots/NeuronDrawingWeights.svg" width=50% height=50% style="display: block; margin: 0 auto">
+
+
 ## Why
 
 Using higher order polynomial representations allow networks with much fewer total weights in certain cases
