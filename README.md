@@ -5,7 +5,7 @@
 
 This is a PyTorch implementation of my tensorflow [repository](https://github.com/jloveric/high-order-layers) and is more complete due to the flexibility of PyTorch.
 
-Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagrange Polynomial, Fourier Series, sum and product layers in PyTorch.  The sparsity of using piecewise polynomial layers means that by adding new segments the representational power of your network increases, but the time to complete a forward step remains constant. Implementation includes simple fully connected layers, convolution layers and deconvolutional layers using these models. This is a PyTorch implementation of this [Discontinuous Piecewise Polynomial Neural Networks](https://www.researchgate.net/publication/276923198_Discontinuous_Piecewise_Polynomial_Neural_Networks) including massive number of extensions including continuous, Fourier series and convolutional neural networks... and many applications.
+Lagrange Polynomial, Piecewise Lagrange Polynomial, Discontinuous Piecewise Lagrange Polynomial, Fourier Series, sum and product layers in PyTorch.  The sparsity of using piecewise polynomial layers means that by adding new segments the representational power of your network increases, but the time to complete a forward step remains constant. Implementation includes simple fully connected layers, convolution layers and deconvolutional layers using these models. This is a PyTorch implementation of this [Discontinuous Piecewise Polynomial Neural Networks](https://www.researchgate.net/publication/276923198_Discontinuous_Piecewise_Polynomial_Neural_Networks) including huge number of extensions including continuous, Fourier series and convolutional neural networks... and many applications with varrying degrees of success.
 
 ## Collab Notebook
 Using simple high order layers
@@ -22,6 +22,10 @@ The idea is extremely simple - instead of a single weight at the synapse, use n-
 In the image below each "link" instead of being a single weight, is a function of both x and a set of weights.  These functions can consist of an orthogonal basis functions for efficient approximation.
 
 <img src="plots/NetworkZoom.png" width=50% height=50% style="display: block; margin: 0 auto">
+
+A single neuron input output pair with a piecewise function is shown below. In the case where we use polynomials, Lagrange polynomials are being used so the values of the weights are identical to the value of the function at that point. The spacing is determined by chebyshev lobatto points, so there are always weights at the edge of each segment. In the case of discontinuous polynomial, the weights there are 2 weights for each interior segment edge.
+
+<img src="plots/NeuronDrawing.svg" width=50% height=50% style="display: block; margin: 0 auto">
 
 ## Why
 
@@ -72,6 +76,17 @@ All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 |discontinuous(1d,2d) | piecewise discontinuous polynomial
 |polynomial(1d,2d) | single polynomial
 |fourier(1d,2d) | fourier series convolution
+
+## Initializing of layers
+For non convolutional layers I've found that initializing the polymials to continuous line across all segments, works better then a random wiggly polynomial. I don't have similar functions implemented for convolutional layers. Here is a function that does this initialization (it can be found in [networks.py](https://github.com/jloveric/high-order-layers-torch/blob/master/high_order_layers_torch/networks.py))
+```
+def initialize_network_polynomial_layers(
+    network: nn.Module,
+    max_slope: float,
+    max_offset: float,
+    scale_slope: Callable[[float], float] = lambda input_size: 1,
+)
+```
 
 ## h and p refinement
 p refinement is taking an existing network and increasing the polynomial order of that network without changing the network output.  This allow the user to train a network at low polynomial order and then use that same network to initialize a network with higher polynomial order.  This is particularly useful since a high order polynomial network will often converge poorly without the right initialization, the lower order network provides a good initial solution.  The function for changing the order of a network is
