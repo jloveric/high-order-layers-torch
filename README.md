@@ -36,6 +36,11 @@ The image below shows the function passing through the weights when using lagran
 
 Using higher order polynomial representations allow networks with much fewer total weights in certain cases
 
+## Is this a KAN?
+
+Actually a single layer piecewise polynomial KAN (which is actually 2 layers) is a special case of a 2 layer
+piecewise polynomial network, which is used in this repo. I think the general name for should be "high order networks" as that is consistent with descriptions used in numerical methods and computational physics.
+
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
