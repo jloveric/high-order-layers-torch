@@ -41,6 +41,8 @@ Using higher order polynomial representations allow networks with much fewer tot
 Actually a single layer piecewise polynomial KAN (which is actually 2 layers) is a special case of a 2 layer
 piecewise polynomial network, which is used in this repo. I think the general name for should be "high order networks" as that is consistent with descriptions used in numerical methods and computational physics.
 
+Why would you use this instead of a KAN? This approach is actually slightly simpler to implement and visualize and may actually run better on the GPU. It also more closely aligns with approaches used to solving PDEs.
+
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
@@ -70,7 +72,6 @@ where `layer_type` is one of
 |fourier | fourier series with sum at the neuron |
 
 
-
 `n` is the number of interpolation points per segment for polynomials or the number of frequencies for fourier series, `segments` is the number of segments for piecewise polynomials, `alpha` is used in product layers and when set to 1 keeps the linear part of the product, when set to 0 it subtracts the linear part from the product.
 
 ## Convolutional Layer Types
@@ -88,7 +89,7 @@ All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 |fourier(1d,2d) | fourier series convolution
 
 ## Initializing of layers
-For non convolutional layers I've found that initializing the polymials to continuous line across all segments, works better then a random wiggly polynomial. I don't have similar functions implemented for convolutional layers. Here is a function that does this initialization (it can be found in [networks.py](https://github.com/jloveric/high-order-layers-torch/blob/master/high_order_layers_torch/networks.py))
+For non convolutional layers I've found that initializing the polynomials to continuous line across all segments, works better then a random wiggly polynomial. I don't have similar functions implemented for convolutional layers. Here is a function that does this initialization (it can be found in [networks.py](https://github.com/jloveric/high-order-layers-torch/blob/master/high_order_layers_torch/networks.py))
 ```
 def initialize_network_polynomial_layers(
     network: nn.Module,
