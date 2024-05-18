@@ -51,8 +51,8 @@ having the piecewise polynomial layer is important. Other names that have been u
 Lagrange polynomials are widely used in finite element analysis and have the advantage that the value of the weight
 is actually the value of the function at that point in space. By limiting the weights you are limiting the maximum
 value of the function (the function may be higher than the weights in between the nodes). Also, when you go beyond the
-range of definition [-1,1] the polynomial is still defined, whether you want it defined that way at high polynomial
-order is another question.
+range of definition [-1,1] the polynomial is still defined using the last (or first) polynomial in the sequence, whether you want it defined that way at high polynomial order is another question. I mention a paper at the bottom where they do a linear
+extension beyond the range [-1,1] so values do not rise too fast - but normalization works as well.
 
 ## Issues
 
