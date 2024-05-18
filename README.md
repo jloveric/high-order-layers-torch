@@ -36,14 +36,16 @@ The image below shows the function passing through the weights when using lagran
 
 ## Why
 
-Using higher order polynomial representations allow networks with much fewer total weights in certain cases. My original motivation
-for investigating this at all starting in 2014 (when I had a slow dynamic network and use approximate function inverses instead of back propagation), was to solve PDEs that have shockwaves in them, i.e. discontinuous solutions. I have a lot of experience solving these
-types of PDEs classically and unfortunately, so far, the NN approach is much much worse (talking about PINNs on practical problems in particular)! Maybe some day that will change.
+Using higher order polynomial representations allow networks with much fewer total weights in certain cases. There is a
+well known phenomena in numerical modeling known as exponential convergence using spectral methods when using hp refinement,
+it's possible something like that can happen in neural networks as well.
 
 ## Is this a KAN?
 
 Actually a single layer piecewise polynomial KAN (which is actually 2 layers) is a special case of a 2 layer
-piecewise polynomial network, which is used in this repo. Other names that have been used in the past Deep FLANN
+piecewise polynomial network, which is used in this repo. Therefore, a piecewise polynomial layer is actually "Half a KAN" so
+it's actually simpler - Often all you need is a single polynomial layer at the input followed by a standard MLP so
+having the piecewise polynomial layer is important. Other names that have been used in the past Deep FLANN
 (functional link artificial neural network).
 
 Lagrange polynomials are widely used in finite element analysis and have the advantage that the value of the weight
