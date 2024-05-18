@@ -62,6 +62,10 @@ In general, with enough effort, it seems I can make them "work" for any place th
 in certain situations they clearly work much better. They also do a great job of overfitting, which just means,
 I need more data. For problems where your inputs are positional, x and y..., they seem to be far better.
 
+Finally, I believe these methods actually will benefit much more from second order optimizers. I used those in
+my original implementation. Although there are plenty of second order optimizers out there, to date, pytorch does
+not have a standard one except LBFGS which has its own issues.
+
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
