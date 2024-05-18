@@ -25,6 +25,10 @@ In the image below each "link" instead of being a single weight, is a function o
 
 <img src="plots/NetworkZoom.png" width=50% height=50% style="display: block; margin: 0 auto">
 
+A small layer then looks like this, the values at the nodes are just summed.
+
+<img src="plots/PiecewisePolynomialLayer.svg" width=50% height=50% style="display: block; margin: 0 auto">
+
 A single neuron input output pair with a piecewise function is shown below. In the case where we use polynomials, Lagrange polynomials are being used so the values of the weights are identical to the value of the function at that point. The spacing is determined by chebyshev lobatto points, so there are always weights at the edge of each segment. In the case of discontinuous polynomial, the weights there are 2 weights for each interior segment edge.
 
 <img src="plots/NeuronDrawing.svg" width=50% height=50% style="display: block; margin: 0 auto">
