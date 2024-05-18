@@ -39,9 +39,14 @@ Using higher order polynomial representations allow networks with much fewer tot
 ## Is this a KAN?
 
 Actually a single layer piecewise polynomial KAN (which is actually 2 layers) is a special case of a 2 layer
-piecewise polynomial network, which is used in this repo. I think the general name for should be "high order networks" as that is consistent with descriptions used in numerical methods and computational physics.
+piecewise polynomial network, which is used in this repo. Other names that have been used in the past Deep FLANN
+(functional link artificial neural network).
 
-Why would you use this instead of a KAN? This approach is actually slightly simpler to implement and visualize and may actually run better on the GPU. It also more closely aligns with approaches used to solving PDEs.
+Lagrange polynomials are widely used in finite element analysis and have the advantage that the value of the weight
+is actually the value of the function at that point in space. By limiting the weights you are limiting the maximum
+value of the function (the function may be higher than the weights in between the nodes). Also, when you go beyond the
+range of definition [-1,1] the polynomial is still defined, whether you want it defined that way at high polynomial
+order is another question.
 
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
@@ -265,6 +270,7 @@ are packed towards the edges of each segment (though using even number of segmen
 
 
 ## Reference
+You can refer to this repo here
 ```
 @misc{Loverich2020,
   author = {Loverich, John},
@@ -275,9 +281,21 @@ are packed towards the edges of each segment (though using even number of segmen
   howpublished = {\url{https://github.com/jloveric/high-order-layers-torch}},
 }
 ```
+and there is an old paper which was originally written in c++ and doesn't cover
+nearly as much as this repo and all the dependent repos, which you can also refer
+to
+```
+@article{loverich2015discontinuous,
+  title={Discontinuous Piecewise Polynomial Neural Networks},
+  author={Loverich, John},
+  journal={arXiv preprint arXiv:1505.04211},
+  year={2015}
+}
+```
 ## Notes
 
-Recently the paper [KAN: Kolmogorov–Arnold Networks](https://arxiv.org/pdf/2404.19756) was published (9 years after the original implementation of the technique in this repo), where B-splines were used on the grid. I suspect the benefits/limitations when applied to real problems will be similar.
+Recently the paper [KAN: Kolmogorov–Arnold Networks](https://arxiv.org/pdf/2404.19756) was published (9 years after the original implementation of the technique in this repo), where B-splines were used on the grid. Looking at that repo, the real difference seems to be B-splines vs lagrange
+polynomials.
 
 This paper [Variations on the Chebyshev-Lagrange Activation Function](https://arxiv.org/abs/1906.10064) implements a linear extension 
 to the values beyond [-1,1] so it might be interesting to implement
