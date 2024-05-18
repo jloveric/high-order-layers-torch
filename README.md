@@ -48,6 +48,20 @@ value of the function (the function may be higher than the weights in between th
 range of definition [-1,1] the polynomial is still defined, whether you want it defined that way at high polynomial
 order is another question.
 
+## Issues
+
+What about instabilities due to steep gradients? Seems like you can get around those with various approaches, polynomial
+refinement is one (start with piecewise linear and than increase the polynomial order after it converges), the lion
+optimizer helps a lot as well.
+
+The biggest issues I've experienced though are that it's slower than dense networks and certain operations can
+take up more memory which can cause major issues with models that already push the limits of your gpu. Now that
+KANs are popular, hopefully there will be enough people to address all these issues.
+
+In general, with enough effort, it seems I can make them "work" for any place the classic ReLU network works and
+in certain situations they clearly work much better. They also do a great job of overfitting, which just means,
+I need more data. For problems where your inputs are positional, x and y..., they seem to be far better.
+
 ## Fully Connected Layer Types
 All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 
