@@ -34,7 +34,8 @@ The image below shows the function passing through the weights when using lagran
 
 ## Why
 
-Using higher order polynomial representations allow networks with much fewer total weights in certain cases
+Using higher order polynomial representations allow networks with much fewer total weights in certain cases. My original motivation
+for investigating this at all starting in 2014 (when I had a slow dynamic network and use approximate function inverses instead of back propagation), was to solve PDEs that have shockwaves in them, i.e. discontinuous solutions.
 
 ## Is this a KAN?
 
