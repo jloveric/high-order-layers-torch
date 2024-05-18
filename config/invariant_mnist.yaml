@@ -19,8 +19,8 @@ mlp :
   layer_type: polynomial
 
   # Set to true to do polynomial refinement
-  p_refine: True
-  normalize: False #max_abs # l2 or False
+  p_refine: False
+  normalize: l2 #max_abs # l2 or False
 
   input :
     width: 784
@@ -37,4 +37,4 @@ mlp :
     n : ${mlp.n}
 
 defaults:
-  - optimizer: adam
+  - optimizer: lion

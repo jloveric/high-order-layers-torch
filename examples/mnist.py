@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from lion_pytorch import Lion
 import torchvision
 import torchvision.transforms as transforms
 from omegaconf import DictConfig, OmegaConf
@@ -172,7 +173,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.001)
+        return Lion(self.parameters(), lr=0.001)
 
 
 def mnist(cfg: DictConfig):
@@ -185,7 +186,7 @@ def mnist(cfg: DictConfig):
         pass
 
     early_stop_callback = EarlyStopping(
-        monitor="val_loss", min_delta=0.00, patience=3, verbose=False, mode="min"
+        monitor="val_loss", min_delta=0.00, patience=20, verbose=False, mode="min"
     )
 
     trainer = Trainer(

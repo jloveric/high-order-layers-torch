@@ -12,6 +12,8 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from torchmetrics.functional import accuracy
+from lion_pytorch import Lion
+
 
 from high_order_layers_torch.layers import *
 from high_order_layers_torch.networks import *
@@ -146,6 +148,15 @@ class Net(LightningModule):
             )
         elif self.cfg.optimizer.name == "adam":
             optimizer = optim.Adam(self.parameters(), lr=self.cfg.optimizer.lr)
+            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer,
+                patience=self.cfg.optimizer.patience,
+                factor=self.cfg.optimizer.factor,
+                verbose=True,
+            )
+            return [optimizer], [lr_scheduler]
+        elif self.cfg.optimizer.name == "lion":
+            optimizer = Lion(self.parameters(), lr=self.cfg.optimizer.lr)
             lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer,
                 patience=self.cfg.optimizer.patience,
