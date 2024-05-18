@@ -35,7 +35,8 @@ The image below shows the function passing through the weights when using lagran
 ## Why
 
 Using higher order polynomial representations allow networks with much fewer total weights in certain cases. My original motivation
-for investigating this at all starting in 2014 (when I had a slow dynamic network and use approximate function inverses instead of back propagation), was to solve PDEs that have shockwaves in them, i.e. discontinuous solutions.
+for investigating this at all starting in 2014 (when I had a slow dynamic network and use approximate function inverses instead of back propagation), was to solve PDEs that have shockwaves in them, i.e. discontinuous solutions. I have a lot of experience solving these
+types of PDEs classically and unfortunately, so far, the NN approach is much much worse (talking about PINNs on practical problems in particular)! Maybe some day that will change.
 
 ## Is this a KAN?
 
@@ -63,7 +64,7 @@ In general, with enough effort, it seems I can make them "work" for any place th
 in certain situations they clearly work much better. They also do a great job of overfitting, which just means,
 I need more data. For problems where your inputs are positional, x and y..., they seem to be far better.
 
-Finally, I believe these methods actually will benefit much more from second order optimizers. I used those in
+Finally, I believe these methods actually will benefit much more from (approximate) second order optimizers. I used those in
 my original implementation. Although there are plenty of second order optimizers out there, to date, pytorch does
 not have a standard one except LBFGS which has its own issues.
 
