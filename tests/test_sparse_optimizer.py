@@ -53,6 +53,6 @@ def test_sparse_lion():
     assert torch.any((w_after - w_before) > 0)
 
     out_final = layer(x)
-    diff = out_final - out
+    diff = torch.abs(out_final - out)
     assert torch.any(diff > 0)
     print("diff", diff)
