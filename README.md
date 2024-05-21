@@ -320,8 +320,14 @@ to
 ```
 ## Notes
 
-Recently the paper [KAN: Kolmogorov–Arnold Networks](https://arxiv.org/pdf/2404.19756) was published (9 years after the original implementation of the technique in this repo), where B-splines were used on the grid. Looking at that repo, the real difference seems to be B-splines vs lagrange
+[KAN: Kolmogorov–Arnold Networks 2024](https://arxiv.org/pdf/2404.19756) was published (9 years after the original implementation of the technique in this repo), where B-splines were used on the grid. Looking at that repo, the real difference seems to be B-splines vs lagrange
 polynomials.
 
-This paper [Variations on the Chebyshev-Lagrange Activation Function](https://arxiv.org/abs/1906.10064) implements a linear extension 
-to the values beyond [-1,1] so it might be interesting to implement
+[Variations on the Chebyshev-Lagrange Activation Function](https://arxiv.org/abs/1906.10064) implements a linear extension 
+to the values beyond [-1,1] which would solve the problem of polynomial growth outside that range.
+
+[KAN: Kolmogorov–Arnold Networks: A review 2024](https://vikasdhiman.info/reviews/KAN_a_review.pdf) A review of KANs with respect to other types of networks, especially spline networks
+
+[Linear spline networks 2020](https://arxiv.org/pdf/2001.06263) 
+
+[Learning Activation Functions in Deep (Spline) Neural Networks 2020](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9264754) using B splines
