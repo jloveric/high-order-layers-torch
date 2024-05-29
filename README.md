@@ -210,6 +210,11 @@ python examples/mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous2d
 ```
 python examples/cifar100.py -m max_epochs=20 train_fraction=1.0 layer_type=polynomial segments=2 n=7 nonlinearity=False rescale_output=False periodicity=2.0 lr=0.001 linear_output=False
 ```
+## Autoencoder (haven't finished implementing)
+
+```
+python examples/autoencoder.py -m max_epochs=300 train_fraction=1.0
+```
 
 ## Variational Autoencoder
 Still a WIP.  Does work, but needs improvement.
