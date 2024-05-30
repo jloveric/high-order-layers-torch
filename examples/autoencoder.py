@@ -7,7 +7,6 @@ import os
 import hydra
 import torch
 import torch.optim as optim
-import torch_optimizer as alt_optim
 import torchvision
 import torchvision.transforms as transforms
 from matplotlib.pyplot import figure
@@ -23,6 +22,10 @@ from high_order_layers_torch.networks import (
     HighOrderFullyDeconvolutionalNetwork,
     HighOrderMLP,
 )
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logging.getLogger().setLevel(logging.DEBUG)
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -48,7 +51,6 @@ class Net(LightningModule):
         self._patience = cfg.optimizer.patience
         self._factor = cfg.optimizer.factor
         self._gamma = cfg.optimizer.gamma
-        self._M_N = cfg.M_N
 
         self.encoder = HighOrderFullyConvolutionalNetwork(
             layer_type=cfg.layer_type,
@@ -73,11 +75,13 @@ class Net(LightningModule):
             padding=cfg.decoder.padding,
         )
 
+        self.pooling = nn.AvgPool2d(1)
+        self.flatten = nn.Flatten()
         self.layer = HighOrderMLP(
             layer_type=cfg.mlp.layer_type,
             n=cfg.mlp.n,
-            in_width=cfg.encoder.channels,
-            out_width=cfg.decoder.channels,
+            in_width=cfg.encoder.channels[-1],
+            out_width=cfg.decoder.channels[0],
             in_segments=cfg.mlp.segments,
             out_segments=cfg.mlp.segments,
             hidden_segments=cfg.mlp.segments,
@@ -87,7 +91,8 @@ class Net(LightningModule):
             normalization=torch.nn.LayerNorm,
         )
 
-        self.model = nn.Sequential([self.encoder, self.layer, self.decoder])
+        self.model = nn.Sequential([self.encoder, self.pooling, self.flatten, self.layer, self.decoder])
+        self.half_model = nn.Sequential([self.layer, self.decoder])
 
     def forward(self, x):
         return self.model(x)
@@ -172,14 +177,14 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        
+
         if self._cfg.optimizer.name == "adam":
             optimizer = optim.Adam(
                 params=self.parameters(),
                 lr=self._lr,
             )
         elif self._cfg.optimizer.name == "lion":
-            optimizer = optim.Lion(
+            optimizer = Lion(
                 params=self.parameters(),
                 lr=self._lr,
             )
@@ -206,8 +211,6 @@ class Net(LightningModule):
             "monitor": "val_loss",
         }
         return [optimizer], [scheduler]
-        
-        
 
 
 class ImageSampler(Callback):
@@ -249,7 +252,7 @@ def autoencoder(cfg: DictConfig):
     logger = TensorBoardLogger("tb_logs", name="autoencoder")
 
     trainer = Trainer(
-        max_epochs=cfg.max_epochs, gpus=cfg.gpus, logger=logger, callbacks=[sampler]
+        max_epochs=cfg.max_epochs, accelerator=cfg.accelerator, logger=logger, callbacks=[sampler]
     )
     model = Net(cfg)
     trainer.fit(model)
@@ -262,9 +265,14 @@ def autoencoder(cfg: DictConfig):
     return result
 
 
-@hydra.main(config_path="../config", config_name="autoencoder")
+@hydra.main(config_path="../config", config_name="autoencoder", version_base="1.3")
 def run(cfg: DictConfig):
+    logger.info(OmegaConf.to_yaml(cfg))
+    print("calling the autoencoder")
     ans = autoencoder(cfg=cfg)
 
     # needed for nevergrad
     return ans[0]["test_loss"]
+
+if __name__ == "__main__" :
+    run()

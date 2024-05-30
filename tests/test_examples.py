@@ -7,6 +7,7 @@ from examples.function_example import plot_results
 from examples.invariant_mnist import invariant_mnist
 from examples.mnist import mnist
 from examples.xor import model_set_d, plot_approximation
+from examples.autoencoder import autoencoder
 import torch
 
 torch.set_default_device(device="cpu")
@@ -105,6 +106,24 @@ def test_xor():
 def test_function_approximation():
     result = plot_results(epochs=1, segments=5, plot=False)
 
+"""
+def test_autoencoder() :
+     
+    cfg = DictConfig(
+        content={
+            "max_epochs": 1,
+            "accelerator": "cpu",
+            "n": 3,
+            "batch_size": 16,
+            "segments": 2,
+            "layer_type": "continuous2d",
+            "train_fraction": 0.01,
+            "add_pos": False,
+        }
+    )
+     
+    result = autoencoder(cfg=cfg)
+"""
 
 """
 def test_cifar10():

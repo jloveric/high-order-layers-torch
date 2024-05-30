@@ -1,5 +1,5 @@
 max_epochs: 20
-accelerator: gpu
+accelerator: cuda
 batch_size: 128
 layer_type: continuous2d
 train_fraction: 1.0
@@ -10,13 +10,6 @@ latent_dim: 128
 gradient_clip_val: 0.0
 segments: 2
 n: 2
-M_N: 0.0000256 #determines how much the KL factors into the loss.  Should be batch_size/data_size, but I've found it may need to be much smaller
-optimizer:
-  name: adam #adahessian #adam
-  patience: 10
-  factor: 0.1
-  gamma: 0.9
-  lr: 5.0e-3
 encoder:
   n: ${n} # polynomial order
   channels: [3, 32, 64, 128]
@@ -36,48 +29,12 @@ decoder:
   normalization: null # batch normalization
   padding: 0
 mlp :
+  layer_type: continuous
   n: ${n}
-  layers: 0 # hidden layers
+  layers: 1 # hidden layers
   width : 64 # hidden width
+  segments: ${segments}
 
-# This stuff is for optimization
 defaults:
-  - override hydra/sweeper: nevergrad
-hydra:
-  sweeper:
-    optim:
-      # name of the nevergrad optimizer to use
-      # OnePlusOne is good at low budget, but may converge early
-      optimizer: OnePlusOne
-      # total number of function evaluations to perform
-      budget: 100
-      # number of parallel workers for performing function evaluations
-      num_workers: 10
-      # maximize: true  # comment out for maximization
-    # default parametrization of the search space
-    parametrization:
-      n:
-        init: 2
-        lower: 2
-        upper: 4
-        integer: true
-      segments:
-        init: 2
-        lower: 2
-        upper: 10
-        integer: true
-      # periodicity:
-      #   init: 2
-      #   lower: 2
-      #   upper: 8
-      #   integer: true
-      # latent_dim:
-      #  init: 128
-      #  lower: 32
-      #  upper: 512
-      #  integer: true
-      # lr:
-      #   init: 1e-5
-      #   lower: 1e-7
-      #   upper: 1e-3
-      #   log: true
+  - optimizer: lion
+
