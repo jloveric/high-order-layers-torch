@@ -9,6 +9,9 @@ periodicity: 2.0
 lr: 0.001
 nonlinearity: False
 
+net :
+  layer_type: continuous2d
+
 data:
   classes: 100
   num_workers: 10

@@ -1,8 +1,6 @@
 layer_type: "continuous1d"
 normalize: true
 
-# Number of characters as input. Convnet can
-# have a much larger context
 features: 10000
 out_features: 128 # ascii characters
 

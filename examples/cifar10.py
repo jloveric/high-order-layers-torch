@@ -151,7 +151,7 @@ def run_cifar10(
     max_epochs: int = 1,
     accelerator: str = "gpu",
     n: int = 7,
-    batch_size: int = 16,
+    batch_size: int = 256,
     segments: int = 4,
     layer_type: str = "piecewise",
 ):

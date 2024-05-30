@@ -97,7 +97,7 @@ def cifar100(cfg: DictConfig):
     return result
 
 
-@hydra.main(config_path="../config", config_name="cifar100_config")
+@hydra.main(config_path="../config", config_name="cifar100_config", version_base="1.3")
 def run(cfg: DictConfig):
     cifar100(cfg=cfg)
 

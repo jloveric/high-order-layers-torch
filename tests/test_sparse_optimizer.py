@@ -50,7 +50,7 @@ def test_sparse_lion():
     w_before = layer.w.clone()
     optim.step()
     w_after = layer.w.clone()
-    assert torch.any((w_after - w_before) > 0)
+    assert torch.any(torch.abs(w_after - w_before) > 0)
 
     out_final = layer(x)
     diff = torch.abs(out_final - out)
