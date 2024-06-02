@@ -88,8 +88,31 @@ class Piecewise(nn.Module):
         poly=None,
         periodicity: float = None,
         device: str = "cpu",
+        initialize: str = "constant_random",
         **kwargs,
     ):
+        """
+        :param n: number of interpolation points in polynomial
+        :param in_features: number of input features in layer
+        :param out_features: number of outputs features in layer
+        :param segments: number of segments per link in layer
+        (1 is just a polynomial, 2 is a piecewise polynomial with 2 pieces)
+        :param length: The scale of the polynomial, 2 means it's defined on [-1, 1]
+        it continues to be defined outside, but there are no additional segments and
+        the polynomial is defined by the last (or first) segment so it will grow with
+        that polynomial order. In general you'll want your inputs to be within the range
+        [-1,1]. If you the value is 4 then it would be defined in [-2,2]
+        :param weight_magnitude: The maximum value of initial weights during initialization.
+        :param poly: The polynomial function to use within each segment
+        :param periodicity: Tells which scale to provide mirror periodicity, if your length
+        is 2 then setting this value to 2 means it will be mirror periodic outside the
+        domain [-1,1]. This is an older approach I used, but instead I mainly use normalization
+        to keep the values within range
+        :param device: The device 'cpu' or 'cuda' in general
+        :param initialize: if set to "constant_random" then within each link the intial function will
+        be a constant, but it will be a random constant in each link. limit is set by weight_magnitude.
+        If not set, then it defaults to random uniform.
+        """
         super().__init__()
         self._poly = poly(n)
         self._n = n
@@ -104,9 +127,23 @@ class Piecewise(nn.Module):
             ),
             requires_grad=True,
         )
-        self.w.data.uniform_(
-            -weight_magnitude / in_features, weight_magnitude / in_features
-        )
+        if initialize == "constant_random":
+            self.w.data.uniform_(
+                -weight_magnitude / in_features, weight_magnitude / in_features
+            )
+            random_values = (
+                torch.rand(out_features, in_features, device=device)
+                * weight_magnitude
+                / in_features
+            )
+
+            # Expand the random values to match the third dimension
+            with torch.no_grad():
+                self.w.copy_(random_values.unsqueeze(2).expand(-1, -1, self.w.size(2)))
+        else:
+            self.w.data.uniform_(
+                -weight_magnitude / in_features, weight_magnitude / in_features
+            )
         self.wrange = None
         self._length = length
         self._half = 0.5 * length
@@ -724,6 +761,7 @@ def initialize_polynomial_layer(
         nodes_per_segment = n_in
         upper_limit = 0
 
+    # TODO: this is very slow, it needs to be sped up
     with torch.no_grad():  # No grad so we can assign leaf variable in place
         for inputs in range(w_in.shape[0]):
             for outputs in range(w_in.shape[1]):
