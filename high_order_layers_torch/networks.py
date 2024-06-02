@@ -180,6 +180,7 @@ class HighOrderMLP(nn.Module):
         resnet: bool = False,
         device: str = "cpu",
         layer_type_in: str = None,
+        initialization: str="constant_random",
     ) -> None:
         """
         Args :
@@ -207,6 +208,7 @@ class HighOrderMLP(nn.Module):
             normalization: Normalization to apply after each layer (before any additional nonlinearity).
             resnet: True if layer output should be added to the previous.
             layer_type_in: Layer type for the input layer. If not defined, defaults to layer_type
+            initializtion: layer initialization, "constant_random" or "uniform"
         """
         super().__init__()
         layer_list = []
@@ -224,6 +226,7 @@ class HighOrderMLP(nn.Module):
             scale=scale,
             periodicity=periodicity,
             device=device,
+            intialization=initialization
         )
         layer_list.append(input_layer)
         for i in range(hidden_layers):
@@ -242,6 +245,7 @@ class HighOrderMLP(nn.Module):
                 scale=scale,
                 periodicity=periodicity,
                 device=device,
+                initialization=initialization,
             )
 
             # This will add the result of the previous layer after normalization
@@ -264,6 +268,7 @@ class HighOrderMLP(nn.Module):
             scale=scale,
             periodicity=periodicity,
             device=device,
+            initialization=initialization
         )
         layer_list.append(output_layer)
         self.model = nn.Sequential(*layer_list)
