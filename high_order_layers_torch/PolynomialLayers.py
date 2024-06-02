@@ -8,6 +8,16 @@ from torch.autograd import Variable
 from .LagrangePolynomial import *
 from .utils import *
 
+def constant_random_initialization(w, out_features, in_features, weight_magnitude, device) :
+    random_values = (
+        torch.rand(out_features, in_features, device=device)
+        * weight_magnitude
+        / in_features
+    )
+
+    # Expand the random values to match the third dimension
+    with torch.no_grad():
+        w.copy_(random_values.unsqueeze(2).expand(-1, -1, w.size(2)))
 
 class Function(nn.Module):
     def __init__(
@@ -18,6 +28,8 @@ class Function(nn.Module):
         basis,
         weight_magnitude: float = 1.0,
         periodicity: float = None,
+        initialize: str = "constant_random",
+        device: str = "cpu",
         **kwargs,
     ):
         super().__init__()
@@ -25,11 +37,15 @@ class Function(nn.Module):
         self.n = n
         self.periodicity = periodicity
         self.w = torch.nn.Parameter(
-            data=torch.empty(out_features, in_features, n), requires_grad=True
+            data=torch.empty(out_features, in_features, n, device=device),
+            requires_grad=True,
         )
-        self.w.data.uniform_(
-            -weight_magnitude / in_features, weight_magnitude / in_features
-        )
+        if initialize == "constant_random":
+            constant_random_initialization(self.w, out_features, in_features, weight_magnitude, device)
+        else:
+            self.w.data.uniform_(
+                -weight_magnitude / in_features, weight_magnitude / in_features
+            )
 
         self.result = torch.nn.Parameter(
             data=torch.empty(out_features), requires_grad=True
@@ -128,18 +144,7 @@ class Piecewise(nn.Module):
             requires_grad=True,
         )
         if initialize == "constant_random":
-            self.w.data.uniform_(
-                -weight_magnitude / in_features, weight_magnitude / in_features
-            )
-            random_values = (
-                torch.rand(out_features, in_features, device=device)
-                * weight_magnitude
-                / in_features
-            )
-
-            # Expand the random values to match the third dimension
-            with torch.no_grad():
-                self.w.copy_(random_values.unsqueeze(2).expand(-1, -1, self.w.size(2)))
+            constant_random_initialization(self.w, out_features, in_features, weight_magnitude, device)
         else:
             self.w.data.uniform_(
                 -weight_magnitude / in_features, weight_magnitude / in_features
@@ -328,6 +333,7 @@ class PiecewiseDiscontinuous(nn.Module):
         poly=None,
         periodicity: float = None,
         device: str = "cpu",
+        initialize: str = "contant_random",
         **kwargs,
     ):
         super().__init__()
@@ -342,7 +348,10 @@ class PiecewiseDiscontinuous(nn.Module):
             data=torch.empty(out_features, in_features, n * segments, device=device),
             requires_grad=True,
         )
-        self.w.data.uniform_(-1 / in_features, 1 / in_features)
+        if initialize == "constant_random":
+            constant_random_initialization(self.w, out_features, in_features, weight_magnitude, device)
+        else:
+            self.w.data.uniform_(-1 / in_features, 1 / in_features)
 
         self._length = length
         self._half = 0.5 * length
