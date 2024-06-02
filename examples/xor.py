@@ -14,6 +14,8 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 from torchvision.datasets import MNIST
+from lion_pytorch import Lion
+
 
 import high_order_layers_torch.PolynomialLayers as poly
 from high_order_layers_torch.layers import *
@@ -63,7 +65,7 @@ class NDFunctionApproximation(LightningModule):
             out_features=2,
             segments=segments,
             alpha=linear_part,
-            periodicity=2.0,
+            intialization="constant_random"
         )
         self.layer2 = high_order_fc_layers(
             layer_type=layer_type,
@@ -72,7 +74,7 @@ class NDFunctionApproximation(LightningModule):
             out_features=1,
             segments=segments,
             alpha=linear_part,
-            periodicity=2.0,
+            initialization="constant_random"            
         )
 
     def forward(self, x):
@@ -88,7 +90,7 @@ class NDFunctionApproximation(LightningModule):
         return DataLoader(XorDataset(), batch_size=32)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.01)
+        return Lion(self.parameters(), lr=0.01)
 
 
 model_set_p = [
@@ -128,8 +130,11 @@ def plot_approximation(
                 xTest.data.numpy()[:, 1],
                 c=predictions.flatten().data.numpy(),
             )
+            if model_set[i]['layer']!="polynomial":
+                plt.title(f"{model_set[i]['name']} with {segments} segments.")
+            else :
+                plt.title(f"{model_set[i]['name']}.")
 
-            plt.title(f"{model_set[i]['name']} with {segments} segments.")
     return pred_set
 
 
