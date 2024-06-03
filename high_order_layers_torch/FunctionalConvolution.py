@@ -14,6 +14,42 @@ from .utils import *
 logger = logging.getLogger(__name__)
 
 
+def constant_random_initialization_conv2d(
+    w,
+    num_nodes,
+    out_channels,
+    in_channels,
+    kernel_height,
+    kernel_width,
+    weight_magnitude,
+    device,
+):
+    # Shape is (out_channels, in_channels, kernel_height, kernel_width)
+    in_features = kernel_width * kernel_height * in_channels // num_nodes
+    random_values = (
+        torch.rand(
+            out_channels,
+            in_channels // num_nodes,
+            kernel_height,
+            kernel_width,
+            device=device,
+        )
+        * weight_magnitude
+        / in_features
+    )
+
+    random_values = (
+        random_values.unsqueeze(4)
+        .expand(out_channels, in_channels // num_nodes, kernel_height, kernel_width, num_nodes)
+        .permute(0, 1, 4, 2, 3)
+    )
+    random_values = random_values.resize(out_channels, in_channels, kernel_height, kernel_width)
+
+    # Expand the random values to match the third dimension
+    with torch.no_grad():
+        w.copy_(random_values)
+
+
 def conv_wrapper(
     in_channels: int,
     out_channels: int,
@@ -234,6 +270,7 @@ class PolynomialConvolution(nn.Module):
         self,
         n: int,
         in_channels: int,
+        out_channels: int,
         kernel_size: int,
         length: float = 2.0,
         rescale_output=False,
@@ -254,13 +291,17 @@ class PolynomialConvolution(nn.Module):
                 are in that range.  Anything outside that range could grow.
             - rescale_output: If rescale output is True then the output is divided by the number of inputs for each output,
                 in effect taking the average.
+            - initialization: constant_random otherwise it's uniform. constant random sets all weights in a single channel to
+            be equal
         """
         super().__init__()
         self.poly = expansion(LagrangeExpand(n, length=length))
         self._channels = n * in_channels
+        self._out_channels = out_channels
         self.periodicity = periodicity
         self.conv = conv_wrapper(
             in_channels=self._channels,
+            out_channels=self._out_channels,
             kernel_size=kernel_size,
             convolution=convolution,
             **kwargs,
@@ -284,24 +325,40 @@ class PolynomialConvolution2d(PolynomialConvolution):
         self,
         n: int,
         in_channels: int,
+        out_channels:int,
         kernel_size: int,
         length: float = 2.0,
         rescale_output=False,
         periodicity: float = None,
+        weight_magnitude: float=1,
+        device:str='cpu',
         *args,
         **kwargs,
     ):
         super().__init__(
             n=n,
             in_channels=in_channels,
+            out_channels=out_channels,
             kernel_size=kernel_size,
             length=length,
             rescale_output=rescale_output,
             periodicity=periodicity,
             expansion=Expansion2d,
             convolution=Conv2d,
+            device=device,
+
             *args,
             **kwargs,
+        )
+        constant_random_initialization_conv2d(
+            self.conv.weight,
+            num_nodes=n,
+            out_channels=self._out_channels,
+            in_channels=self._channels,
+            kernel_height=kernel_size,
+            kernel_width=kernel_size,
+            weight_magnitude=weight_magnitude,
+            device=device,
         )
 
 
@@ -375,6 +432,7 @@ class PiecewisePolynomialConvolution(nn.Module):
             convolution=convolution,
             **kwargs,
         )
+
         self._total_in = in_channels * kernel_size * kernel_size
         self._rescale = 1.0
         if rescale_output is True:
@@ -395,10 +453,13 @@ class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
         n: int,
         segments: int,
         in_channels: int,
+        out_channels: int,
         kernel_size: int,
         length: float = 2.0,
         rescale_output: bool = False,
         periodicity: float = None,
+        weight_magnitude: float = 1.0,
+        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -406,6 +467,7 @@ class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
             n=n,
             segments=segments,
             in_channels=in_channels,
+            out_channels=out_channels,
             kernel_size=kernel_size,
             length=length,
             rescale_output=rescale_output,
@@ -415,6 +477,16 @@ class PiecewisePolynomialConvolution2d(PiecewisePolynomialConvolution):
             expansion_function=PiecewisePolynomialExpand,
             *args,
             **kwargs,
+        )
+        constant_random_initialization_conv2d(
+            self.conv.weight,
+            num_nodes=segments * (n - 1) + 1,
+            out_channels=self._out_channels,
+            in_channels=self._channels,
+            kernel_height=kernel_size,
+            kernel_width=kernel_size,
+            weight_magnitude=weight_magnitude,
+            device=device,
         )
 
 
@@ -453,6 +525,7 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
         n: int,
         segments: int,
         in_channels: int,
+        out_channels: int,
         kernel_size: int,
         length: float = 2.0,
         rescale_output: bool = False,
@@ -478,9 +551,11 @@ class PiecewiseDiscontinuousPolynomialConvolution(nn.Module):
         super().__init__()
         self.poly = expansion(expansion_function(n=n, segments=segments, length=length))
         self._channels = n * segments * in_channels
+        self._out_channels = out_channels
         self.periodicity = periodicity
         self.conv = conv_wrapper(
             in_channels=self._channels,
+            out_channels=self._out_channels,
             kernel_size=kernel_size,
             convolution=convolution,
             **kwargs,
@@ -507,10 +582,13 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(
         n: int,
         segments: int,
         in_channels: int,
+        out_channels: int,
         kernel_size: int,
         length: float = 2.0,
         rescale_output: bool = False,
         periodicity: float = None,
+        weight_magnitude: float = 1.0,
+        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -518,6 +596,7 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(
             n=n,
             segments=segments,
             in_channels=in_channels,
+            out_channels=out_channels,
             kernel_size=kernel_size,
             length=length,
             rescale_output=rescale_output,
@@ -527,6 +606,16 @@ class PiecewiseDiscontinuousPolynomialConvolution2d(
             expansion_function=PiecewiseDiscontinuousPolynomialExpand,
             *args,
             **kwargs,
+        )
+        constant_random_initialization_conv2d(
+            self.conv.weight,
+            num_nodes=n * segments,
+            out_channels=self._out_channels,
+            in_channels=self._channels,
+            kernel_height=kernel_size,
+            kernel_width=kernel_size,
+            weight_magnitude=weight_magnitude,
+            device=device,
         )
 
 

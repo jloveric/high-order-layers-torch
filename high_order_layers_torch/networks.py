@@ -180,7 +180,7 @@ class HighOrderMLP(nn.Module):
         resnet: bool = False,
         device: str = "cpu",
         layer_type_in: str = None,
-        initialization: str="constant_random",
+        initialization: str = "constant_random",
     ) -> None:
         """
         Args :
@@ -226,7 +226,7 @@ class HighOrderMLP(nn.Module):
             scale=scale,
             periodicity=periodicity,
             device=device,
-            intialization=initialization
+            intialization=initialization,
         )
         layer_list.append(input_layer)
         for i in range(hidden_layers):
@@ -268,7 +268,7 @@ class HighOrderMLP(nn.Module):
             scale=scale,
             periodicity=periodicity,
             device=device,
-            initialization=initialization
+            initialization=initialization,
         )
         layer_list.append(output_layer)
         self.model = nn.Sequential(*layer_list)
