@@ -1,0 +1,3 @@
+optimizer : sophia # lion, adam, sparse_lion
+epochs: 20
+segments: 5

@@ -4,20 +4,14 @@ functions using a single input and single output with polynomial
 synaptic weights
 """
 
-import math
-import os
-
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from torch.nn import functional as F
-from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision import transforms
-from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader, Dataset
 from lion_pytorch import Lion
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 
 import high_order_layers_torch.PolynomialLayers as poly
