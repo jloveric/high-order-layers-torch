@@ -60,7 +60,7 @@ extension beyond the range [-1,1] so values do not rise too fast - but normaliza
 
 What about instabilities due to steep gradients? Seems like you can get around those with various approaches, polynomial
 refinement is one (start with piecewise linear and than increase the polynomial order after it converges), the lion
-optimizer helps a lot as well.
+optimizer helps a lot as well, while sophia may be even better since it's second order.
 
 The biggest issues I've experienced though are that it's slower than dense networks and certain operations can
 take up more memory which can cause major issues with models that already push the limits of your gpu. Now that
@@ -288,7 +288,7 @@ The 1 is added to each function output to as each of the sub products is also co
 the alpha parameter.
 
 ## Notes on optimizer
-The Lion optimizer seems to be the best choice since it performs better than Adam in general, but seems to work especially well
+The Lion or Sophia optimizers seems to be the best choice since it performs better than Adam in general, but seems to work especially well
 for the case of polynomials.
 
 ## Notes on normalization
