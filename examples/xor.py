@@ -3,6 +3,7 @@ This example is meant to demonstrate how you can map complex
 functions using a single input and single output with polynomial
 synaptic weights
 """
+
 import math
 import os
 
@@ -15,11 +16,14 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 from torchvision.datasets import MNIST
 from lion_pytorch import Lion
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
 
 import high_order_layers_torch.PolynomialLayers as poly
 from high_order_layers_torch.layers import *
 from high_order_layers_torch.PolynomialLayers import *
+from Sophia import SophiaG
 
 elements = 100
 a = torch.linspace(-1, 1, elements)
@@ -51,12 +55,25 @@ class XorDataset(Dataset):
 
 
 class NDFunctionApproximation(LightningModule):
-    def __init__(self, n, segments=2, layer_type="continuous", linear_part=1.0):
+    def __init__(
+        self,
+        n,
+        segments=2,
+        layer_type="continuous",
+        linear_part: float = 1.0,
+        optimizer: str = "sophia",
+        lr: float = 0.01,
+        batch_size: int = 32,
+    ):
         """
         Simple network consisting of 2 input and 1 output
         and no hidden layers.
         """
         super().__init__()
+
+        self.optimizer = optimizer
+        self.lr = lr
+        self.batch_size = batch_size
 
         self.layer1 = high_order_fc_layers(
             layer_type=layer_type,
@@ -65,7 +82,7 @@ class NDFunctionApproximation(LightningModule):
             out_features=2,
             segments=segments,
             alpha=linear_part,
-            intialization="constant_random"
+            intialization="constant_random",
         )
         self.layer2 = high_order_fc_layers(
             layer_type=layer_type,
@@ -74,7 +91,7 @@ class NDFunctionApproximation(LightningModule):
             out_features=1,
             segments=segments,
             alpha=linear_part,
-            initialization="constant_random"            
+            initialization="constant_random",
         )
 
     def forward(self, x):
@@ -87,10 +104,17 @@ class NDFunctionApproximation(LightningModule):
         return {"loss": F.mse_loss(y_hat, y)}
 
     def train_dataloader(self):
-        return DataLoader(XorDataset(), batch_size=32)
+        return DataLoader(XorDataset(), batch_size=self.batch_size)
 
     def configure_optimizers(self):
-        return Lion(self.parameters(), lr=0.01)
+        if self.optimizer == "lion":
+            return Lion(self.parameters(), lr=self.lr)
+        elif self.optimizer == "sophia":
+            return SophiaG(self.parameters(), lr=self.lr, rho=0.035)
+        elif self.optimizer == "adam":
+            return torch.optim.Adam(self.parameters(), lr=self.lr)
+        else :
+            raise ValueError(f"optimizer must be lion, sophia or adam, got {self.optimizer}")
 
 
 model_set_p = [
@@ -108,7 +132,15 @@ model_set_d = [
 
 
 def plot_approximation(
-    model_set, segments, epochs, fig_start=0, linear_part=0.0, plot=True
+    model_set,
+    segments,
+    epochs,
+    fig_start=0,
+    linear_part=0.0,
+    plot=True,
+    optimizer="sophia",
+    lr=0.01,
+    batch_size=32,
 ):
     pred_set = []
     for i in range(0, len(model_set)):
@@ -119,6 +151,9 @@ def plot_approximation(
             segments=segments,
             layer_type=model_set[i]["layer"],
             linear_part=linear_part,
+            optimizer=optimizer,
+            lr=lr,
+            batch_size=batch_size
         )
         trainer.fit(model)
         predictions = model(xTest.view(xTest.size(0), -1))
@@ -130,14 +165,35 @@ def plot_approximation(
                 xTest.data.numpy()[:, 1],
                 c=predictions.flatten().data.numpy(),
             )
-            if model_set[i]['layer']!="polynomial":
+            if model_set[i]["layer"] != "polynomial":
                 plt.title(f"{model_set[i]['name']} with {segments} segments.")
-            else :
+            else:
                 plt.title(f"{model_set[i]['name']}.")
 
     return pred_set
 
 
-if __name__ == "__main__":
-    plot_approximation(model_set_d, segments=2, epochs=40, linear_part=0, plot=True)
+@hydra.main(config_path="../config", config_name="xor")
+def run(cfg: DictConfig):
+
+    plot_style = {
+        "continuous": model_set_c,
+        "discontinuous": model_set_d,
+        "polynomial": model_set_p,
+    }
+
+    plot_approximation(
+        plot_style[cfg.layer_type],
+        segments=cfg.segments,
+        epochs=cfg.epochs,
+        linear_part=0,
+        plot=True,
+        optimizer=cfg.optimizer,
+        lr=cfg.lr,
+        batch_size=cfg.batch_size
+    )
     plt.show()
+
+
+if __name__ == "__main__":
+    run()

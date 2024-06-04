@@ -1,0 +1,6 @@
+layer_type : continuous # discontinuous, polynomial
+segments: 2
+epochs: 40
+optimizer: sophia #lion, adam
+lr: 0.01
+batch_size: 32

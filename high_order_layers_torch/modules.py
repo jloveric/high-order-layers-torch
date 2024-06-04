@@ -210,6 +210,9 @@ class ClassificationNet(ClassificationMixin, PredictionNetMixin, LightningModule
         self.model = select_network(cfg)
 
         self.loss = torch.nn.CrossEntropyLoss()
+
+        # TODO: This Accuracy may not be doing what I want especially if it's called
+        # for both validation and test. Investigate!
         self.accuracy = Accuracy(top_k=1,task="multiclass", num_classes=cfg.data.classes)
 
 
