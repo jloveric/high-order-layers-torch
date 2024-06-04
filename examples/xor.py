@@ -113,7 +113,7 @@ class NDFunctionApproximation(LightningModule):
 
 model_set_p = [
     {"name": f"Polynomial {i+1}", "order": i + 1, "layer": "polynomial"}
-    for i in range(1, 5)
+    for i in range(1, 9, 2)
 ]
 model_set_c = [
     {"name": f"Continuous {i+1}", "order": i + 1, "layer": "continuous"}

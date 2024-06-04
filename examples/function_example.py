@@ -260,6 +260,7 @@ def plot_results(
     plot: bool = True,
     first_only: bool = False,
     optimizer="lion",
+    periodicity=None
 ):
     """
     plt.figure(0)
@@ -303,7 +304,7 @@ def plot_results(
             segments,
             epochs,
             accelerator="cpu",
-            periodicity=2,
+            periodicity=periodicity,
             opt="sophia",
             first_only=first_only,
         )

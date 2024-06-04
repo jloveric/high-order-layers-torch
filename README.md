@@ -198,9 +198,9 @@ python examples/function_example.py
 
 Simple XOR problem using the standard network structure (2 inputs 2 hidden 1 output) this will also work with no hidden layers. The function is discontinuous along the axis and we try and fit that function. Using piecewise discontinuous layers the model can match the function exactly.
 ![piecewise discontinuous polynomial](plots/xor_discontinuous.png)
-With piecewise continuous it doesn't work quite as well.
+With piecewise continuous.
 ![piecewise continuous polynomial](plots/xor_continuous.png)
-Polynomial doesn't work well at all (expected).
+With polynomial using similar number of parameters.
 ![polynomial](plots/xor_polynomial.png)
 
 ## MNIST (convolutional)
