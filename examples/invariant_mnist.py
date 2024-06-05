@@ -13,6 +13,7 @@ from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from torchmetrics.functional import accuracy
 from lion_pytorch import Lion
+from Sophia import SophiaG
 
 
 from high_order_layers_torch.layers import *
@@ -57,7 +58,7 @@ class Net(LightningModule):
             normalization=normalization,
         )
 
-        #initialize_network_polynomial_layers(self.layer, max_slope=1.0, max_offset=0.0)
+        # initialize_network_polynomial_layers(self.layer, max_slope=1.0, max_offset=0.0)
 
     def setup(self, stage):
         num_train = int(self._train_fraction * 50000)
@@ -126,7 +127,7 @@ class Net(LightningModule):
         logits = self(x_new)
         loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
-        acc = accuracy(preds, y, task='multiclass',num_classes=10)
+        acc = accuracy(preds, y, task="multiclass", num_classes=10)
 
         self.log(f"{name}_loss", loss, prog_bar=True)
         self.log(f"{name}_acc", acc, prog_bar=True)
@@ -164,6 +165,11 @@ class Net(LightningModule):
                 verbose=True,
             )
             return [optimizer], [lr_scheduler]
+        elif self.cfg.optimizer.name == "sophia":
+            optimizer = SophiaG(
+                self.parameters(), lr=self.cfg.optimizer.lr, rho=self.cfg.optimizer.rho
+            )
+            return optimizer
         elif self.cfg.optimizer.name == "lbfgs":
             return optim.LBFGS(self.parameters(), lr=1, max_iter=20, history_size=100)
         else:
