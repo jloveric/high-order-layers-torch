@@ -243,6 +243,13 @@ to run all the examples in the table
 ```
 ./scripts/invariant_mnist.sh
 ```
+All the following results are a single hidden layer of 128 units. I only ran
+one test case each, but it looks like sophia is the best optimizer. Layernorm
+is best until you get to higher order and then max_abs is better, most likely
+because it does a better job of keeping in [-1,1]. I'll try and get the higher
+orders to where I think they can be.
+
+Below using max_abs and sophia
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
 |2 | 0.950 | 0.974 | 0.973
@@ -251,7 +258,7 @@ to run all the examples in the table
 |5 | 0.965 | 0.960 | 0.964
 |6 | 0.967 | 0.963 | 0.960
 
-Same as above, but using layernorm
+Using layernorm and sophia
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
 |2 | 0.959| 0.979 | 0.972
@@ -260,7 +267,7 @@ Same as above, but using layernorm
 |5 | 0.966 | 0.954 | 0.953
 |6 | 0.951 | 0.946 | 0.947
 
-Same as above, but using layernorm and lion
+Using layernorm and lion
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
 |2 | 0.948| 0.977 | 0.975
@@ -269,7 +276,7 @@ Same as above, but using layernorm and lion
 |5 | 0.966 | 0.955 | 0.955
 |6 | 0.960 | 0.949 | 0.949
 
-max_abs and lion
+Using max_abs and lion
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
 |2 | 0.113 | 0.970 | 0.970
