@@ -120,7 +120,10 @@ All polynomials are Lagrange polynomials with Chebyshev interpolation points.
 |fourier(1d,2d) | fourier series convolution
 
 ## Initializing of layers
-For non convolutional layers I've found that initializing the polynomials to continuous line across all segments, works better then a random wiggly polynomial. I don't have similar functions implemented for convolutional layers. Here is a function that does this initialization (it can be found in [networks.py](https://github.com/jloveric/high-order-layers-torch/blob/master/high_order_layers_torch/networks.py))
+The default initialization is to initialize each link to a random constant, i.e. all weights have the same value in a link. This seems to work
+pretty well, however, I also have linear random linear initialization (non constant). The implementation of the linear initialization is slower and I'm not sure it's actually better.
+
+ Here is a function that does this linear initialization for non convolutional layers (it can be found in [networks.py](https://github.com/jloveric/high-order-layers-torch/blob/master/high_order_layers_torch/networks.py))
 ```
 def initialize_network_polynomial_layers(
     network: nn.Module,
