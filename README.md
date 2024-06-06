@@ -251,6 +251,16 @@ to run all the examples in the table
 |5 | 0.965 | 0.960 | 0.964
 |6 | 0.967 | 0.963 | 0.960
 
+Same as above, but using layernorm
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.959| 0.979 | 0.972
+|3 | 0.977 | 0.974 | 0.969
+|4 | 0.971 | 0.962 | 0.965
+|5 | 0.966 | 0.954 | 0.953
+|6 | 0.951 | 0.946 | 0.947
+
+
 Without polynomial refinement
 ```python
 python examples/invariant_mnist.py max_epochs=100 train_fraction=1 mlp.layer_type=continuous mlp.n=5 mlp.p_refine=False mlp.hidden.layers=4
