@@ -238,13 +238,17 @@ Some comparisons using parameter scans maxabs normalization as default
 ```
 python3 examples/invariant_mnist.py -m mlp.n=2,3,4,5,6 mlp.hidden.width=128 mlp.layer_type=polynomial optimizer=sophia
 ```
-| n   | test accuracy       |
-|--------------|----------------------|
-|2 | 0.9501000046730042
-|3 | 0.9785000085830688
-|4 | 0.9711999893188477
-|5 | 0.9653000235557556
-|6 |
+to run all the examples in the table
+```
+./scripts/invariant_mnist.sh
+```
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.950 | 0.974 | 0.973
+|3 | 0.979 | 0.970 | 0.963
+|4 | 0.971 | 0.970 | 0.961
+|5 | 0.965 | 0.960 | 0.964
+|6 | 0.967 | 0.963 | 0.960
 
 Without polynomial refinement
 ```python
