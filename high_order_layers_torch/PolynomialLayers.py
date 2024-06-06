@@ -333,7 +333,7 @@ class PiecewiseDiscontinuous(nn.Module):
         poly=None,
         periodicity: float = None,
         device: str = "cpu",
-        initialize: str = "contant_random",
+        initialize: str = "constant_random",
         **kwargs,
     ):
         super().__init__()
