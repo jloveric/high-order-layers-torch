@@ -260,6 +260,23 @@ Same as above, but using layernorm
 |5 | 0.966 | 0.954 | 0.953
 |6 | 0.951 | 0.946 | 0.947
 
+Same as above, but using layernorm and lion
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.948| 0.977 | 0.975
+|3 | 0.979 | 0.970 | 0.967
+|4 | 0.972 | 0.968 | 0.965
+|5 | 0.966 | 0.955 | 0.955
+|6 | 0.960 | 0.949 | 0.949
+
+max_abs and lion
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.113 | 0.970 | 0.970
+|3 | 0.972 | 0.971 | 0.963
+|4 | 0.966 | 0.962 | 0.966
+|5 | 0.966 | 0.960 | 0.964
+|6 | 0.962 | 0.953 | 0.960
 
 Without polynomial refinement
 ```python
