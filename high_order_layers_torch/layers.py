@@ -2,6 +2,7 @@ import math
 
 import torch.nn as nn
 from torch.nn import Linear
+import torch.nn.functional as F
 
 from .FunctionalConvolution import *
 from .FunctionalConvolutionTranspose import *
@@ -15,6 +16,28 @@ from .utils import (
     max_center_normalization,
     max_center_normalization_last,
 )
+
+
+class LazyLayerNormLastDim(nn.Module):
+    """
+    Lazily initialize the layer norm to the last dimension of the input
+    variable. Assumes dimension remains constant.
+    """
+
+    def __init__(self, bias=True):
+        super().__init__()
+        self.weight = None
+        self.bias = bias
+
+    def forward(self, input):
+        if self.weight is None:
+            ndim = input.shape[-1]
+            self.weight = nn.Parameter(torch.ones(ndim)).to(input.device)
+            self.bias = (
+                nn.Parameter(torch.zeros(ndim)).to(input.device) if self.bias else None
+            )
+
+        return F.layer_norm(input, self.weight.shape, self.weight, self.bias, 1e-5)
 
 
 class MaxAbsNormalizationLast(nn.Module):
@@ -101,7 +124,9 @@ class L2Normalization(nn.Module):
 
 normalization_layers = {
     "max_abs": MaxAbsNormalization,
+    "max_center": MaxCenterNormalization,
     "l2": L2Normalization,
+    "layer_norm": LazyLayerNormLastDim,
 }
 
 

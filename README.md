@@ -234,7 +234,8 @@ python examples/variational_autoencoder.py -m
 ```
 
 ## Invariant MNIST (fully connected)
-Some comparisons using parameter scans maxabs normalization as default
+Some comparisons using parameter scans maxabs normalization as default. piecewise polynomial cases use 2 segments. I only
+did one run each.
 ```
 python3 examples/invariant_mnist.py -m mlp.n=2,3,4,5,6 mlp.hidden.width=128 mlp.layer_type=polynomial optimizer=sophia
 ```
