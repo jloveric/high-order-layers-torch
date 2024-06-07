@@ -238,6 +238,10 @@ class HighOrderMLP(nn.Module):
             if non_linearity is not None:
                 layer_list.append(non_linearity)
 
+            # This applies dropout on the input layer, do you want that!
+            if dropout > 0:
+                layer_list.append(self.dropout_layer)
+
             hidden_layer = high_order_fc_layers(
                 layer_type=layer_type,
                 n=n_hidden,
@@ -255,15 +259,15 @@ class HighOrderMLP(nn.Module):
             if resnet is True and i > 0:
                 hidden_layer = SumLayer(layer_list=[hidden_layer, layer_list[-1]])
 
-            if dropout > 0:
-                layer_list.append(self.dropout_layer)
-
             layer_list.append(hidden_layer)
 
         if normalization is not None:
             layer_list.append(normalization())
         if non_linearity is not None:
             layer_list.append(non_linearity)
+
+        if dropout > 0:
+            layer_list.append(self.dropout_layer)
 
         self.output_layer = high_order_fc_layers(
             layer_type=layer_type,
@@ -282,6 +286,159 @@ class HighOrderMLP(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         return self.model(x)
+
+
+class HighOrderMultiMLP(nn.Module):
+    def __init__(
+        self,
+        layer_type: str,
+        n: str,
+        replicas: int,
+        in_width: int,
+        out_width: int,
+        hidden_layers: int,
+        hidden_width: int,
+        scale: float = 2.0,
+        n_in: int = None,
+        n_out: int = None,
+        n_hidden: int = None,
+        rescale_output: bool = False,
+        periodicity: float = None,
+        non_linearity: Callable[[Tensor], Tensor] = None,
+        in_segments: int = None,
+        out_segments: int = None,
+        hidden_segments: int = None,
+        normalization: Callable[[Any], Any] = None,
+        resnet: bool = False,
+        device: str = "cpu",
+        layer_type_in: str = None,
+        initialization: str = "constant_random",
+        dropout: float = 0.0,
+    ) -> None:
+        """
+        Args :
+            layer_type: Type of layer
+                "continuous", "discontinuous",
+                "polynomial", "fourier",
+                "product", "continuous_prod",
+                "discontinuous_prod"
+            n:  Base number of nodes (or fourier components).  If none of the others are set
+                then this value is used.
+            replicas: number of replicas or columns
+            in_width: Input width.
+            out_width: Output width
+            hidden_layers: Number of hidden layers.
+            hidden_width: Number of hidden units
+            scale: Scale of the segments.  A value of 2 would be length 2 (or period 2)
+            n_in: Number of input nodes for interpolation or fourier components.
+            n_out: Number of output nodes for interpolation or fourier components.
+            n_hidden: Number of hidden nodes for interpolation or fourier components.
+            rescale_output: Whether to average the outputs
+            periodicity: Whether to make polynomials periodic after given length.
+            non_linearity: Whether to apply a nonlinearity after each layer (except output)
+            in_segments: Number of input segments for each link.
+            out_segments: Number of output segments for each link.
+            hidden_segments: Number of hidden segments for each link.
+            normalization: Normalization to apply after each layer (before any additional nonlinearity).
+            resnet: True if layer output should be added to the previous.
+            layer_type_in: Layer type for the input layer. If not defined, defaults to layer_type
+            initializtion: layer initialization, "constant_random" or "uniform"
+        """
+        super().__init__()
+        self.layer_list = nn.ModuleList()
+        self.output_list = nn.ModuleList()
+        self.replica_list = nn.ModuleList()
+
+        n_in = n_in or n
+        n_hidden = n_hidden or n
+        n_out = n_out or n
+
+        self.dropout_layer = nn.Dropout(p=dropout)
+
+        self.input_layer = high_order_fc_layers(
+            layer_type=layer_type_in or layer_type,
+            n=n_in,
+            in_features=in_width,
+            out_features=hidden_width,
+            segments=in_segments,
+            rescale_output=rescale_output,
+            scale=scale,
+            periodicity=periodicity,
+            device=device,
+            intialization=initialization,
+        )
+        self.layer_list.append(self.input_layer)
+
+        if normalization is not None:
+            self.layer_list.append(normalization())
+        if non_linearity is not None:
+            self.layer_list.append(non_linearity)
+
+        for i in range(replicas):
+            # TODO: This could be done much more efficiently, but I would
+            # need to make a special network or special layer
+            # think about it.
+
+            replica_network = HighOrderMultiMLP(
+                layer_type=layer_type,
+                n=n,
+                replicas=replicas,
+                in_width=hidden_width,
+                out_width=hidden_width,
+                hidden_layers=hidden_layers,
+                hidden_width=hidden_width,
+                scale=scale,
+                n_in=n_hidden,
+                n_out=n_hidden,
+                n_hidden=n_hidden,
+                rescale_output=rescale_output,
+                periodicity=periodicity,
+                non_linearity=non_linearity,
+                in_segments=hidden_segments,
+                out_segments=hidden_segments,
+                hidden_segments=hidden_segments,
+                normalization=normalization,
+                resnet=resnet,
+                device=device,
+                layer_type_in=layer_type_in,
+                initialization=initialization,
+                dropout=dropout,
+            )
+
+            self.replica_list.append(replica_network)
+
+        if dropout > 0:
+            self.output_list.append(self.dropout_layer)
+
+        if normalization is not None:
+            self.output_list.append(normalization())
+        if non_linearity is not None:
+            self.output_list.append(non_linearity)
+
+        self.output_layer = high_order_fc_layers(
+            layer_type=layer_type,
+            n=n_out,
+            in_features=hidden_width,
+            out_features=out_width,
+            segments=out_segments,
+            rescale_output=rescale_output,
+            scale=scale,
+            periodicity=periodicity,
+            device=device,
+            initialization=initialization,
+        )
+        self.output_list.append(self.output_layer)
+
+        self.model_in = nn.Sequential(*self.input_list)
+        self.model_out = nn.Sequential(*self.output_list)
+
+    def forward(self, x: Tensor) -> Tensor:
+        out = self.model_in(x)
+        middle = 0
+        for model in self.replica_list:
+            middle += model(out)
+
+        return self.model_out(middle)
 
 
 def scalar_to_list(val: Union[List, str, int, float], size: int):
