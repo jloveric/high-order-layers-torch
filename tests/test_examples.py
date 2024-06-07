@@ -33,6 +33,7 @@ def test_invariant_mnist(p_refine: bool):
                 "scheduler": "plateau",
             },
             "mlp": {
+                "dropout": 0,
                 "normalize": "max_abs",
                 "segments": 2,
                 "layer_type": "continuous",
@@ -106,9 +107,10 @@ def test_xor():
 def test_function_approximation():
     result = plot_results(epochs=1, segments=5, plot=False)
 
+
 """
 def test_autoencoder() :
-     
+
     cfg = DictConfig(
         content={
             "max_epochs": 1,
@@ -121,7 +123,7 @@ def test_autoencoder() :
             "add_pos": False,
         }
     )
-     
+
     result = autoencoder(cfg=cfg)
 """
 
