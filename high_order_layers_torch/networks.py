@@ -181,7 +181,7 @@ class HighOrderMLP(nn.Module):
         device: str = "cpu",
         layer_type_in: str = None,
         initialization: str = "constant_random",
-        dropout: float=0.0,
+        dropout: float = 0.0,
     ) -> None:
         """
         Args :
@@ -255,7 +255,7 @@ class HighOrderMLP(nn.Module):
             if resnet is True and i > 0:
                 hidden_layer = SumLayer(layer_list=[hidden_layer, layer_list[-1]])
 
-            if dropout > 0 :
+            if dropout > 0:
                 layer_list.append(self.dropout_layer)
 
             layer_list.append(hidden_layer)
@@ -281,10 +281,6 @@ class HighOrderMLP(nn.Module):
         self.model = nn.Sequential(*layer_list)
 
     def forward(self, x: Tensor) -> Tensor:
-        # I shouldn't need this but I do!
-        if not self.training:
-            self.dropout_layer.eval()
-        
         return self.model(x)
 
 
