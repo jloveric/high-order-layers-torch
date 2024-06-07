@@ -247,7 +247,7 @@ All the following results are a single hidden layer of 128 units. I only ran
 one test case each, but it looks like sophia is the best optimizer. Layernorm
 is best until you get to higher order and then max_abs is better, most likely
 because it does a better job of keeping in [-1,1]. I'll try and get the higher
-orders to where I think they can be.
+orders to where I think they can be. Also, all of these memorize the training set.
 
 Below using max_abs and sophia
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
