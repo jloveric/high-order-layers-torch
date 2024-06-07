@@ -11,7 +11,7 @@ gradient_clip_val: 0
 mlp :
   
   n: 2  
-  
+  dropout: 0.0
   # target final polynomial order for refinement
   target_n: 5
   

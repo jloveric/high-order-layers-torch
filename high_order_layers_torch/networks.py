@@ -181,6 +181,7 @@ class HighOrderMLP(nn.Module):
         device: str = "cpu",
         layer_type_in: str = None,
         initialization: str = "constant_random",
+        dropout: float=0.0,
     ) -> None:
         """
         Args :
@@ -216,7 +217,9 @@ class HighOrderMLP(nn.Module):
         n_hidden = n_hidden or n
         n_out = n_out or n
 
-        input_layer = high_order_fc_layers(
+        self.dropout_layer = nn.Dropout(p=dropout)
+
+        self.input_layer = high_order_fc_layers(
             layer_type=layer_type_in or layer_type,
             n=n_in,
             in_features=in_width,
@@ -228,7 +231,7 @@ class HighOrderMLP(nn.Module):
             device=device,
             intialization=initialization,
         )
-        layer_list.append(input_layer)
+        layer_list.append(self.input_layer)
         for i in range(hidden_layers):
             if normalization is not None:
                 layer_list.append(normalization())
@@ -251,6 +254,10 @@ class HighOrderMLP(nn.Module):
             # This will add the result of the previous layer after normalization
             if resnet is True and i > 0:
                 hidden_layer = SumLayer(layer_list=[hidden_layer, layer_list[-1]])
+
+            if dropout > 0 :
+                layer_list.append(self.dropout_layer)
+
             layer_list.append(hidden_layer)
 
         if normalization is not None:
@@ -258,7 +265,7 @@ class HighOrderMLP(nn.Module):
         if non_linearity is not None:
             layer_list.append(non_linearity)
 
-        output_layer = high_order_fc_layers(
+        self.output_layer = high_order_fc_layers(
             layer_type=layer_type,
             n=n_out,
             in_features=hidden_width,
@@ -270,10 +277,14 @@ class HighOrderMLP(nn.Module):
             device=device,
             initialization=initialization,
         )
-        layer_list.append(output_layer)
+        layer_list.append(self.output_layer)
         self.model = nn.Sequential(*layer_list)
 
     def forward(self, x: Tensor) -> Tensor:
+        # I shouldn't need this but I do!
+        if not self.training:
+            self.dropout_layer.eval()
+        
         return self.model(x)
 
 

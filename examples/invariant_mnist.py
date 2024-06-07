@@ -56,6 +56,7 @@ class Net(LightningModule):
             hidden_layers=cfg.mlp.hidden.layers,
             hidden_width=cfg.mlp.hidden.width,
             normalization=normalization,
+            dropout=cfg.mlp.dropout
         )
 
         # initialize_network_polynomial_layers(self.layer, max_slope=1.0, max_offset=0.0)
