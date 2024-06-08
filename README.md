@@ -211,6 +211,17 @@ With polynomial using similar number of parameters.
 ```python
 python examples/mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous2d n=4 segments=2
 ```
+Below using max_abs and sophia kernel_size=5, channels=[12,32]. The output layer was a standard linear
+layer - so only the convolutions (2 of them) were high order. Nothing particularly interesting here, except
+that instability doesn't seem to be an issue. I only ran each test once.
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.986 | 0.988 | 0.985
+|3 | 0.987 | 0.989 | 0.989
+|4 | 0.987 | 0.989 | 0.986
+|5 | 0.987 | 0.988 | 0.987
+|6 | 0.989 | 0.986 | 0.984
+
 
 ## CIFAR100 (convolutional)
 

@@ -12,6 +12,7 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import EarlyStopping
 from torchmetrics.functional import accuracy
+from Sophia import SophiaG
 
 from high_order_layers_torch.layers import *
 
@@ -40,7 +41,6 @@ class Net(LightningModule):
         self._batch_size = cfg.batch_size
         self._layer_type = cfg.layer_type
         self._train_fraction = cfg.train_fraction
-        layer_type = cfg.layer_type
         segments = cfg.segments
 
         self._transform = transformPoly
@@ -63,37 +63,24 @@ class Net(LightningModule):
                 layer_type=self._layer_type,
                 n=n,
                 in_channels=in_channels,
-                out_channels=6,
+                out_channels=12,
                 kernel_size=5,
                 segments=cfg.segments,
             )
             self.conv2 = high_order_convolution_layers(
                 layer_type=self._layer_type,
                 n=n,
-                in_channels=6,
-                out_channels=16,
+                in_channels=12,
+                out_channels=32,
                 kernel_size=5,
                 segments=cfg.segments,
             )
 
-        w1 = 28 - 4
-        w2 = (w1 // 2) - 4
-        c1 = 6
-        c2 = 16
+        self.normalize = MaxAbsNormalizationND()
 
         self.pool = nn.MaxPool2d(2, 2)
 
-        self.fc1 = nn.Linear(16 * 4 * 4, 10)
-
-        # Create xy objects
-        if self._cfg.add_pos == True:
-            xm = torch.linspace(-1, 1, 28, device=self.device)
-            ym = torch.linspace(-1, 1, 28, device=self.device)
-            xv, yv = torch.meshgrid(xm, ym)
-            xv = torch.stack(self._batch_size * [xv], dim=0)
-            yv = torch.stack(self._batch_size * [yv], dim=0)
-            # This is a hack.  Apparently self.device is not on cuda.
-            self._pos = torch.stack([xv, yv], dim=1).cuda()
+        self.fc1 = nn.Linear(32 * 4 * 4, 10)
 
     def forward(self, xin):
 
@@ -109,8 +96,10 @@ class Net(LightningModule):
             x = self.fc1(x)
         else:
             x = self.pool(self.conv1(x))
+            x = self.normalize(x)
             x = self.pool(self.conv2(x))
-            x = x.reshape(-1, 16 * 4 * 4)
+            x = self.normalize(x)
+            x = x.reshape(-1, 32 * 4 * 4)
             x = self.fc1(x)
         return x
 
@@ -161,7 +150,7 @@ class Net(LightningModule):
         logits = self(x)
         loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
-        acc = accuracy(preds, y, task='multiclass',num_classes=10)
+        acc = accuracy(preds, y, task="multiclass", num_classes=10)
 
         # Calling self.log will surface up scalars for you in TensorBoard
         self.log(f"{name}_loss", loss, prog_bar=True)
@@ -173,7 +162,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return Lion(self.parameters(), lr=0.001)
+        return SophiaG(self.parameters(), lr=0.001, rho=0.035)
 
 
 def mnist(cfg: DictConfig):
