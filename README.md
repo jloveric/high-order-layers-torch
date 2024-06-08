@@ -213,7 +213,9 @@ python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d,discontinuo
 ```
 Below using max_abs and sophia kernel_size=5, channels=[12,32]. The output layer was a standard linear
 layer - so only the convolutions (2 of them) were high order. Nothing particularly interesting here, except
-that instability doesn't seem to be an issue. I only ran each test once. 40 epochs batch size 1024.
+that instability doesn't seem to be an issue. I only ran each test once. 40 epochs batch size 1024. The case
+of the polynomial where n=2 is actually linear, so I would expect about 0.89 score, but there is nonlinearity
+through the normalization layer (and max pooling). Also note that in the linear case, every link has 2 weights.
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
 |2 | 0.986 | 0.988 | 0.985
