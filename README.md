@@ -209,11 +209,11 @@ With polynomial using similar number of parameters.
 ## MNIST (convolutional)
 
 ```python
-python examples/mnist.py max_epochs=1 train_fraction=0.1 layer_type=continuous2d n=4 segments=2
+python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d,discontinuous2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=40 batch_size=1024
 ```
 Below using max_abs and sophia kernel_size=5, channels=[12,32]. The output layer was a standard linear
 layer - so only the convolutions (2 of them) were high order. Nothing particularly interesting here, except
-that instability doesn't seem to be an issue. I only ran each test once.
+that instability doesn't seem to be an issue. I only ran each test once. 40 epochs batch size 1024.
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
 |2 | 0.986 | 0.988 | 0.985
@@ -222,6 +222,14 @@ that instability doesn't seem to be an issue. I only ran each test once.
 |5 | 0.987 | 0.988 | 0.987
 |6 | 0.989 | 0.986 | 0.984
 
+reduce the size of the network, same as above but channels=[3,8]
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.969 | 0.977 | 0.980
+|3 | 0.978 | 0.983 | 0.983
+|4 | 0.984 | 0.983 | 0.984
+|5 | 0.983 | 0.984 | 0.983
+|6 | 0.981 | 0.982 | 0.982
 
 ## CIFAR100 (convolutional)
 

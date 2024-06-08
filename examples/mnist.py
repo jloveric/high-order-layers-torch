@@ -63,15 +63,15 @@ class Net(LightningModule):
                 layer_type=self._layer_type,
                 n=n,
                 in_channels=in_channels,
-                out_channels=12,
+                out_channels=3,
                 kernel_size=5,
                 segments=cfg.segments,
             )
             self.conv2 = high_order_convolution_layers(
                 layer_type=self._layer_type,
                 n=n,
-                in_channels=12,
-                out_channels=32,
+                in_channels=3,
+                out_channels=8,
                 kernel_size=5,
                 segments=cfg.segments,
             )
@@ -80,7 +80,7 @@ class Net(LightningModule):
 
         self.pool = nn.MaxPool2d(2, 2)
 
-        self.fc1 = nn.Linear(32 * 4 * 4, 10)
+        self.fc1 = nn.Linear(8 * 4 * 4, 10)
 
     def forward(self, xin):
 
@@ -99,7 +99,7 @@ class Net(LightningModule):
             x = self.normalize(x)
             x = self.pool(self.conv2(x))
             x = self.normalize(x)
-            x = x.reshape(-1, 32 * 4 * 4)
+            x = x.reshape(-1, 8 * 4 * 4)
             x = self.fc1(x)
         return x
 
