@@ -45,63 +45,119 @@ class Net(LightningModule):
 
         self._transform = transformPoly
 
-        in_channels = 1
-        if self._cfg.add_pos == True:
-            in_channels = 3
+        in_channels = cfg.channels[0]
+        out_channels = cfg.channels[1]
 
         if self._layer_type == "standard":
             self.conv1 = torch.nn.Conv2d(
-                in_channels=in_channels,
-                out_channels=6 * ((n - 1) * segments + 1),
+                in_channels=1,
+                out_channels=in_channels,
                 kernel_size=5,
             )
             self.conv2 = torch.nn.Conv2d(
-                in_channels=6 * ((n - 1) * segments + 1), out_channels=16, kernel_size=5
+                in_channels=in_channels, out_channels=out_channels, kernel_size=5
             )
         else:
             self.conv1 = high_order_convolution_layers(
                 layer_type=self._layer_type,
                 n=n,
-                in_channels=in_channels,
-                out_channels=3,
-                kernel_size=5,
+                in_channels=1,
+                out_channels=in_channels,
+                kernel_size=cfg.kernel_size,
                 segments=cfg.segments,
             )
+            if self._cfg.double is True:
+                self.conv15 = high_order_convolution_layers(
+                    layer_type=self._layer_type,
+                    n=n,
+                    in_channels=in_channels,
+                    out_channels=in_channels,
+                    kernel_size=cfg.kernel_size,
+                    segments=cfg.segments,
+                )
+
             self.conv2 = high_order_convolution_layers(
                 layer_type=self._layer_type,
                 n=n,
-                in_channels=3,
-                out_channels=8,
-                kernel_size=5,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=cfg.kernel_size,
                 segments=cfg.segments,
             )
+            if self._cfg.double is True:
+                self.conv25 = high_order_convolution_layers(
+                    layer_type=self._layer_type,
+                    n=n,
+                    in_channels=out_channels,
+                    out_channels=out_channels,
+                    kernel_size=cfg.kernel_size,
+                    segments=cfg.segments,
+                )
 
         self.normalize = MaxAbsNormalizationND()
 
-        self.pool = nn.MaxPool2d(2, 2)
+        # self.pool = nn.MaxPool2d(2, 2)
+        self.pool = nn.AvgPool2d(2, 2)
 
-        self.fc1 = nn.Linear(8 * 4 * 4, 10)
+        if self._cfg.double is True:
+            last_layer_size = (
+                4 * 4 * out_channels if cfg.kernel_size == 3 else 2 * 2 * out_channels
+            )
+        else:
+            last_layer_size = (
+                5 * 5 * out_channels if cfg.kernel_size == 3 else 4 * 4 * out_channels
+            )
+
+        if cfg.output_layer_type == "linear":
+            self.fc1 = nn.Linear(last_layer_size, 10)
+        else:
+
+            output_layer_type = (
+                cfg.output_layer_type
+                if cfg.output_layer_type != "auto"
+                else cfg.layer_type[:-2]
+            )
+            print("output_layer_type", output_layer_type)
+            self.fc1 = high_order_fc_layers(
+                layer_type=output_layer_type,
+                n=n,
+                in_features=last_layer_size,
+                out_features=10,
+                segments=segments,
+                length=2.0,
+                periodicity=None,
+            )
 
     def forward(self, xin):
 
-        if self._cfg.add_pos == True:
-            x = torch.cat([xin, self._pos], dim=1)
-        else:
-            x = xin
+        x = xin
 
-        if self._layer_type == "standard":
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.pool(F.relu(self.conv2(x)))
-            x = x.reshape(-1, 16 * 4 * 4)
-            x = self.fc1(x)
+        if self._cfg.double is False:
+            if self._layer_type == "standard":
+                x = self.pool(F.relu(self.conv1(x)))
+                x = self.pool(F.relu(self.conv2(x)))
+                x = x.reshape(x.shape[0], -1)
+                x = self.fc1(x)
+            else:
+                x = self.pool(self.conv1(x))
+                x = self.normalize(x)
+                x = self.pool(self.conv2(x))
+                x = self.normalize(x)
+                x = x.reshape(x.shape[0], -1)
+                x = self.fc1(x)
+            return x
         else:
-            x = self.pool(self.conv1(x))
+            x = self.conv1(x)
             x = self.normalize(x)
-            x = self.pool(self.conv2(x))
+            x = self.pool(self.conv15(x))
             x = self.normalize(x)
-            x = x.reshape(-1, 8 * 4 * 4)
+            x = self.conv2(x)
+            x = self.normalize(x)
+            x = self.pool(self.conv25(x))
+            x = self.normalize(x)
+            x = x.reshape(x.shape[0], -1)
             x = self.fc1(x)
-        return x
+            return x
 
     def setup(self, stage):
         num_train = int(self._train_fraction * 50000)

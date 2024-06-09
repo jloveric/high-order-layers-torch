@@ -5,4 +5,17 @@ batch_size: 16
 segments: 2
 layer_type: continuous2d
 train_fraction: 1.0
-add_pos: False
+kernel_size: 5
+
+# The first channel is 1 so these are the outputs
+# for the first an second convolution.
+channels: [6, 16]
+
+# This should be linear, auto or the specific
+# non convolutional layer type, continuous.
+# When "auto" is selected it uses layer_type with
+# the last 2 characters removed so continuous2d->continuous
+output_layer_type: "linear"
+
+# Double the number of convolutions if True
+double: False

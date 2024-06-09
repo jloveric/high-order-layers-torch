@@ -233,6 +233,21 @@ reduce the size of the network, same as above but channels=[3,8]
 |5 | 0.983 | 0.984 | 0.983
 |6 | 0.981 | 0.982 | 0.982
 
+Creating a deeper network with 4 convolutions and max_abs normalization between layers, 2 segments, avg pooling after each pair
+of convolutions
+```
+python examples/mnist.py -m train_fraction=1 layer_type=discontinuous2d polynomial2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=100 batch_size=1024 channels=[16,32] output_layer_type=auto double=True kernel_size=3
+```
+| n   | test (polynomial)      | test (continuous) | test (discontinuous)
+|--------------|----------------------|------------------|------------------|
+|2 | 0.927 | 0.990 | 0.989
+|3 | 0.989 | 0.989 | 0.988
+|4 | 0.989 | 0.989 | 0.990
+|5 | 0.990 | 0.988 | 0.989
+|6 | 0.987 | 0.985 | 0.990
+|7 | 0.989 |     |
+|8 | 0.989 |     |
+
 ## CIFAR100 (convolutional)
 
 ```
