@@ -96,8 +96,8 @@ class Net(LightningModule):
 
         self.normalize = MaxAbsNormalizationND()
 
-        # self.pool = nn.MaxPool2d(2, 2)
-        self.pool = nn.AvgPool2d(2, 2)
+        self.pool = nn.MaxPool2d(2, 2)
+        # self.pool = nn.AvgPool2d(2, 2)
 
         if self._cfg.double is True:
             last_layer_size = (

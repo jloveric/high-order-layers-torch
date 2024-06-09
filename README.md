@@ -247,7 +247,8 @@ python examples/mnist.py -m train_fraction=1 layer_type=discontinuous2d polynomi
 |6 | 0.987 | 0.985 | 0.990
 |7 | 0.989 |     |
 |8 | 0.989 |     |
-
+|9 | 0.988 |     |
+|10| 0.989 |     |
 ## CIFAR100 (convolutional)
 
 ```

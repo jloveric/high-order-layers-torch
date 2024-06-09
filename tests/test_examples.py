@@ -91,6 +91,10 @@ def test_mnist():
             "layer_type": "continuous2d",
             "train_fraction": 0.01,
             "add_pos": False,
+            "output_layer_type": "linear",
+            "channels": [1, 1],
+            "double": False,
+            "kernel_size": 5,
         }
     )
     result = mnist(cfg=cfg)
