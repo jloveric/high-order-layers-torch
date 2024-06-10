@@ -95,6 +95,21 @@ class MaxCenterNormalization(nn.Module):
         return max_center_normalization(x, eps=self._eps)
 
 
+class MaxCenterNormalizationND(nn.Module):
+    """
+    Normalization for the 1D case (MLP) (x-avg)/(max(x)+eps) for each
+    sample of the batch. The normalization is based on the max and min
+    of the entire sample as if it were a 1d array
+    """
+
+    def __init__(self, eps: float = 1e-6):
+        super().__init__()
+        self._eps = eps
+
+    def forward(self, x):
+        return max_center_normalization_nd(x, eps=self._eps)
+
+
 class MaxAbsNormalizationND(nn.Module):
     """
     Normalization for ND case, specifically convolutions

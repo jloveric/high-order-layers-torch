@@ -26,6 +26,11 @@ transformPoly = transforms.Compose(
 
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
+normalization = {
+    "max_abs": MaxAbsNormalizationND,
+    "max_center": MaxCenterNormalizationND,
+}
+
 
 class Net(LightningModule):
     def __init__(self, cfg: DictConfig):
@@ -94,10 +99,11 @@ class Net(LightningModule):
                     segments=cfg.segments,
                 )
 
-        self.normalize = MaxAbsNormalizationND()
+        self.normalize = normalization[cfg.normalization]()
+        # self.normalize = MaxAbsNormalizationND()
 
-        self.pool = nn.MaxPool2d(2, 2)
-        # self.pool = nn.AvgPool2d(2, 2)
+        # self.pool = nn.MaxPool2d(2, 2)
+        self.pool = nn.AvgPool2d(2, 2)
 
         if self._cfg.double is True:
             last_layer_size = (

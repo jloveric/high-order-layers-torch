@@ -95,6 +95,7 @@ def test_mnist():
             "channels": [1, 1],
             "double": False,
             "kernel_size": 5,
+            "normalization": "max_abs",
         }
     )
     result = mnist(cfg=cfg)

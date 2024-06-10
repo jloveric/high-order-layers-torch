@@ -19,3 +19,4 @@ output_layer_type: "linear"
 
 # Double the number of convolutions if True
 double: False
+normalization : max_abs # max_center

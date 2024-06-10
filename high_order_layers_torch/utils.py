@@ -39,6 +39,21 @@ def max_center_normalization_last(x: Tensor, eps: float = 1e-6):
     return centered / (mag + eps)
 
 
+def max_center_normalization_nd(x: Tensor, eps: float = 1e-6):
+    shape = x.shape
+    xn = x.reshape(shape[0], -1)
+
+    max_x = torch.max(xn, dim=1, keepdim=True)[0]
+    min_x = torch.min(xn, dim=1, keepdim=True)[0]
+
+    midrange = 0.5 * (max_x + min_x)
+    mag = max_x - midrange
+
+    centered = xn - midrange
+    norm = centered / (mag + eps)
+    return norm.reshape(shape)
+
+
 def l2_normalization(x: Tensor, eps: float = 1e-6):
     return x / (x.norm(2, 1, keepdim=True) + eps)
 
