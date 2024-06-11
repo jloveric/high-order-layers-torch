@@ -72,6 +72,7 @@ def test_cifar100():
             "periodicity": 2.0,
             "lr": 0.001,
             "nonlinearity": False,
+
         }
     )
     result = cifar100(cfg=cfg)
@@ -96,6 +97,11 @@ def test_mnist():
             "double": False,
             "kernel_size": 5,
             "normalization": "max_abs",
+            "optimizer": {
+                "name": "sophia",
+                "lr": 1e-4,
+                "rho": 0.035,
+            },
         }
     )
     result = mnist(cfg=cfg)

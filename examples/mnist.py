@@ -10,7 +10,7 @@ import torchvision
 import torchvision.transforms as transforms
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
 from torchmetrics.functional import accuracy
 from Sophia import SophiaG
 
@@ -224,7 +224,31 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        return SophiaG(self.parameters(), lr=0.001, rho=0.035)
+        if self._cfg.optimizer.name == "adam":
+            optimizer = optim.Adam(self.parameters(), lr=self._cfg.optimizer.lr)
+            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer,
+                patience=self._cfg.optimizer.patience,
+                factor=self._cfg.optimizer.factor,
+                verbose=True,
+            )
+            return [optimizer], [lr_scheduler]
+        elif self._cfg.optimizer.name == "lion":
+            optimizer = Lion(self.parameters(), lr=self._cfg.optimizer.lr)
+            lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer,
+                patience=self._cfg.optimizer.patience,
+                factor=self._cfg.optimizer.factor,
+                verbose=True,
+            )
+            return [optimizer], [lr_scheduler]
+        elif self._cfg.optimizer.name == "sophia":
+            optimizer = SophiaG(
+                self.parameters(),
+                lr=self._cfg.optimizer.lr,
+                rho=self._cfg.optimizer.rho,
+            )
+            return optimizer
 
 
 def mnist(cfg: DictConfig):
@@ -236,6 +260,8 @@ def mnist(cfg: DictConfig):
     except:
         pass
 
+    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+
     early_stop_callback = EarlyStopping(
         monitor="val_loss", min_delta=0.00, patience=20, verbose=False, mode="min"
     )
@@ -243,7 +269,7 @@ def mnist(cfg: DictConfig):
     trainer = Trainer(
         max_epochs=cfg.max_epochs,
         accelerator=cfg.accelerator,
-        callbacks=[early_stop_callback],
+        callbacks=[early_stop_callback, lr_monitor],
     )
     model = Net(cfg)
     trainer.fit(model)

@@ -209,7 +209,7 @@ With polynomial using similar number of parameters.
 ## MNIST (convolutional)
 
 ```python
-python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d,discontinuous2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=40 batch_size=1024
+python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d,discontinuous2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=40 batch_size=1024 channels=[12,32] kernel_size=5 optimizer=sophia optimizer.lr=1e-4
 ```
 Below using max_abs and sophia kernel_size=5, channels=[12,32]. The output layer was a standard linear
 layer - so only the convolutions (2 of them) were high order. Nothing particularly interesting here, except
@@ -236,7 +236,7 @@ reduce the size of the network, same as above but channels=[3,8]
 Creating a deeper network with 4 convolutions and max_abs normalization between layers, 2 segments, avg pooling after each pair
 of convolutions
 ```
-python examples/mnist.py -m train_fraction=1 layer_type=discontinuous2d polynomial2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=100 batch_size=1024 channels=[16,32] output_layer_type=auto double=True kernel_size=3
+python examples/mnist.py -m train_fraction=1 layer_type=discontinuous2d polynomial2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=100 batch_size=1024 channels=[16,32] output_layer_type=auto double=True kernel_size=3 optimizer=sophia optimizer.lr=1e-3
 ```
 | n   | test (polynomial)      | test (continuous) | test (discontinuous)
 |--------------|----------------------|------------------|------------------|
@@ -249,6 +249,24 @@ python examples/mnist.py -m train_fraction=1 layer_type=discontinuous2d polynomi
 |8 | 0.989 |     |
 |9 | 0.988 |     |
 |10| 0.989 |     |
+
+Reduced the learning rate on sophia by a factor of 10, run up to a 9th order polynomial
+```
+python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d n=2,3,4,5,6,7,8,9,10 segments=2 max_epochs=100 batch_size=1024 channels=[16,32] output_layer_type=auto double=True kernel_size=3 normalization=max_abs optimizer=sophia optimizer.lr=1e-4
+```
+| n   | test (polynomial)
+|--------------|----------------------|
+|2 | 0.910 |
+|3 | 0.985 |
+|4 | 0.988 |
+|5 | 0.989 |
+|6 | 0.988 |
+|7 | 0.990 |
+|8 | 0.991 |
+|9 | 0.991 |
+|10| 0.989 |
+
+
 ## CIFAR100 (convolutional)
 
 ```
