@@ -209,7 +209,7 @@ With polynomial using similar number of parameters.
 ## MNIST (convolutional)
 
 ```python
-python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d,discontinuous2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=40 batch_size=1024 channels=[12,32] kernel_size=5 optimizer=sophia optimizer.lr=1e-4
+python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d,discontinuous2d,continuous2d n=2,3,4,5,6 segments=2 max_epochs=40 batch_size=1024 channels=[12,32] kernel_size=5 optimizer=sophia optimizer.lr=1e-3
 ```
 Below using max_abs and sophia kernel_size=5, channels=[12,32]. The output layer was a standard linear
 layer - so only the convolutions (2 of them) were high order. Nothing particularly interesting here, except
