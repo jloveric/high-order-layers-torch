@@ -237,6 +237,7 @@ class Net(LightningModule):
                     "scheduler": lr_scheduler,
                     "monitor": "val_loss",
                     "interval": "epoch",
+                    "reduce_on_plateau": True,
                     "frequency": 1,
                 }
             ]
@@ -254,6 +255,7 @@ class Net(LightningModule):
                     "scheduler": lr_scheduler,
                     "monitor": "val_loss",
                     "interval": "epoch",
+                    "reduce_on_plateau": True,
                     "frequency": 1,
                 }
             ]

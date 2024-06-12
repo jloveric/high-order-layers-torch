@@ -266,6 +266,25 @@ python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d n=2,3,4,5,6
 |9 | 0.991 |
 |10| 0.989 |
 
+Only Using 2 convolutions and lion optimizer
+```
+python examples/mnist.py -m train_fraction=1 layer_type=polynomial2d n=2,3,4,5,6,7,8,9,10 segments=2 max_epochs=100 batch_size=1024 channels=[16,32] output_layer_type=auto,linear double=False kernel_size=5 normalization=max_abs optimizer=lion optimizer.lr=1e-4
+```
+The results below are the same problem, but one has a polynomial last layer (auto) and the other has a linear last layer.
+The polynomial last layer is the same as that used in the convolution.
+
+| n   | polynomial polynomial| polynomial linear|
+|--------------|----------------------|---------------|
+|2 | 0.928 | 0.930
+|3 | 0.984 | 0.984
+|4 | 0.991 | 0.990
+|5 | 0.989 | 0.990
+|6 | 0.990 | 0.990
+|7 | 0.989 | 0.989
+|8 | 0.989 | 0.989
+|9 | 0.990 | 0.
+|10| 0.990 | 0.
+
 
 ## CIFAR100 (convolutional)
 
