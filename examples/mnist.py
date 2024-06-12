@@ -232,16 +232,31 @@ class Net(LightningModule):
                 factor=self._cfg.optimizer.factor,
                 verbose=True,
             )
-            return [optimizer], [lr_scheduler]
+            return [optimizer], [
+                {
+                    "scheduler": lr_scheduler,
+                    "monitor": "val_loss",
+                    "interval": "epoch",
+                    "frequency": 1,
+                }
+            ]
         elif self._cfg.optimizer.name == "lion":
             optimizer = Lion(self.parameters(), lr=self._cfg.optimizer.lr)
             lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer,
+                mode="min",
                 patience=self._cfg.optimizer.patience,
                 factor=self._cfg.optimizer.factor,
                 verbose=True,
             )
-            return [optimizer], [lr_scheduler]
+            return [optimizer], [
+                {
+                    "scheduler": lr_scheduler,
+                    "monitor": "val_loss",
+                    "interval": "epoch",
+                    "frequency": 1,
+                }
+            ]
         elif self._cfg.optimizer.name == "sophia":
             optimizer = SophiaG(
                 self.parameters(),
@@ -260,7 +275,7 @@ def mnist(cfg: DictConfig):
     except:
         pass
 
-    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+    lr_monitor = LearningRateMonitor(logging_interval="step")
 
     early_stop_callback = EarlyStopping(
         monitor="val_loss", min_delta=0.00, patience=20, verbose=False, mode="min"
@@ -269,7 +284,7 @@ def mnist(cfg: DictConfig):
     trainer = Trainer(
         max_epochs=cfg.max_epochs,
         accelerator=cfg.accelerator,
-        callbacks=[early_stop_callback, lr_monitor],
+        callbacks=[lr_monitor],
     )
     model = Net(cfg)
     trainer.fit(model)
