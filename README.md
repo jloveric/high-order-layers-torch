@@ -282,8 +282,8 @@ The polynomial last layer is the same as that used in the convolution.
 |6 | 0.990 | 0.990
 |7 | 0.989 | 0.989
 |8 | 0.989 | 0.989
-|9 | 0.990 | 0.
-|10| 0.990 | 0.
+|9 | 0.990 | 0.989
+|10| 0.990 | 0.990
 
 
 ## CIFAR100 (convolutional)
