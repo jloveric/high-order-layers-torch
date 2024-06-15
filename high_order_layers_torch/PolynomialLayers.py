@@ -8,7 +8,10 @@ from torch.autograd import Variable
 from .LagrangePolynomial import *
 from .utils import *
 
-def constant_random_initialization(w, out_features, in_features, weight_magnitude, device) :
+
+def constant_random_initialization(
+    w, out_features, in_features, weight_magnitude, device
+):
     random_values = (
         torch.rand(out_features, in_features, device=device)
         * weight_magnitude
@@ -18,6 +21,7 @@ def constant_random_initialization(w, out_features, in_features, weight_magnitud
     # Expand the random values to match the third dimension
     with torch.no_grad():
         w.copy_(random_values.unsqueeze(2).expand(-1, -1, w.size(2)))
+
 
 class Function(nn.Module):
     def __init__(
@@ -41,7 +45,9 @@ class Function(nn.Module):
             requires_grad=True,
         )
         if initialize == "constant_random":
-            constant_random_initialization(self.w, out_features, in_features, weight_magnitude, device)
+            constant_random_initialization(
+                self.w, out_features, in_features, weight_magnitude, device
+            )
         else:
             self.w.data.uniform_(
                 -weight_magnitude / in_features, weight_magnitude / in_features
@@ -144,7 +150,9 @@ class Piecewise(nn.Module):
             requires_grad=True,
         )
         if initialize == "constant_random":
-            constant_random_initialization(self.w, out_features, in_features, weight_magnitude, device)
+            constant_random_initialization(
+                self.w, out_features, in_features, weight_magnitude, device
+            )
         else:
             self.w.data.uniform_(
                 -weight_magnitude / in_features, weight_magnitude / in_features
@@ -163,20 +171,12 @@ class Piecewise(nn.Module):
             - tensor of segment indices
         """
 
-        periodicity = self.periodicity
-        if periodicity is not None:
-            x = make_periodic(x, periodicity)
+        if self.periodicity is not None:
+            x = make_periodic(x, self.periodicity)
 
         # get the segment index
         id_min = (((x + self._half) / self._length) * self._segments).long()
-        device = id_min.device
-        id_min = torch.where(
-            id_min <= self._segments - 1,
-            id_min,
-            torch.tensor(self._segments - 1, device=device),
-        )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
-
+        id_min = id_min.clamp(0, self._segments - 1)
         return id_min
 
     def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
@@ -197,46 +197,38 @@ class Piecewise(nn.Module):
         return x_global
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        periodicity = self.periodicity
-        if periodicity is not None:
-            x = make_periodic(x, periodicity)
+        if self.periodicity is not None:
+            x = make_periodic(x, self.periodicity)
 
         # get the segment index
-        id_min = (((x + self._half) / self._length) * self._segments).long()
-        device = id_min.device
-        id_min = torch.where(
-            id_min <= self._segments - 1,
-            id_min,
-            torch.tensor(self._segments - 1, device=device),
+        id_min = (
+            (((x + self._half) / self._length) * self._segments)
+            .long()
+            .clamp(0, self._segments - 1)
         )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         id_max = id_min + 1
 
         # determine which weights are active
         wid_min = (id_min * (self._n - 1)).long()
-        wid_max = (id_max * (self._n - 1)).long() + 1
 
         # Fill in the ranges
-        wid_min_flat = wid_min.reshape(-1)
-        wid_max_flat = wid_max.reshape(-1)
-        wrange = wid_min_flat.unsqueeze(-1) + torch.arange(self._n, device=device).view(
-            -1
-        )
-
+        wrange = (
+            wid_min.unsqueeze(-1) + torch.arange(self._n, device=x.device)
+        ).flatten()
         windex = (
             torch.div(
-                torch.arange(wrange.shape[0] * wrange.shape[1], device=device),
+                torch.arange(wrange.numel(), device=x.device),
                 self._n,
                 rounding_mode="floor",
             )
             % self.in_features
         )
-        wrange = wrange.flatten()
 
-        w = self.w[:, windex, wrange]
-
-        w = w.view(self.out_features, -1, self.in_features, self._n)
-        w = w.permute(1, 2, 0, 3)
+        w = (
+            self.w[:, windex, wrange]
+            .view(self.out_features, -1, self.in_features, self._n)
+            .permute(1, 2, 0, 3)
+        )
 
         # get the range of x in this segment
         x_min = self._eta(id_min)
@@ -349,7 +341,9 @@ class PiecewiseDiscontinuous(nn.Module):
             requires_grad=True,
         )
         if initialize == "constant_random":
-            constant_random_initialization(self.w, out_features, in_features, weight_magnitude, device)
+            constant_random_initialization(
+                self.w, out_features, in_features, weight_magnitude, device
+            )
         else:
             self.w.data.uniform_(-1 / in_features, 1 / in_features)
 
