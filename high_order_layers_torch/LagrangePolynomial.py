@@ -20,7 +20,7 @@ def chebyshevLobatto(n: int):
     if n == 1:
         return torch.tensor([0.0])
 
-    return torch.cos(torch.pi * torch.arange(n) / (n - 1))
+    return -torch.cos(torch.pi * torch.arange(n) / (n - 1))
 
 
 class FourierBasis:
