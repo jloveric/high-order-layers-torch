@@ -20,13 +20,7 @@ def chebyshevLobatto(n: int):
     if n == 1:
         return torch.tensor([0.0])
 
-    k = torch.arange(0, n)
-
-    ans = -torch.cos(k * math.pi / (n - 1))
-
-    ans = torch.where(torch.abs(ans) < 1e-15, 0 * ans, ans)
-
-    return ans
+    return torch.cos(torch.pi * torch.arange(n) / (n - 1))
 
 
 class FourierBasis:
