@@ -443,9 +443,9 @@ class BasisFlatProd:
         return out_prod
 
 
-class Basis:
-    # TODO: Is this the same as above? No! It is not!
-    def __init__(self, n: int, basis: Callable[[Tensor, int], float]):
+class Basis:  # Should this be a module? No stored data.
+    def __init__(self, n: int, basis: Callable[[Tensor, int], Tensor]):
+        super().__init__()
         self.n = n
         self.basis = basis
 
@@ -461,15 +461,28 @@ class Basis:
         Returns:
             - result: size[batch, output]
         """
-        mat = []
+        batch_size, input_size = x.shape
+        _, _, output_size, basis_size = w.shape
+
+        # Create a tensor to hold the basis functions, shape: [batch, input, n]
+        basis_functions = torch.empty((batch_size, input_size, self.n), device=x.device)
+
+        # Calculate all basis functions for each j in parallel
         for j in range(self.n):
-            basis_j = self.basis(x, j)
-            mat.append(basis_j)
-        mat = torch.stack(mat)
+            basis_functions[:, :, j] = self.basis(x, j)
 
-        out_sum = torch.einsum("ijk,jkli->jl", mat, w)
+        # Reshape basis functions to match the required shape for einsum
+        # basis_functions: [batch, input, n] -> [n, batch, input]
+        basis_functions = basis_functions.permute(2, 0, 1)
 
-        return out_sum
+        # Perform the einsum operation to calculate the result
+        # einsum equation explanation:
+        # - 'ijk' corresponds to basis_functions with shape [n, batch, input]
+        # - 'jkli' corresponds to w with shape [batch, input, output, basis]
+        # - 'jl' corresponds to the output with shape [batch, output]
+        result = torch.einsum("ijk,jkli->jl", basis_functions, w)
+
+        return result
 
 
 class BasisProd:
