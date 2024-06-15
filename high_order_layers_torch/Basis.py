@@ -238,22 +238,16 @@ class PiecewiseDiscontinuousExpand:
     def __call__(self, x):
         """
         Apply basis function to each input.
-        Args :
-            x : Tensor of shape [batch, channels, x, y]
-        Out :
-            Tensor of shape [variables, batch, channels, x, y]
+        :param x: Tensor of shape [batch, channels, x, y]
+        :returns: Tensor of shape [variables, batch, channels, x, y]
         """
         # get the segment index
-        id_min = (((x + self._half) / self._length) * self._segments).long()
-        device = x.device
-        id_min = torch.where(
-            id_min <= self._segments - 1,
-            id_min,
-            torch.tensor(self._segments - 1, device=device),
+        id_min = (
+            (((x + self._half) / self._length) * self._segments)
+            .long()
+            .clamp(0, self._segments - 1)
         )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         id_max = id_min + 1
-
         wid_min = id_min * self._n
 
         # get the range of x in this segment
@@ -273,14 +267,14 @@ class PiecewiseDiscontinuousExpand:
             x.shape[2],
             x.shape[3],
             self._variables,
-            device=device,
+            device=x.device,
         )
 
         wid_min_flat = wid_min.reshape(-1)
 
-        wrange = wid_min_flat.unsqueeze(-1) + torch.arange(self._n, device=device).view(
-            -1
-        )
+        wrange = wid_min_flat.unsqueeze(-1) + torch.arange(
+            self._n, device=x.device
+        ).view(-1)
 
         # This needs to be
         windex = torch.div(torch.arange(wrange.numel()), self._n, rounding_mode="floor")
