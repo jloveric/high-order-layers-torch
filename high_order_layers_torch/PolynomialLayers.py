@@ -358,83 +358,54 @@ class PiecewiseDiscontinuous(nn.Module):
         return self._n
 
     def which_segment(self, x: torch.Tensor) -> Tensor:
-        """
-        Return the segment(s) the x are in.  This is being added for
-        use with h-refinement
-        Args :
-            - x the input values
-        Returns :
-            - tensor of segment indices
-        """
+        if self.periodicity is not None:
+            x = make_periodic(x, self.periodicity)
 
-        periodicity = self.periodicity
-        if periodicity is not None:
-            x = make_periodic(x, periodicity)
-
-        # get the segment index
-        id_min = (((x + self._half) / self._length) * self._segments).long()
-        device = id_min.device
-        id_min = torch.where(
-            id_min <= self._segments - 1,
-            id_min,
-            torch.tensor(self._segments - 1, device=device),
+        id_min = (
+            (((x + self._half) / self._length) * self._segments)
+            .long()
+            .clamp(0, self._segments - 1)
         )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         return id_min
 
     def forward(self, x: torch.Tensor):
-        periodicity = self.periodicity
-        if periodicity is not None:
-            x = make_periodic(x, periodicity)
+        if self.periodicity is not None:
+            x = make_periodic(x, self.periodicity)
 
-        # determine which segment it is in
-        id_min = (((x + self._half) / self._length) * self._segments).long()
-        device = id_min.device
-        id_min = torch.where(
-            id_min <= self._segments - 1,
-            id_min,
-            torch.tensor(self._segments - 1, device=device),
+        id_min = (
+            (((x + self._half) / self._length) * self._segments)
+            .long()
+            .clamp(0, self._segments - 1)
         )
-        id_min = torch.where(id_min >= 0, id_min, torch.tensor(0, device=device))
         id_max = id_min + 1
 
-        # determine which weights are active
         wid_min = (id_min * self._n).long()
         wid_max = (id_max * self._n).long()
 
-        # Fill in the ranges
-        wid_min_flat = wid_min.flatten()
-        wid_max_flat = wid_max.flatten()
-
-        # get the range of x in this segment
-        x_min = self._eta(id_min)
-        x_max = self._eta(id_max)
-
-        # rescale to -1 to +1
-        x_in = self._length * ((x - x_min) / (x_max - x_min)) - self._half
-        w_list = []
-
-        wrange = wid_min_flat.unsqueeze(-1) + torch.arange(self._n, device=device).view(
-            -1
-        )
-
-        # should be size batches*inputs*n
+        wrange = (
+            wid_min.unsqueeze(-1) + torch.arange(self._n, device=x.device)
+        ).flatten()
         windex = (
             torch.div(
-                torch.arange(wrange.shape[0] * wrange.shape[1], device=device),
+                torch.arange(wrange.numel(), device=x.device),
                 self._n,
                 rounding_mode="floor",
             )
-        ) % self.in_features
-        wrange = wrange.flatten()
+            % self.in_features
+        )
 
-        w = self.w[:, windex, wrange]
+        w = (
+            self.w[:, windex, wrange]
+            .view(self.out_features, -1, self.in_features, self._n)
+            .permute(1, 2, 0, 3)
+        )
 
-        w = w.view(self.out_features, -1, self.in_features, self._n)
-        w = w.permute(1, 2, 0, 3)
+        x_min = self._eta(id_min)
+        x_max = self._eta(id_max)
 
-        result = self._poly.interpolate(x_in, w)
-        return result
+        x_in = self._length * ((x - x_min) / (x_max - x_min)) - self._half
+
+        return self._poly.interpolate(x_in, w)
 
     def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
         # compute x_local from x_global
