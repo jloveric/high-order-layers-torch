@@ -259,7 +259,7 @@ class PiecewiseDiscontinuousExpand:
 
         # These are the outputs, but they need to be in a sparse tensor
         # so they work with everything, do dense for now.
-        out = self._expand(x_in)
+        out = self._expand(x_in).permute(1, 2, 3, 4, 0)
 
         mat = torch.zeros(
             x.shape[0],
@@ -278,8 +278,6 @@ class PiecewiseDiscontinuousExpand:
 
         # This needs to be
         windex = torch.div(torch.arange(wrange.numel()), self._n, rounding_mode="floor")
-
-        out = out.permute(1, 2, 3, 4, 0)
 
         mat_trans = mat.reshape(-1, self._variables)
         mat_trans[windex, wrange.view(-1)] = out.flatten()
