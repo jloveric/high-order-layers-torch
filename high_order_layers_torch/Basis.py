@@ -283,9 +283,7 @@ class PiecewiseDiscontinuousExpand:
         mat_trans[windex, wrange.view(-1)] = out.flatten()
         mat = mat_trans.reshape(
             mat.shape[0], mat.shape[1], mat.shape[2], mat.shape[3], mat.shape[4]
-        )
-
-        mat = mat.permute(4, 0, 1, 2, 3)
+        ).permute(4, 0, 1, 2, 3)
 
         return mat
 
