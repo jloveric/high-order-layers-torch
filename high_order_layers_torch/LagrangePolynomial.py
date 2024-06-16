@@ -55,11 +55,22 @@ class LagrangeBasis:
     def __init__(self, n: int, length: float = 2.0):
         self.n = n
         self.X = (length / 2.0) * chebyshevLobatto(n)
+        self.denominators = self._compute_denominators()
+
+    def _compute_denominators(self):
+        denom = torch.ones((self.n, self.n), dtype=torch.float32)
+        for j in range(self.n):
+            for m in range(self.n):
+                if m != j:
+                    denom[j, m] = self.X[j] - self.X[m]
+        return denom
 
     def __call__(self, x, j: int):
-        b = [(x - self.X[m]) / (self.X[j] - self.X[m]) for m in range(self.n) if m != j]
-        b = torch.stack(b)
-        ans = torch.prod(b, dim=0)
+        x_diff = x.unsqueeze(-1) - self.X  # Ensure broadcasting
+        b = torch.where(
+            torch.arange(self.n) != j, x_diff / self.denominators[j], torch.tensor(1.0)
+        )
+        ans = torch.prod(b, dim=-1)
         return ans
 
 

@@ -58,6 +58,7 @@ class NDFunctionApproximation(LightningModule):
         optimizer: str = "sophia",
         lr: float = 0.01,
         batch_size: int = 32,
+        device='cpu',
     ):
         """
         Simple network consisting of 2 input and 1 output
@@ -77,6 +78,7 @@ class NDFunctionApproximation(LightningModule):
             segments=segments,
             alpha=linear_part,
             intialization="constant_random",
+            device=device,
         )
         self.layer2 = high_order_fc_layers(
             layer_type=layer_type,
@@ -135,11 +137,12 @@ def plot_approximation(
     optimizer="sophia",
     lr=0.01,
     batch_size=32,
+    device='cpu'
 ):
     pred_set = []
     for i in range(0, len(model_set)):
 
-        trainer = Trainer(max_epochs=epochs)
+        trainer = Trainer(max_epochs=epochs, accelerator=device)
         model = NDFunctionApproximation(
             n=model_set[i]["order"],
             segments=segments,
@@ -147,7 +150,8 @@ def plot_approximation(
             linear_part=linear_part,
             optimizer=optimizer,
             lr=lr,
-            batch_size=batch_size
+            batch_size=batch_size,
+            device=device,
         )
         trainer.fit(model)
         predictions = model(xTest.view(xTest.size(0), -1))
