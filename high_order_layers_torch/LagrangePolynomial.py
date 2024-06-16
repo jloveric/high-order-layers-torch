@@ -10,9 +10,8 @@ def chebyshevLobatto(n: int):
     """
     Compute the chebyshev lobatto points which
     are in the range [-1.0, 1.0]
-    Args :
-        n : number of points
-    Returns :
+    :param n: number of points
+    :returns :
         A tensor of length n with x locations from
         negative to positive including -1 and 1
          [-1,...,+1]
@@ -66,6 +65,36 @@ class LagrangeBasis:
         return denom
 
     def __call__(self, x, j: int):
+        x_diff = x.unsqueeze(-1) - self.X  # Ensure broadcasting
+        b = torch.where(
+            torch.arange(self.n) != j, x_diff / self.denominators[j], torch.tensor(1.0)
+        )
+        ans = torch.prod(b, dim=-1)
+        return ans
+
+
+class LagrangeBasisND:
+    """
+    TODO: NOT IMPLEMENTED
+    N Dimensional version of the lagrange polynomial basis
+    """
+
+    def __init__(self, n: int, length: float = 2.0, dimensions: int = 2):
+        self.n = n
+        self.dimensions = dimensions
+        self.X = (length / 2.0) * chebyshevLobatto(n)
+        self.denominators = self._compute_denominators()
+
+    def _compute_denominators(self):
+        denom = torch.ones((self.n, self.n), dtype=torch.float32)
+        for j in range(self.n):
+            for m in range(self.n):
+                if m != j:
+                    denom[j, m] = self.X[j] - self.X[m]
+        return denom
+
+    def __call__(self, x, j: int):
+        return NotImplementedError
         x_diff = x.unsqueeze(-1) - self.X  # Ensure broadcasting
         b = torch.where(
             torch.arange(self.n) != j, x_diff / self.denominators[j], torch.tensor(1.0)
