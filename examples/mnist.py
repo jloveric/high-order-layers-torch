@@ -22,9 +22,7 @@ transformStandard = transforms.Compose(
 transformPoly = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.0,), (1.0,))]
 )
-# transformPoly = transformStandard
 
-classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
 normalization = {
     "max_abs": MaxAbsNormalizationND,
