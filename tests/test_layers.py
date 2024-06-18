@@ -4,7 +4,7 @@ import pytest
 
 from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
-from high_order_layers_torch.LagrangePolynomial import LagrangePoly
+from high_order_layers_torch.LagrangePolynomial import LagrangePoly, LagrangeBasis2D
 import torch.nn.functional as F
 from high_order_layers_torch.layers import (
     L2Normalization,
@@ -38,10 +38,23 @@ def test_variable_dimension_input(n, in_features, out_features, segments):
     layer(a)
 """
 
+def test_lagrange_basis() :
+    lb = LagrangeBasis2D(n=5, dimensions=2)
+    x=torch.tensor([[-1,-1],[1,1]])
+    
+    res = lb(x=x, j=0, k=0)
+    print('res1', res)
+    assert res[0]==1
+    assert torch.abs(res[1])<1e-12
+
+    res = lb(x=x, j=4, k=4)
+    print('res2', res)
+    assert res[1]==1
+    assert torch.abs(res[0])<1e-12
+
 def test_nodes():
     ans = chebyshevLobatto(20)
     assert ans.shape[0] == 20
-
 
 def test_polynomial():
     poly = LagrangePoly(5)

@@ -73,11 +73,7 @@ class LagrangeBasis:
         return ans
 
 
-class LagrangeBasisND:
-    """
-    TODO: NOT IMPLEMENTED
-    N Dimensional version of the lagrange polynomial basis
-    """
+class LagrangeBasis2D:
 
     def __init__(self, n: int, length: float = 2.0, dimensions: int = 2):
         self.n = n
@@ -93,14 +89,24 @@ class LagrangeBasisND:
                     denom[j, m] = self.X[j] - self.X[m]
         return denom
 
-    def __call__(self, x, j: int):
-        return NotImplementedError
-        x_diff = x.unsqueeze(-1) - self.X  # Ensure broadcasting
+    def __call__(self, x, j: int, k: int):
+        x_diff = x.unsqueeze(-1) - self.X
+
         b = torch.where(
-            torch.arange(self.n) != j, x_diff / self.denominators[j], torch.tensor(1.0)
+            torch.arange(self.n) != j,
+            x_diff[:, 0, :] / self.denominators[j],
+            torch.tensor(1.0),
         )
-        ans = torch.prod(b, dim=-1)
-        return ans
+        c = torch.where(
+            torch.arange(self.n) != k,
+            x_diff[:, 1, :] / self.denominators[k],
+            torch.tensor(1.0),
+        )
+
+        r1 = torch.prod(b, dim=-1)
+        r2 = torch.prod(c, dim=-1)
+
+        return r1 * r2
 
 
 class LagrangeBasis1:
