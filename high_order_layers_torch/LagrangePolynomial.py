@@ -73,7 +73,7 @@ class LagrangeBasis:
         return ans
 
 
-class LagrangeBasis2D:
+class LagrangeBasisND:
 
     def __init__(self, n: int, length: float = 2.0, dimensions: int = 2):
         self.n = n
@@ -89,24 +89,19 @@ class LagrangeBasis2D:
                     denom[j, m] = self.X[j] - self.X[m]
         return denom
 
-    def __call__(self, x, j: int, k: int):
+    def __call__(self, x, index: list[int]):
         x_diff = x.unsqueeze(-1) - self.X
 
-        b = torch.where(
-            torch.arange(self.n) != j,
-            x_diff[:, 0, :] / self.denominators[j],
-            torch.tensor(1.0),
-        )
-        c = torch.where(
-            torch.arange(self.n) != k,
-            x_diff[:, 1, :] / self.denominators[k],
-            torch.tensor(1.0),
-        )
+        r = 1.0
+        for i, basis_i in enumerate(index) :
+            b = torch.where(
+                torch.arange(self.n) != basis_i,
+                x_diff[:, i, :] / self.denominators[basis_i],
+                torch.tensor(1.0),
+            )
+            r*=torch.prod(b, dim=-1)
 
-        r1 = torch.prod(b, dim=-1)
-        r2 = torch.prod(c, dim=-1)
-
-        return r1 * r2
+        return r
 
 
 class LagrangeBasis1:
