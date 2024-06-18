@@ -38,24 +38,27 @@ def test_variable_dimension_input(n, in_features, out_features, segments):
     layer(a)
 """
 
-@pytest.mark.parametrize("dimensions", [1,2,3,4])
-def test_lagrange_basis(dimensions) :
-    lb = LagrangeBasisND(n=5, dimensions=dimensions)
-    x=torch.tensor([[-1]*dimensions,[1]*dimensions])
-    
-    res = lb(x=x, index=[0]*dimensions)
-    print('res1', res)
-    assert res[0]==1
-    assert torch.abs(res[1])<1e-12
 
-    res = lb(x=x, index=[4]*dimensions)
-    print('res2', res)
-    assert res[1]==1
-    assert torch.abs(res[0])<1e-12
+@pytest.mark.parametrize("dimensions", [1, 2, 3, 4])
+def test_lagrange_basis(dimensions):
+    lb = LagrangeBasisND(n=5, dimensions=dimensions)
+    x = torch.tensor([[-1] * dimensions, [1] * dimensions])
+
+    res = lb(x=x, index=[0] * dimensions)
+    print("res1", res)
+    assert res[0] == 1
+    assert torch.abs(res[1]) < 1e-12
+
+    res = lb(x=x, index=[4] * dimensions)
+    print("res2", res)
+    assert res[1] == 1
+    assert torch.abs(res[0]) < 1e-12
+
 
 def test_nodes():
     ans = chebyshevLobatto(20)
     assert ans.shape[0] == 20
+
 
 def test_polynomial():
     poly = LagrangePoly(5)
