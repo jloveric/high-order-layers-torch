@@ -42,11 +42,23 @@ def test_variable_dimension_input(n, in_features, out_features, segments):
 def test_basis_nd() :
     dimensions = 3
     n=5
+    
+    inputs =2
+    outputs = 7
+    batch = 13
+
     lb = LagrangeBasisND(n=n, dimensions=dimensions)
     basis = BasisFlatND(n=n, dimensions=dimensions, basis=lb)
 
+    num_basis = int(math.pow(n, dimensions))
+
     # The indexes should be unique so we cover all indices
-    assert len(set(basis.indexes)) == math.pow(5, dimensions)
+    assert len(set(basis.indexes)) == num_basis
+
+    x = torch.rand((batch, inputs, dimensions))
+    weights = torch.rand((inputs, outputs, num_basis))
+    result = basis.interpolate(x,weights)
+    print('result.shape', result.shape)
 
 
 @pytest.mark.parametrize("dimensions", [1, 2, 3, 4])

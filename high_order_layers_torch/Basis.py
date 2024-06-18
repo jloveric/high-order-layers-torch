@@ -419,7 +419,7 @@ class BasisFlatND:
         self.basis = basis
         self.dimensions = dimensions
         a = torch.arange(n)
-        self.indexes = torch.stack(torch.meshgrid([a]*dimensions)).reshape(dimensions, -1).T
+        self.indexes = torch.stack(torch.meshgrid([a]*dimensions)).reshape(dimensions, -1).T.long()
 
     def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
         """
@@ -429,11 +429,12 @@ class BasisFlatND:
         """
         
         basis = []
-        for index in range(self.indexes):
+        for index in self.indexes:
             basis_j = self.basis(x, index=index)
             basis.append(basis_j)
         basis = torch.stack(basis)
-        out_sum = torch.einsum("ijk,lki->jl", basis, w)
+
+        out_sum = torch.einsum("ijk,kli->jl", basis, w)
 
         return out_sum
 

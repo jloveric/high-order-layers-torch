@@ -80,9 +80,11 @@ class LagrangeBasisND:
         self.dimensions = dimensions
         self.X = (length / 2.0) * chebyshevLobatto(n)
         self.denominators = self._compute_denominators()
+        self.num_basis = int(math.pow(n, dimensions))
 
     def _compute_denominators(self):
-        denom = torch.ones((self.n, self.n), dtype=torch.float32)
+        denom = torch.ones([self.n, self.n], dtype=torch.float32)
+
         for j in range(self.n):
             for m in range(self.n):
                 if m != j:
@@ -90,16 +92,20 @@ class LagrangeBasisND:
         return denom
 
     def __call__(self, x, index: list[int]):
-        x_diff = x.unsqueeze(-1) - self.X
-
+        """
+        :param x: [batch, inputs, dimensions]
+        :param index : [dimensions]
+        :returns: basis value [batch, inputs]
+        """
+        x_diff = x.unsqueeze(-1) - self.X # [batch, inputs, dimensions, basis]
         r = 1.0
-        for i, basis_i in enumerate(index) :
+        for i, basis_i in enumerate(index):
             b = torch.where(
                 torch.arange(self.n) != basis_i,
-                x_diff[:, i, :] / self.denominators[basis_i],
+                x_diff[:, :,i, :] / self.denominators[basis_i],
                 torch.tensor(1.0),
             )
-            r*=torch.prod(b, dim=-1)
+            r *= torch.prod(b, dim=-1)
 
         return r
 
