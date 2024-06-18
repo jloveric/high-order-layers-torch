@@ -1,7 +1,7 @@
 import os
 
 import pytest
-
+import math
 from high_order_layers_torch.FunctionalConvolution import *
 from high_order_layers_torch.LagrangePolynomial import *
 from high_order_layers_torch.LagrangePolynomial import LagrangePoly, LagrangeBasisND
@@ -20,6 +20,7 @@ from high_order_layers_torch.layers import (
 from high_order_layers_torch.networks import *
 from high_order_layers_torch.PolynomialLayers import *
 import torch
+from high_order_layers_torch.Basis import BasisFlatND
 
 torch.set_default_device(device="cpu")
 
@@ -37,6 +38,15 @@ def test_variable_dimension_input(n, in_features, out_features, segments):
     a = torch.rand(10, 4, in_features, out_features)
     layer(a)
 """
+
+def test_basis_nd() :
+    dimensions = 3
+    n=5
+    lb = LagrangeBasisND(n=n, dimensions=dimensions)
+    basis = BasisFlatND(n=n, dimensions=dimensions, basis=lb)
+
+    # The indexes should be unique so we cover all indices
+    assert len(set(basis.indexes)) == math.pow(5, dimensions)
 
 
 @pytest.mark.parametrize("dimensions", [1, 2, 3, 4])

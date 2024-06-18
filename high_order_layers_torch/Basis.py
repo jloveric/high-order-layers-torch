@@ -397,8 +397,40 @@ class BasisFlat:
         """
 
         basis = []
+        # TODO: get rid of this loop!
         for j in range(self.n):
             basis_j = self.basis(x, j)
+            basis.append(basis_j)
+        basis = torch.stack(basis)
+        out_sum = torch.einsum("ijk,lki->jl", basis, w)
+
+        return out_sum
+
+
+class BasisFlatND:
+    """
+    Single N dimensional element.
+    """
+
+    def __init__(
+        self, n: int, basis: Callable[[Tensor, list[int]], float], dimensions: int
+    ):
+        self.n = n
+        self.basis = basis
+        self.dimensions = dimensions
+        a = torch.arange(n)
+        self.indexes = torch.stack(torch.meshgrid([a]*dimensions)).reshape(dimensions, -1).T
+
+    def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
+        """
+        :param x: size[batch, input, dimension]
+        :param w: size[input, output, basis]
+        :returns: size[batch, output]
+        """
+        
+        basis = []
+        for index in range(self.indexes):
+            basis_j = self.basis(x, index=index)
             basis.append(basis_j)
         basis = torch.stack(basis)
         out_sum = torch.einsum("ijk,lki->jl", basis, w)
