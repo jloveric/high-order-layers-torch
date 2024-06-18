@@ -64,7 +64,7 @@ def test_basis_nd() :
 @pytest.mark.parametrize("dimensions", [1, 2, 3, 4])
 def test_lagrange_basis(dimensions):
     lb = LagrangeBasisND(n=5, dimensions=dimensions)
-    x = torch.tensor([[-1] * dimensions, [1] * dimensions])
+    x = torch.tensor([[[-1] * dimensions], [[1] * dimensions]])
 
     res = lb(x=x, index=[0] * dimensions)
     print("res1", res)

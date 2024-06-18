@@ -97,12 +97,12 @@ class LagrangeBasisND:
         :param index : [dimensions]
         :returns: basis value [batch, inputs]
         """
-        x_diff = x.unsqueeze(-1) - self.X # [batch, inputs, dimensions, basis]
+        x_diff = x.unsqueeze(-1) - self.X  # [batch, inputs, dimensions, basis]
         r = 1.0
         for i, basis_i in enumerate(index):
             b = torch.where(
                 torch.arange(self.n) != basis_i,
-                x_diff[:, :,i, :] / self.denominators[basis_i],
+                x_diff[:, :, i, :] / self.denominators[basis_i],
                 torch.tensor(1.0),
             )
             r *= torch.prod(b, dim=-1)
@@ -173,6 +173,16 @@ class FourierExpand(BasisExpand):
 class LagrangePolyFlat(BasisFlat):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
         super().__init__(n, get_lagrange_basis(n, length), **kwargs)
+
+
+class LagrangePolyFlatND(BasisFlatND):
+    def __init__(self, n: int, length: float = 2.0, dimensions: int = 2, **kwargs):
+        super().__init__(
+            n,
+            LagrangeBasisND(n, length, dimensions=dimensions),
+            dimensions=dimensions,
+            **kwargs
+        )
 
 
 class LagrangePolyFlatProd(BasisFlatProd):

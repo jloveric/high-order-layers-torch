@@ -76,6 +76,26 @@ class Polynomial(Function):
         )
 
 
+class PolynomialND(Function):
+    def __init__(
+        self,
+        n: int,
+        in_features: int,
+        out_features: int,
+        length: float = 2.0,
+        dimensions: int = 2,
+        **kwargs,
+    ):
+        return super().__init__(
+            n,
+            in_features,
+            out_features,
+            LagrangePolyFlatND(n, length=length),
+            dimensions=dimensions,
+            **kwargs,
+        )
+
+
 class PolynomialProd(Function):
     def __init__(
         self, n: int, in_features: int, out_features: int, length: float = 2.0, **kwargs
