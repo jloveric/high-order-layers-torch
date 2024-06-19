@@ -12,9 +12,9 @@ torch-optimizer = "^0.3.0"
 hydra-core = "^1.2.0"
 torch = ">=2.1.1"
 torchvision = ">=0.18.0"
-lion-pytorch = "^0.1.2"
 torchmetrics = "^1.2.1"
 lightning = "^2.2.5"
+lion-pytorch = "^0.2.2"
 
 [tool.poetry.group.dev.dependencies]
 sophia-optimizer = {git = "https://github.com/stas00/Sophia.git", rev = "patch-1"}
