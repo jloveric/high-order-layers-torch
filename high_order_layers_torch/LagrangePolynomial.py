@@ -31,6 +31,7 @@ class FourierBasis:
             of 1 means there is periodicity 1
         """
         self.length = length
+        self.num_basis = None # Apparently defined elsewhere? How does this work!
 
     def __call__(self, x: Tensor, j: int):
         """
@@ -55,6 +56,7 @@ class LagrangeBasis:
         self.n = n
         self.X = (length / 2.0) * chebyshevLobatto(n)
         self.denominators = self._compute_denominators()
+        self.num_basis = n
 
     def _compute_denominators(self):
         denom = torch.ones((self.n, self.n), dtype=torch.float32)
@@ -119,6 +121,7 @@ class LagrangeBasis1:
     def __init__(self, length: float = 2.0):
         self.n = 1
         self.X = torch.tensor([0.0])
+        self.num_basis=1
 
     def __call__(self, x, j: int):
         b = torch.ones_like(x)

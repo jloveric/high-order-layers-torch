@@ -207,7 +207,12 @@ With piecewise continuous.
 ![piecewise continuous polynomial](plots/xor_continuous.png)
 With polynomial using similar number of parameters.
 ![polynomial](plots/xor_polynomial.png)
-
+Using 2D polynomial "layer" this is just a single input and single output. The polynomial 2d is a link that takes in 2 variables (a 2d vector) and in this
+case outputs a single value. It's the cartesian product of the basis function of a single polynomial function, but in the x and y direction. Using 5 point polynomials would have 25 basis functions in 2d whereas it has only 5 basis functions in 1d.
+```
+python3 examples/xor.py layer_type=polynomial_2d optimizer.lr=0.01 optimizer=sophia epochs=100
+```
+![polynomial 2d](plots/xor_polynomial_2d.png)
 ## MNIST (convolutional)
 
 ```python

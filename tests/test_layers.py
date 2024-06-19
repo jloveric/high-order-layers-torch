@@ -56,7 +56,7 @@ def test_basis_nd() :
     assert len(set(basis.indexes)) == num_basis
 
     x = torch.rand((batch, inputs, dimensions))
-    weights = torch.rand((inputs, outputs, num_basis))
+    weights = torch.rand((outputs, inputs, num_basis))
     result = basis.interpolate(x,weights)
     print('result.shape', result.shape)
 

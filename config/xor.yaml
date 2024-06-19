@@ -1,6 +1,6 @@
-layer_type : continuous # discontinuous, polynomial
+layer_type : continuous # discontinuous, polynomial, polynomial_2d
 segments: 2
 epochs: 40
-optimizer: sophia #lion, adam
-lr: 0.1
 batch_size: 32
+defaults:
+  - optimizer: sophia, #lion, adam

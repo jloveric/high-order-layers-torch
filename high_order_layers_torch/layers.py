@@ -268,6 +268,10 @@ fc_layers = {
     "fourier": FourierSeries,
     "switch_continuous": switch_continuous,
     "switch_discontinuous": switch_discontinuous,
+    "polynomial_2d" : Polynomial2D,
+    "polynomial_3d" : Polynomial3D,
+    "polynomial_4d" : Polynomial4D,
+    "polynomial_5d" : Polynomial5D,
 }
 
 convolutional_layers = {

@@ -41,7 +41,7 @@ class Function(nn.Module):
         self.n = n
         self.periodicity = periodicity
         self.w = torch.nn.Parameter(
-            data=torch.empty(out_features, in_features, n, device=device),
+            data=torch.empty(out_features, in_features, basis.num_basis, device=device),
             requires_grad=True,
         )
         if initialize == "constant_random":
@@ -87,11 +87,86 @@ class PolynomialND(Function):
         **kwargs,
     ):
         return super().__init__(
+            n=n,
+            in_features=in_features,
+            out_features=out_features,
+            basis=LagrangePolyFlatND(n, length=length, dimensions=dimensions),
+            **kwargs,
+        )
+
+
+class Polynomial2D(PolynomialND):
+    def __init__(
+        self,
+        n: int,
+        in_features: int,
+        out_features: int,
+        length: float = 2.0,
+        **kwargs,
+    ):
+        return super().__init__(
             n,
             in_features,
             out_features,
-            LagrangePolyFlatND(n, length=length),
-            dimensions=dimensions,
+            length=length,
+            dimensions=2,
+            **kwargs,
+        )
+
+
+class Polynomial3D(PolynomialND):
+    def __init__(
+        self,
+        n: int,
+        in_features: int,
+        out_features: int,
+        length: float = 2.0,
+        **kwargs,
+    ):
+        return super().__init__(
+            n,
+            in_features,
+            out_features,
+            length=length,
+            dimensions=3,
+            **kwargs,
+        )
+
+
+class Polynomial4D(PolynomialND):
+    def __init__(
+        self,
+        n: int,
+        in_features: int,
+        out_features: int,
+        length: float = 2.0,
+        **kwargs,
+    ):
+        return super().__init__(
+            n,
+            in_features,
+            out_features,
+            length=length,
+            dimensions=4,
+            **kwargs,
+        )
+
+
+class Polynomial5D(PolynomialND):
+    def __init__(
+        self,
+        n: int,
+        in_features: int,
+        out_features: int,
+        length: float = 2.0,
+        **kwargs,
+    ):
+        return super().__init__(
+            n,
+            in_features,
+            out_features,
+            length=length,
+            dimensions=5,
             **kwargs,
         )
 
@@ -615,7 +690,6 @@ def refine_discontinuous_polynomial_layer(
                     # since x is contained by 2 segments
                     index_in = layer_in.which_segment(x_global)
 
-                    print("index_in", index_in)
                     raise ValueError(
                         "Since boundaries are doubled up at discontinuities there is ambiguity and this does not work.  This function needs to be fixed."
                     )
