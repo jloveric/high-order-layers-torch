@@ -82,7 +82,7 @@ class LagrangeBasisND:
     ):
         self.n = n
         self.dimensions = dimensions
-        self.X = (length / 2.0) * chebyshevLobatto(n)
+        self.X = (length / 2.0) * chebyshevLobatto(n).to(device)
         self.device = device
         self.denominators = self._compute_denominators()
         self.num_basis = int(math.pow(n, dimensions))
@@ -102,14 +102,13 @@ class LagrangeBasisND:
         :param index : [dimensions]
         :returns: basis value [batch, inputs]
         """
-
         x_diff = x.unsqueeze(-1) - self.X  # [batch, inputs, dimensions, basis]
         r = 1.0
         for i, basis_i in enumerate(index):
             b = torch.where(
-                torch.arange(self.n) != basis_i,
+                torch.arange(self.n, device=self.device) != basis_i,
                 x_diff[:, :, i, :] / self.denominators[basis_i],
-                torch.tensor(1.0),
+                torch.tensor(1.0, device=self.device),
             )
             r *= torch.prod(b, dim=-1)
 
