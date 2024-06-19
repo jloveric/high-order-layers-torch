@@ -25,7 +25,9 @@ matplotlib = "^3.5.2"
 pre-commit = "^2.20.0"
 isort = "^5.10.1"
 pylint = "^2.15.5"
-tensorboard = "^2.11.0"
+tensorboard = "^2.17.0"
+# Need this until tensorboard is upgraded
+numpy = "<2.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
