@@ -414,13 +414,21 @@ class BasisFlatND:
     """
 
     def __init__(
-        self, n: int, basis: Callable[[Tensor, list[int]], float], dimensions: int
+        self,
+        n: int,
+        basis: Callable[[Tensor, list[int]], float],
+        dimensions: int,
+        **kwargs
     ):
         self.n = n
         self.basis = basis
         self.dimensions = dimensions
         a = torch.arange(n)
-        self.indexes = torch.stack(torch.meshgrid([a]*dimensions)).reshape(dimensions, -1).T.long()
+        self.indexes = (
+            torch.stack(torch.meshgrid([a] * dimensions))
+            .reshape(dimensions, -1)
+            .T.long()
+        )
         self.num_basis = basis.num_basis
 
     def interpolate(self, x: Tensor, w: Tensor) -> Tensor:

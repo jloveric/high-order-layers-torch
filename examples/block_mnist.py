@@ -1,3 +1,7 @@
+"""
+Using a polynomial 3d to solve this problem
+"""
+
 import os
 
 import hydra
@@ -23,11 +27,31 @@ transformPoly = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.0,), (1.0,))]
 )
 
-
 normalization = {
     "max_abs": MaxAbsNormalizationND,
     "max_center": MaxCenterNormalizationND,
 }
+
+grid_x, grid_y = torch.meshgrid(
+    (torch.arange(28) - 14) // 14, (torch.arange(28) - 14) // 14, indexing="ij"
+)
+grid = torch.stack([grid_x, grid_y])
+
+
+def collate_fn(batch):
+    
+    input = []
+    classification = []
+    for element in batch:
+        color_and_xy = torch.cat([element[0], grid]).permute(1, 2, 0).view(-1, 3)
+        input.append(color_and_xy)
+
+        classification.append(element[1])
+
+    batch_input = torch.stack(input)
+    batch_output = torch.tensor(classification)
+
+    return batch_input, batch_output
 
 
 class Net(LightningModule):
@@ -40,131 +64,41 @@ class Net(LightningModule):
             self._data_dir = f"{hydra.utils.get_original_cwd()}/data"
         except:
             self._data_dir = "../data"
+
         n = cfg.n
         self._batch_size = cfg.batch_size
         self._layer_type = cfg.layer_type
         self._train_fraction = cfg.train_fraction
-        segments = cfg.segments
 
         self._transform = transformPoly
 
-        in_channels = cfg.channels[0]
-        out_channels = cfg.channels[1]
+        layer1 = high_order_fc_layers(
+            layer_type=cfg.layer_type,
+            n=n,
+            in_features=1,
+            out_features=10,
+            intialization="constant_random",
+            device=cfg.accelerator,
+        )
+        self.model = nn.Sequential(*[layer1])
 
-        if self._layer_type == "standard":
-            self.conv1 = torch.nn.Conv2d(
-                in_channels=1,
-                out_channels=in_channels,
-                kernel_size=5,
-            )
-            self.conv2 = torch.nn.Conv2d(
-                in_channels=in_channels, out_channels=out_channels, kernel_size=5
-            )
-        else:
-            self.conv1 = high_order_convolution_layers(
-                layer_type=self._layer_type,
-                n=n,
-                in_channels=1,
-                out_channels=in_channels,
-                kernel_size=cfg.kernel_size,
-                segments=cfg.segments,
-            )
-            if self._cfg.double is True:
-                self.conv15 = high_order_convolution_layers(
-                    layer_type=self._layer_type,
-                    n=n,
-                    in_channels=in_channels,
-                    out_channels=in_channels,
-                    kernel_size=cfg.kernel_size,
-                    segments=cfg.segments,
-                )
-
-            self.conv2 = high_order_convolution_layers(
-                layer_type=self._layer_type,
-                n=n,
-                in_channels=in_channels,
-                out_channels=out_channels,
-                kernel_size=cfg.kernel_size,
-                segments=cfg.segments,
-            )
-            if self._cfg.double is True:
-                self.conv25 = high_order_convolution_layers(
-                    layer_type=self._layer_type,
-                    n=n,
-                    in_channels=out_channels,
-                    out_channels=out_channels,
-                    kernel_size=cfg.kernel_size,
-                    segments=cfg.segments,
-                )
-
-        self.normalize = normalization[cfg.normalization]()
-
-        # self.pool = nn.MaxPool2d(2, 2)
-        self.pool = nn.AvgPool2d(2, 2)
-
-        if self._cfg.double is True:
-            last_layer_size = (
-                4 * 4 * out_channels if cfg.kernel_size == 3 else 2 * 2 * out_channels
-            )
-        else:
-            last_layer_size = (
-                5 * 5 * out_channels if cfg.kernel_size == 3 else 4 * 4 * out_channels
-            )
-
-        if cfg.output_layer_type == "linear":
-            self.fc1 = nn.Linear(last_layer_size, 10)
-        else:
-
-            output_layer_type = (
-                cfg.output_layer_type
-                if cfg.output_layer_type != "auto"
-                else cfg.layer_type[:-2]
-            )
-            print("output_layer_type", output_layer_type)
-            self.fc1 = high_order_fc_layers(
-                layer_type=output_layer_type,
-                n=n,
-                in_features=last_layer_size,
-                out_features=10,
-                segments=segments,
-                length=2.0,
-                periodicity=None,
-            )
-
-    def forward(self, xin):
-
-        x = xin
-
-        if self._cfg.double is False:
-            if self._layer_type == "standard":
-                x = self.pool(F.relu(self.conv1(x)))
-                x = self.pool(F.relu(self.conv2(x)))
-                x = x.reshape(x.shape[0], -1)
-                x = self.fc1(x)
-            else:
-                x = self.pool(self.conv1(x))
-                x = self.normalize(x)
-                x = self.pool(self.conv2(x))
-                x = self.normalize(x)
-                x = x.reshape(x.shape[0], -1)
-                x = self.fc1(x)
-            return x
-        else:
-            x = self.conv1(x)
-            x = self.normalize(x)
-            x = self.pool(self.conv15(x))
-            x = self.normalize(x)
-            x = self.conv2(x)
-            x = self.normalize(x)
-            x = self.pool(self.conv25(x))
-            x = self.normalize(x)
-            x = x.reshape(x.shape[0], -1)
-            x = self.fc1(x)
-            return x
+    def forward(self, x):
+        #print("x.shape", x.shape)
+        batch_size, inputs = x.shape[:2]
+        xin = x.view(-1, 1, 3)
+        #print("xin.shape", xin.shape)
+        res = self.model(xin)
+        res = res.reshape(batch_size, inputs, -1)
+        output = torch.sum(res,dim=1)
+        #print("res.shape", output.shape)
+        # xout = res.view(batch_size, )
+        return output
 
     def setup(self, stage):
         num_train = int(self._train_fraction * 50000)
         num_val = 10000
+
+        # extra only exist if we aren't training on the full dataset
         num_extra = 50000 - num_train
 
         train = torchvision.datasets.MNIST(
@@ -185,19 +119,31 @@ class Net(LightningModule):
             batch_size=self._batch_size,
             shuffle=True,
             num_workers=10,
+            collate_fn=collate_fn,
         )
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(
-            self._val_subset, batch_size=self._batch_size, shuffle=False, num_workers=10
+            self._val_subset,
+            batch_size=self._batch_size,
+            shuffle=False,
+            num_workers=10,
+            collate_fn=collate_fn,
         )
 
     def test_dataloader(self):
         testset = torchvision.datasets.MNIST(
-            root=self._data_dir, train=False, download=True, transform=self._transform
+            root=self._data_dir,
+            train=False,
+            download=True,
+            transform=self._transform,
         )
         return torch.utils.data.DataLoader(
-            testset, batch_size=self._batch_size, shuffle=False, num_workers=10
+            testset,
+            batch_size=self._batch_size,
+            shuffle=False,
+            num_workers=10,
+            collate_fn=collate_fn,
         )
 
     def validation_step(self, batch, batch_idx):
@@ -295,7 +241,7 @@ def mnist(cfg: DictConfig):
     return results
 
 
-@hydra.main(config_path="../config", config_name="mnist_config")
+@hydra.main(config_path="../config", config_name="block_mnist")
 def run(cfg: DictConfig):
     mnist(cfg)
 

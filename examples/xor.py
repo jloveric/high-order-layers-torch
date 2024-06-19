@@ -187,7 +187,6 @@ def plot_approximation(
         trainer.fit(model)
         if layer_type == "polynomial_2d" :
             thisTest = xTest.reshape(xTest.size(0),1, -1)
-            print('xtest.shape', thisTest.shape)
             predictions = model(thisTest)
         else :
             thisTest = xTest.reshape(xTest.size(0), -1)

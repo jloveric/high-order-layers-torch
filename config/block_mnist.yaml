@@ -1,0 +1,9 @@
+max_epochs: 1
+accelerator: 'cpu'
+n: 5
+batch_size: 16
+layer_type: polynomial_3d
+train_fraction: 1.0
+
+defaults:
+  - optimizer: sophia

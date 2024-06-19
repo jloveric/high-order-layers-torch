@@ -90,7 +90,7 @@ class PolynomialND(Function):
             n=n,
             in_features=in_features,
             out_features=out_features,
-            basis=LagrangePolyFlatND(n, length=length, dimensions=dimensions),
+            basis=LagrangePolyFlatND(n, length=length, dimensions=dimensions, **kwargs),
             **kwargs,
         )
 

@@ -31,7 +31,7 @@ class FourierBasis:
             of 1 means there is periodicity 1
         """
         self.length = length
-        self.num_basis = None # Apparently defined elsewhere? How does this work!
+        self.num_basis = None  # Apparently defined elsewhere? How does this work!
 
     def __call__(self, x: Tensor, j: int):
         """
@@ -77,15 +77,18 @@ class LagrangeBasis:
 
 class LagrangeBasisND:
 
-    def __init__(self, n: int, length: float = 2.0, dimensions: int = 2):
+    def __init__(
+        self, n: int, length: float = 2.0, dimensions: int = 2, device: str = "cpu", **kwargs
+    ):
         self.n = n
         self.dimensions = dimensions
         self.X = (length / 2.0) * chebyshevLobatto(n)
+        self.device = device
         self.denominators = self._compute_denominators()
         self.num_basis = int(math.pow(n, dimensions))
 
     def _compute_denominators(self):
-        denom = torch.ones([self.n, self.n], dtype=torch.float32)
+        denom = torch.ones([self.n, self.n], dtype=torch.float32, device=self.device)
 
         for j in range(self.n):
             for m in range(self.n):
@@ -99,6 +102,7 @@ class LagrangeBasisND:
         :param index : [dimensions]
         :returns: basis value [batch, inputs]
         """
+
         x_diff = x.unsqueeze(-1) - self.X  # [batch, inputs, dimensions, basis]
         r = 1.0
         for i, basis_i in enumerate(index):
@@ -121,7 +125,7 @@ class LagrangeBasis1:
     def __init__(self, length: float = 2.0):
         self.n = 1
         self.X = torch.tensor([0.0])
-        self.num_basis=1
+        self.num_basis = 1
 
     def __call__(self, x, j: int):
         b = torch.ones_like(x)
@@ -182,7 +186,7 @@ class LagrangePolyFlatND(BasisFlatND):
     def __init__(self, n: int, length: float = 2.0, dimensions: int = 2, **kwargs):
         super().__init__(
             n,
-            LagrangeBasisND(n, length, dimensions=dimensions),
+            LagrangeBasisND(n, length, dimensions=dimensions, **kwargs),
             dimensions=dimensions,
             **kwargs
         )
