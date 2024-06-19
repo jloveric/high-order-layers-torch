@@ -408,43 +408,42 @@ class BasisFlat:
         return out_sum
 
 
-class BasisFlatND:
-    """
-    Single N dimensional element.
-    """
+# class BasisFlatND:
 
-    def __init__(
-        self,
-        n: int,
-        basis: Callable[[Tensor, list[int]], float],
-        dimensions: int,
-        **kwargs
-    ):
-        self.n = n
-        self.basis = basis
-        self.dimensions = dimensions
-        a = torch.arange(n)
-        self.indexes = (
-            torch.stack(torch.meshgrid([a] * dimensions))
-            .reshape(dimensions, -1)
-            .T.long()
-        )
-        self.num_basis = basis.num_basis
+#     def __init__(
+#         self,
+#         n: int,
+#         basis: Callable[[Tensor, list], float],
+#         dimensions: int,
+#         **kwargs
+#     ):
+#         self.n = n
+#         self.basis = basis
+#         self.dimensions = dimensions
+#         a = torch.arange(n)
+#         self.indexes = (
+#             torch.stack(torch.meshgrid([a] * dimensions))
+#             .reshape(dimensions, -1)
+#             .T.long()
+#         )
+#         self.num_basis = basis.num_basis
 
-    def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
-        """
-        :param x: size[batch, input, dimension]
-        :param w: size[output, input, basis]
-        :returns: size[batch, output]
-        """
-        basis = []
-        for index in self.indexes:
-            basis_j = self.basis(x, index=index)
-            basis.append(basis_j)
-        basis = torch.stack(basis)
-        out_sum = torch.einsum("ijk,lki->jl", basis, w)
+#     def interpolate(self, x: Tensor, w: Tensor) -> Tensor:
+#         """
+#         :param x: size[batch, input, dimension]
+#         :param w: size[output, input, basis]
+#         :returns: size[batch, output]
+#         """
+#         basis = []
+#         for index in self.indexes:
+#             basis_j = self.basis(x, index=index)
+#             basis.append(basis_j)
+#         basis = torch.stack(basis)
+#         out_sum = torch.einsum("ijk,lki->jl", basis, w)
 
-        return out_sum
+#         return out_sum
+
+
 
 
 class BasisFlatProd:

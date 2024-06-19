@@ -20,7 +20,7 @@ from high_order_layers_torch.layers import (
 from high_order_layers_torch.networks import *
 from high_order_layers_torch.PolynomialLayers import *
 import torch
-from high_order_layers_torch.Basis import BasisFlatND
+#from high_order_layers_torch.Basis import BasisFlatND
 
 torch.set_default_device(device="cpu")
 
@@ -39,6 +39,9 @@ def test_variable_dimension_input(n, in_features, out_features, segments):
     layer(a)
 """
 
+"""
+These have both been combined into the new LagrangeBasisND so
+the computation is faster.
 def test_basis_nd() :
     dimensions = 3
     n=5
@@ -75,7 +78,7 @@ def test_lagrange_basis(dimensions):
     print("res2", res)
     assert res[1] == 1
     assert torch.abs(res[0]) < 1e-12
-
+"""
 
 def test_nodes():
     ans = chebyshevLobatto(20)
