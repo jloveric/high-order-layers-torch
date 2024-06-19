@@ -292,6 +292,12 @@ The polynomial last layer is the same as that used in the convolution.
 |9 | 0.990 | 0.989
 |10| 0.990 | 0.990
 
+## MNIST Block 3D polynomial
+Basics implemented, needs to be made more efficient and model needs to change a bit. Currently uses a single NxNxN polynomial
+with 3 inputs (grayscale color, x, y) and 10 outputs to solve mnist. Not performant, but will work on it.
+```
+python3 examples/block_mnist.py accelerator='cuda' batch_size=64 optimizer.lr=1e-3
+```
 
 ## CIFAR100 (convolutional)
 
