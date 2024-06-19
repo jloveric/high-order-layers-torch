@@ -3,7 +3,6 @@ import os
 import hydra
 import torch
 import torch.optim as optim
-import torch_optimizer as alt_optim
 import torchvision
 import torchvision.transforms as transforms
 from matplotlib.pyplot import figure
@@ -158,16 +157,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        if self._cfg.optimizer.name == "adahessian":
-            return alt_optim.Adahessian(
-                self.parameters(),
-                lr=1.0,
-                betas=(0.9, 0.999),
-                eps=1e-4,
-                weight_decay=0.0,
-                hessian_power=1.0,
-            )
-        elif self._cfg.optimizer.name == "adam":
+        if self._cfg.optimizer.name == "adam":
 
             optimizer = optim.Adam(
                 params=self.parameters(),

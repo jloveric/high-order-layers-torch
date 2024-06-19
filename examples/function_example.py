@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.optim
-import torch_optimizer as alt_optim
 from pytorch_lightning import LightningModule, Trainer
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
@@ -131,16 +130,7 @@ class PolynomialFunctionApproximation(LightningModule):
         return DataLoader(FunctionDataset(), batch_size=4)
 
     def configure_optimizers(self):
-        if self.optimizer == "adahessian":
-            return alt_optim.Adahessian(
-                self.layer.parameters(),
-                lr=1.0,
-                betas=(0.9, 0.999),
-                eps=1e-4,
-                weight_decay=0.0,
-                hessian_power=1.0,
-            )
-        elif self.optimizer == "adam":
+        if self.optimizer == "adam":
             return torch.optim.Adam(self.parameters(), lr=0.001)
         elif self.optimizer == "lion":
             return Lion(self.parameters(), lr=0.001)

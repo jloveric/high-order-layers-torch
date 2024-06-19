@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torch_optimizer as alt_optim
 import torchvision
 import torchvision.transforms as transforms
 from omegaconf import DictConfig, OmegaConf
@@ -139,16 +138,7 @@ class Net(LightningModule):
         return self.eval_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
-        if self.cfg.optimizer.name == "adahessian":
-            return alt_optim.Adahessian(
-                self.parameters(),
-                lr=1.0,
-                betas=(0.9, 0.999),
-                eps=1e-4,
-                weight_decay=0.0,
-                hessian_power=1.0,
-            )
-        elif self.cfg.optimizer.name == "adam":
+        if self.cfg.optimizer.name == "adam":
             optimizer = optim.Adam(self.parameters(), lr=self.cfg.optimizer.lr)
             lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer,
