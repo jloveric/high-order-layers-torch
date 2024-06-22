@@ -298,7 +298,10 @@ with 3 inputs (grayscale color, x, y) and 10 outputs to solve mnist. Not perform
 ```
 python3 examples/block_mnist.py accelerator='cuda' batch_size=64 optimizer.lr=1e-3
 ```
-
+and
+```
+python examples/block_mnist.py optimizer=lion optimizer.lr=1e-3 batch_size=16 max_epochs=100 n=28
+```
 ## CIFAR100 (convolutional)
 
 ```
