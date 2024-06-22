@@ -77,7 +77,7 @@ class NDFunctionApproximation(LightningModule):
         if layer_type == "polynomial_2d":
             layer1 = high_order_fc_layers(
                 layer_type=layer_type,
-                n=n,
+                n=[n,n],
                 in_features=2,
                 out_features=1,
                 segments=segments,

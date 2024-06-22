@@ -74,7 +74,7 @@ class Net(LightningModule):
 
         layer1 = high_order_fc_layers(
             layer_type=cfg.layer_type,
-            n=n,
+            n=[3,n,n],
             in_features=1,
             out_features=10,
             intialization="constant_random",
