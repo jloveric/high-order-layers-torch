@@ -79,10 +79,6 @@ def chebyshevLobatto(n: int):
 #         return out_sum
 
 
-import torch
-import math
-from typing import List
-
 class LagrangeBasisND:
     """
     Single N dimensional element with Lagrange basis interpolation.
