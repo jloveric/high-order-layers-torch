@@ -388,10 +388,9 @@ class PiecewiseND(torch.nn.Module):
         # Calculate total number of weights needed
         self.weights_per_segment = math.prod(self.n)
         self.total_segments = math.prod(self.segments)  # per block
-        total_weights = (
-            in_features * out_features * self.total_segments * self.weights_per_segment
-        )
-
+        
+        # Ahh! This is actually the discontinuous case as we haven't
+        # accounted for neighboring nodes
         self.w = nn.Parameter(
             torch.empty(
                 in_features,
@@ -502,10 +501,10 @@ class PiecewiseND(torch.nn.Module):
         )
 
         # Select weights for each input point
-        selected_weights = self.w[weight_indices]
+        #selected_weights = self.w[weight_indices]
 
         # Reshape to [out_features, num_inputs, batch_size, weights_per_segment]
-        reshaped_weights = selected_weights.view(
+        reshaped_weights = self.w[weight_indices].view(
             batch_size, num_inputs, self.out_features, self.weights_per_segment
         )
 
