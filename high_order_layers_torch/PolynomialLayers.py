@@ -381,14 +381,25 @@ class PiecewiseND(torch.nn.Module):
         self._length = length
         self._half = 0.5 * length
 
-        self.lagrange_basis = LagrangeBasisPiecewiseND(self.n, length=length, device=device)
+        self.lagrange_basis = LagrangeBasisPiecewiseND(
+            self.n, length=length, device=device
+        )
 
         # Calculate total number of weights needed
         self.weights_per_segment = math.prod(self.n)
-        self.total_segments = math.prod(self.segments) # per block
-        total_weights = in_features*out_features * self.total_segments * self.weights_per_segment
+        self.total_segments = math.prod(self.segments)  # per block
+        total_weights = (
+            in_features * out_features * self.total_segments * self.weights_per_segment
+        )
 
-        self.w = nn.Parameter(torch.empty(total_weights, device=device))
+        self.w = nn.Parameter(
+            torch.empty(
+                in_features,
+                out_features,
+                self.total_segments * self.weights_per_segment,
+                device=device,
+            )
+        )
 
         if initialize == "constant_random":
             self._constant_random_initialization(weight_magnitude)
@@ -400,12 +411,14 @@ class PiecewiseND(torch.nn.Module):
     def _constant_random_initialization(self, weight_magnitude):
         # TODO: verify this.
         segment_values = (
-            torch.rand(self.out_features, self.total_segments, device=self.device)
+            torch.rand(self.in_features, self.out_features, device=self.device)
             * 2
             * weight_magnitude
             - weight_magnitude
+        ) / self.in_features
+        self.w.data = segment_values.repeat_interleave(
+            self.total_segments * self.weights_per_segment
         )
-        self.w.data = segment_values.repeat_interleave(self.weights_per_segment)
 
     def which_segment(self, x: torch.Tensor) -> torch.Tensor:
         return (
@@ -415,7 +428,10 @@ class PiecewiseND(torch.nn.Module):
                 * torch.tensor(self.segments, device=self.device)
             )
             .long()
-            .clamp(torch.tensor(0, device=self.device), torch.tensor(self.segments, device=self.device) - 1)
+            .clamp(
+                torch.tensor(0, device=self.device),
+                torch.tensor(self.segments, device=self.device) - 1,
+            )
         )
 
     def x_local(self, x_global: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
@@ -481,7 +497,9 @@ class PiecewiseND(torch.nn.Module):
     def _reshape_weights(self, weight_indices):
         # Reshape weights based on weight indices
         batch_size, num_inputs, _ = weight_indices.shape
-        weight_indices = weight_indices.unsqueeze(2).expand(-1, -1, self.out_features, -1)
+        weight_indices = weight_indices.unsqueeze(2).expand(
+            -1, -1, self.out_features, -1
+        )
 
         # Select weights for each input point
         selected_weights = self.w[weight_indices]
@@ -490,7 +508,7 @@ class PiecewiseND(torch.nn.Module):
         reshaped_weights = selected_weights.view(
             batch_size, num_inputs, self.out_features, self.weights_per_segment
         )
-        
+
         # Permute to get the desired shape [out_features, num_inputs, batch_size, weights_per_segment]
         return reshaped_weights
 

@@ -2,7 +2,6 @@ import logging
 
 import torch
 import torch.optim as optim
-import torch_optimizer as alt_optim
 from omegaconf import DictConfig
 from pytorch_lightning import LightningModule
 from torch import Tensor
@@ -53,15 +52,6 @@ class PredictionNetMixin:
         return self.eval_step(batch, "test")
 
     def configure_optimizers(self):
-        if self.cfg.optimizer.name == "adahessian":
-            return alt_optim.Adahessian(
-                self.parameters(),
-                lr=self.cfg.optimizer.lr,
-                betas=self.cfg.optimizer.betas,
-                eps=self.cfg.optimizer.eps,
-                weight_decay=self.cfg.optimizer.weight_decay,
-                hessian_power=self.cfg.optimizer.hessian_power,
-            )
         
         if self.cfg.optimizer.name == "adam" :
             optimizer = optim.Adam(
