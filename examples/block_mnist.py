@@ -33,10 +33,10 @@ normalization = {
 }
 
 grid_x, grid_y = torch.meshgrid(
-    (torch.arange(28) - 14) // 14, (torch.arange(28) - 14) // 14, indexing="ij"
+    (torch.arange(28) - 14) / 14, (torch.arange(28) - 14) / 14, indexing="ij"
 )
 grid = torch.stack([grid_x, grid_y])
-
+print('grid', grid)
 
 def collate_fn(batch):
     
