@@ -74,18 +74,20 @@ class NDFunctionApproximation(LightningModule):
         self.batch_size = batch_size
         self.layer_type = layer_type
 
-        if layer_type == "polynomial_2d":
+        if layer_type in ["polynomial_2d","continuous_nd"]:
             layer1 = high_order_fc_layers(
                 layer_type=layer_type,
                 n=[n,n],
-                in_features=2,
+                in_features=1,
                 out_features=1,
+                dimensions=2,
                 segments=segments,
                 alpha=linear_part,
                 intialization="constant_random",
                 device=device,
             )
             self.model = nn.Sequential(*[layer1])
+            self.forward_function = self.nd_forward
         else:
             layer1 = high_order_fc_layers(
                 layer_type=layer_type,
@@ -107,10 +109,21 @@ class NDFunctionApproximation(LightningModule):
                 initialization="constant_random",
             )
             self.model = nn.Sequential(*[layer1, layer2])
+            self.forward_function = self.standard_forward
+
+            
+    
+
+    def nd_forward(self, x) :
+        return self.model(x.unsqueeze(1))
+
+    
+    def standard_forward(self, x) :
+        return self.model(x)
+
 
     def forward(self, x):
-        out1 = self.model(x)
-        return out1
+        return self.forward_function(x)
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -153,7 +166,10 @@ model_set_2d = [
     {"name": f"Polynomial 2D {i+1}", "n": i, "layer": "polynomial_2d"}
     for i in range(2, 10, 2)
 ]
-
+model_set_c2d = [
+    {"name": f"Continuous 2D {i+1}", "n": i, "layer": "continuous_nd"}
+    for i in range(2, 6)
+]
 def plot_approximation(
     model_set,
     segments,
@@ -185,13 +201,10 @@ def plot_approximation(
         )
 
         trainer.fit(model)
-        if layer_type == "polynomial_2d" :
-            thisTest = xTest.reshape(xTest.size(0),1, -1)
-            predictions = model(thisTest)
-        else :
-            thisTest = xTest.reshape(xTest.size(0), -1)
-
-            predictions = model(thisTest)
+        
+        thisTest = xTest.reshape(xTest.size(0), -1)
+        predictions = model(thisTest)
+        
         pred_set.append(predictions)
         if plot is True:
             ans = predictions.flatten().data.numpy()
@@ -218,6 +231,7 @@ def run(cfg: DictConfig):
         "discontinuous": model_set_d,
         "polynomial": model_set_p,
         "polynomial_2d" : model_set_2d,
+        "continuous_nd" : model_set_c2d
     }
 
     plot_approximation(

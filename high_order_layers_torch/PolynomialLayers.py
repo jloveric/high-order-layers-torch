@@ -1,5 +1,5 @@
 import random
-from typing import Union
+from typing import Union, Optional
 
 import torch
 import torch.nn as nn
@@ -363,6 +363,7 @@ class PiecewiseND(torch.nn.Module):
         in_features: int,
         out_features: int,
         segments: Union[List[int], int],
+        dimensions: Optional[int] = None,
         length: float = 2.0,
         weight_magnitude: float = 1.0,
         device: str = "cpu",
@@ -370,11 +371,25 @@ class PiecewiseND(torch.nn.Module):
         **kwargs,
     ):
         super().__init__()
-        self.n = [n] * in_features if isinstance(n, int) else n
+        if dimensions is None and isinstance(n, int):
+            raise ValueError(
+                "PiecewiseND either dimensions must be specified or n must be a vector"
+            )
+
+        self.dimensions = dimensions or len(n)
+
+        self.n = [n] * self.dimensions if isinstance(n, int) else n
         self.segments = (
-            [segments] * in_features if isinstance(segments, int) else segments
+            [segments] * self.dimensions if isinstance(segments, int) else segments
         )
-        self.dimensions = in_features
+
+        if len(self.n) != len(self.segments):
+            raise ValueError(
+                f"Dimensions of n and segments must match, got {len(self.n)} and {len(self.segments)}"
+            )
+
+        print('n', n, 'segments', self.segments)
+
         self.in_features = in_features
         self.out_features = out_features
         self.device = device
@@ -388,7 +403,7 @@ class PiecewiseND(torch.nn.Module):
         # Calculate total number of weights needed
         self.weights_per_segment = math.prod(self.n)
         self.total_segments = math.prod(self.segments)  # per block
-        
+
         # Ahh! This is actually the discontinuous case as we haven't
         # accounted for neighboring nodes
         self.w = nn.Parameter(
@@ -418,6 +433,7 @@ class PiecewiseND(torch.nn.Module):
         self.w.data = segment_values.repeat_interleave(
             self.total_segments * self.weights_per_segment
         )
+        print("self.w.data", self.w)
 
     def which_segment(self, x: torch.Tensor) -> torch.Tensor:
         return (
@@ -450,7 +466,7 @@ class PiecewiseND(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-
+        #print('x.shape', x.shape)
         # Get segment indices for each dimension
         segment_indices = self.which_segment(x)
 
@@ -459,7 +475,7 @@ class PiecewiseND(torch.nn.Module):
 
         # Determine which weights are active
         weight_indices = self._get_weight_indices(segment_indices)
-
+        #print("weight_indices", weight_indices)
         # Reshape weights for each segment
         w = self._reshape_weights(weight_indices)
 
@@ -474,7 +490,7 @@ class PiecewiseND(torch.nn.Module):
         flat_indices = torch.zeros(
             batch_size, num_inputs, dtype=torch.long, device=self.device
         )
-
+        #print('flat_indices.shape', flat_indices.shape, 'segment_indices.shape', segment_indices.shape)
         for dim in range(self.dimensions):
             flat_indices += segment_indices[..., dim] * math.prod(
                 self.segments[dim + 1 :]
@@ -501,7 +517,7 @@ class PiecewiseND(torch.nn.Module):
         )
 
         # Select weights for each input point
-        #selected_weights = self.w[weight_indices]
+        # selected_weights = self.w[weight_indices]
 
         # Reshape to [out_features, num_inputs, batch_size, weights_per_segment]
         reshaped_weights = self.w[weight_indices].view(
