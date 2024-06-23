@@ -28,8 +28,8 @@ transformPoly = transforms.Compose(
 )
 
 normalization = {
-    "max_abs": MaxAbsNormalizationND,
-    "max_center": MaxCenterNormalizationND,
+    "max_abs": MaxAbsNormalization,
+    "max_center": MaxCenterNormalization,
 }
 
 grid_x, grid_y = torch.meshgrid(
@@ -81,7 +81,9 @@ class Net(LightningModule):
             intialization="constant_random",
             device=cfg.accelerator,
         )
-        self.model = nn.Sequential(*[layer1])
+        normalize = normalization[cfg.normalization]()
+
+        self.model = nn.Sequential(*[layer1, normalize])
 
     def forward(self, x):
         #print("x.shape", x.shape)
