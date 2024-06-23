@@ -436,6 +436,7 @@ class PiecewiseND(torch.nn.Module):
         print("self.w.data", self.w)
 
     def which_segment(self, x: torch.Tensor) -> torch.Tensor:
+        print('segments x', torch.min(x[:,:,0]), torch.max(x[:,:,1]))
         return (
             (
                 (x + self._half)

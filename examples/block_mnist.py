@@ -23,9 +23,6 @@ from high_order_layers_torch.layers import *
 transformStandard = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
-transformPoly = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.0,), (1.0,))]
-)
 
 normalization = {
     "max_abs": MaxAbsNormalization,
@@ -33,13 +30,13 @@ normalization = {
 }
 
 grid_x, grid_y = torch.meshgrid(
-    (torch.arange(28) - 14) / 14, (torch.arange(28) - 14) / 14, indexing="ij"
+    (torch.arange(28) - 13.5) / 13.5, (torch.arange(28) - 13.5) / 13.5, indexing="ij"
 )
 grid = torch.stack([grid_x, grid_y])
-print('grid', grid)
+
 
 def collate_fn(batch):
-    
+
     input = []
     classification = []
     for element in batch:
@@ -70,12 +67,12 @@ class Net(LightningModule):
         self._layer_type = cfg.layer_type
         self._train_fraction = cfg.train_fraction
 
-        self._transform = transformPoly
+        self._transform = transformStandard
 
         layer1 = high_order_fc_layers(
             layer_type=cfg.layer_type,
-            n=[3,n,n],
-            segments = cfg.segments,
+            n=[3, n, n],
+            segments=cfg.segments,
             in_features=1,
             out_features=10,
             intialization="constant_random",
@@ -86,14 +83,14 @@ class Net(LightningModule):
         self.model = nn.Sequential(*[layer1, normalize])
 
     def forward(self, x):
-        #print("x.shape", x.shape)
+        # print("x.shape", x.shape)
         batch_size, inputs = x.shape[:2]
         xin = x.view(-1, 1, 3)
-        #print("xin.shape", xin.shape)
+        # print("xin.shape", xin.shape)
         res = self.model(xin)
         res = res.reshape(batch_size, inputs, -1)
-        output = torch.sum(res,dim=1)
-        #print("res.shape", output.shape)
+        output = torch.sum(res, dim=1)
+        # print("res.shape", output.shape)
         # xout = res.view(batch_size, )
         return output
 

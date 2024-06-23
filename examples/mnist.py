@@ -19,10 +19,6 @@ from high_order_layers_torch.layers import *
 transformStandard = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
-transformPoly = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.0,), (1.0,))]
-)
-
 
 normalization = {
     "max_abs": MaxAbsNormalizationND,
@@ -46,7 +42,7 @@ class Net(LightningModule):
         self._train_fraction = cfg.train_fraction
         segments = cfg.segments
 
-        self._transform = transformPoly
+        self._transform = transformStandard
 
         in_channels = cfg.channels[0]
         out_channels = cfg.channels[1]
