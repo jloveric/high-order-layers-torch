@@ -144,6 +144,20 @@ class LagrangeBasisND:
 
         return out_sum
 
+class LagrangeBasisPiecewiseND(LagrangeBasisND) :
+    def interpolate(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
+        """
+        Interpolates the input using the Lagrange basis.
+        :param x: size[batch, inputs, dimensions]
+        :param w: size[output, inputs, num_basis]
+        :returns: size[batch, output]
+        """
+        basis = self._compute_basis(x, self.indexes)  # [num_basis, batch, inputs]
+        out_sum = torch.einsum("ibk,bkoi->bo", basis, w)  # [batch, output]
+
+        return out_sum
+
+
 class FourierBasis:
     def __init__(self, length: float):
         """

@@ -1,8 +1,9 @@
 max_epochs: 1
 accelerator: 'cuda'
-n: 10
+n: 7
 batch_size: 16
-layer_type: polynomial_3d
+layer_type: polynomial_3d # continuous_3d
+segments: 5
 train_fraction: 1.0
 
 defaults:

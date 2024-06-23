@@ -272,6 +272,7 @@ fc_layers = {
     "polynomial_3d" : Polynomial3D,
     "polynomial_4d" : Polynomial4D,
     "polynomial_5d" : Polynomial5D,
+    "continuous_nd" : PiecewiseND,
 }
 
 convolutional_layers = {
