@@ -296,8 +296,9 @@ The polynomial last layer is the same as that used in the convolution.
 Basics implemented, needs to be made more efficient and model needs to change a bit. Currently uses a single NxNxN polynomial
 with 3 inputs (grayscale color, x, y) and 10 outputs to solve mnist. Not performant, but will work on it.
 ```
-python3 examples/block_mnist.py accelerator='cuda' batch_size=64 optimizer.lr=1e-3
+python examples/block_mnist.py optimizer=sophia optimizer.lr=1e-3 batch_size=32 max_epochs=100 n=20 layer_type=polynomial_3d
 ```
+with accuracy 0.9289000034332275
 and
 ```
 python examples/block_mnist.py optimizer=lion optimizer.lr=1e-3 batch_size=16 max_epochs=100 n=28 layer_type=polynomial_3d
